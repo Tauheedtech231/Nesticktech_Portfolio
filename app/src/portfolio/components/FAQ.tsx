@@ -4,7 +4,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { ChevronDown, HelpCircle, Mail, Phone, Send, Sparkles, ArrowRight, MessageCircle, Clock, Award, Users } from 'lucide-react';
+import { HelpCircle, Mail, Phone, Send, Sparkles, ArrowRight, MessageCircle, Clock, Award, Users, Plus, Minus } from 'lucide-react';
 import Link from 'next/link';
 
 interface FAQItem {
@@ -14,7 +14,7 @@ interface FAQItem {
 }
 
 const FAQ = () => {
-  const [openItems, setOpenItems] = useState<number[]>([0]); // First item open by default
+  const [openItems, setOpenItems] = useState<number[]>([1]); // First item open by default
   const [flippedCard, setFlippedCard] = useState<number | null>(null);
 
   const phoneNumber = "923193236529";
@@ -45,21 +45,6 @@ const FAQ = () => {
       id: 5,
       question: "How much does a typical project cost?",
       answer: "Project costs vary based on requirements, complexity, and timeline. We provide transparent pricing and detailed quotes after understanding your specific needs. Contact us for a free consultation and estimate.",
-    },
-    {
-      id: 6,
-      question: "Can you integrate with existing systems?",
-      answer: "Absolutely! We specialize in integrating new solutions with your existing infrastructure. Whether it's legacy systems, third-party APIs, or existing databases, we ensure seamless integration and data flow.",
-    },
-    {
-      id: 7,
-      question: "What is your development process?",
-      answer: "Our process includes: 1) Discovery & Planning, 2) Design & Prototyping, 3) Development & Testing, 4) Deployment & Launch, and 5) Ongoing Support. We follow agile methodology with regular client updates.",
-    },
-    {
-      id: 8,
-      question: "Do you work with startups?",
-      answer: "Yes, we love working with startups! We offer flexible engagement models and scalable solutions that grow with your business. Our team helps startups from MVP development to full-scale products.",
     },
   ];
 
@@ -207,26 +192,26 @@ const FAQ = () => {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          className="w-full"
+          className="w-full max-w-3xl mx-auto"
         >
           {faqData.map((faq) => (
             <motion.div
               key={faq.id}
               variants={itemVariants}
-              className="mb-2 w-full"
+              className="mb-3 w-full"
             >
               <div
                 className={`bg-[#0F172A] border border-[#1E293B] rounded-xl overflow-hidden transition-all duration-200 w-full ${
-                  openItems.includes(faq.id) ? 'shadow-md shadow-[#6366F1]/10' : ''
+                  openItems.includes(faq.id) ? 'shadow-md shadow-[#6366F1]/10 border-[#6366F1]/30' : ''
                 }`}
               >
                 {/* Question Button */}
                 <button
                   onClick={() => toggleItem(faq.id)}
-                  className="w-full px-4 py-3.5 flex items-center justify-between text-left group cursor-pointer"
+                  className="w-full px-5 py-4 flex items-center justify-between text-left group cursor-pointer"
                 >
-                  <div className="flex items-center gap-2 flex-1">
-                    <span className="w-5 h-5 rounded-full bg-[#6366F1]/10 flex items-center justify-center text-[#6366F1] text-[10px] font-bold">
+                  <div className="flex items-center gap-3 flex-1">
+                    <span className="w-6 h-6 rounded-full bg-[#6366F1]/10 flex items-center justify-center text-[#6366F1] text-xs font-bold flex-shrink-0">
                       {faq.id}
                     </span>
                     <span className="text-[#F8FAFC] text-sm lg:text-base font-medium font-sans tracking-wide group-hover:text-[#6366F1] transition-colors duration-200">
@@ -235,13 +220,15 @@ const FAQ = () => {
                   </div>
                   
                   <motion.div
-                    animate={{ rotate: openItems.includes(faq.id) ? 180 : 0 }}
-                    transition={{ duration: 0.15 }}
-                    className="flex-shrink-0 ml-2"
+                    animate={{ rotate: openItems.includes(faq.id) ? 90 : 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex-shrink-0 ml-2 w-6 h-6 rounded-full bg-[#6366F1]/10 flex items-center justify-center group-hover:bg-[#6366F1]/20 transition-all duration-200"
                   >
-                    <ChevronDown className={`w-4 h-4 ${
-                      openItems.includes(faq.id) ? 'text-[#6366F1]' : 'text-[#94A3B8]'
-                    }`} />
+                    {openItems.includes(faq.id) ? (
+                      <Minus className="w-3.5 h-3.5 text-[#6366F1]" />
+                    ) : (
+                      <Plus className="w-3.5 h-3.5 text-[#6366F1]" />
+                    )}
                   </motion.div>
                 </button>
 
@@ -252,12 +239,12 @@ const FAQ = () => {
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.15 }}
+                      transition={{ duration: 0.2 }}
                       className="overflow-hidden"
                     >
-                      <div className="px-4 pb-3.5 pt-2 border-t border-[#1E293B]">
-                        <div className="flex gap-2">
-                          <div className="w-5 flex-shrink-0" />
+                      <div className="px-5 pb-4 pt-2 border-t border-[#1E293B]">
+                        <div className="flex gap-3">
+                          <div className="w-6 flex-shrink-0" />
                           <p className="text-[#94A3B8] text-xs lg:text-sm leading-relaxed font-light tracking-wide flex-1">
                             {faq.answer}
                           </p>
@@ -303,7 +290,7 @@ const FAQ = () => {
               </div>
               
               <h3 className="text-2xl lg:text-3xl font-bold font-serif tracking-tight bg-gradient-to-r from-[#F8FAFC] to-[#94A3B8] bg-clip-text text-transparent mb-3">
-                Still Have Questions?
+                One a Talk Us
               </h3>
               
               <p className="text-[#94A3B8] text-sm lg:text-base max-w-md mx-auto font-light tracking-wide">

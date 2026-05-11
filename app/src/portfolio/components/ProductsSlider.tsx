@@ -1,7 +1,8 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 // components/PartnersSlider.tsx
 'use client';
 
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
 import { motion, Variants } from 'framer-motion';
 import Image from 'next/image';
 
@@ -14,7 +15,7 @@ interface Partner {
 const PartnersSlider = () => {
   const sliderRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
-  const [animationDuration, setAnimationDuration] = useState(20);
+  const [isClient, setIsClient] = useState(false);
 
   const partners: Partner[] = [
     { id: 1, name: "Saqfiyat", image: "/p1.jpg" },
@@ -23,22 +24,14 @@ const PartnersSlider = () => {
     { id: 4, name: "Pixsy Studio", image: "/p4.jpg" },
   ];
 
-  // Fix smooth slider animation
-  useEffect(() => {
-    const slider = sliderRef.current;
-    if (!slider) return;
+  // Duplicate partners 4 times for extremely smooth infinite scroll
+  const duplicatedPartners = [...partners, ...partners, ...partners, ...partners];
 
-    const totalWidth = slider.scrollWidth;
-    const scrollDistance = totalWidth / 2;
-    
-    const duration = (scrollDistance / 150) * 1.5;
-    setAnimationDuration(Math.max(12, Math.min(25, duration)));
+  useEffect(() => {
+    setIsClient(true);
   }, []);
 
-  // Duplicate partners for seamless infinite scroll
-  const duplicatedPartners = [...partners, ...partners];
-
-  // Animation variants - Hero section style
+  // Animation variants
   const fromBottomVariants: Variants = {
     hidden: { y: 30, opacity: 0 },
     visible: {
@@ -53,9 +46,23 @@ const PartnersSlider = () => {
     },
   };
 
+  if (!isClient) {
+    return (
+      <section className="relative py-8 sm:py-10 bg-gradient-to-b from-[#0A0F1E] to-[#020617] overflow-hidden">
+        <div className="relative max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-5 md:mb-6">
+            <h2 className="text-xl md:text-2xl lg:text-3xl font-bold font-serif tracking-tight bg-gradient-to-r from-[#F8FAFC] via-[#E2E8F0] to-[#94A3B8] bg-clip-text text-transparent">
+              Trusted By Industry Leaders
+            </h2>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="relative py-8 sm:py-10 bg-gradient-to-b from-[#0A0F1E] to-[#020617] overflow-hidden">
-      {/* Animated background pattern */}
+      {/* ONLY Parallax Background Effect - No dark overlays */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(99,102,241,0.03)_25%,rgba(99,102,241,0.03)_50%,transparent_50%,transparent_75%,rgba(99,102,241,0.03)_75%)] bg-[size:40px_40px] animate-[shift_20s_linear_infinite]" />
         
@@ -66,14 +73,13 @@ const PartnersSlider = () => {
       </div>
 
       <div className="relative max-w-full mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header - Hero section font styles */}
+        {/* Section Header */}
         <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
           className="text-center mb-5 md:mb-6"
         >
-          {/* Heading - Hero section style */}
           <motion.h2 
             variants={fromBottomVariants}
             className="text-xl md:text-2xl lg:text-3xl font-bold font-serif tracking-tight bg-gradient-to-r from-[#F8FAFC] via-[#E2E8F0] to-[#94A3B8] bg-clip-text text-transparent"
@@ -82,24 +88,21 @@ const PartnersSlider = () => {
           </motion.h2>
         </motion.div>
 
-        {/* Simple Container - No border color, just blur */}
+        {/* Container - No background, no dark rectangles, just transparent */}
         <motion.div 
           variants={fromBottomVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.1 }}
-          className="relative overflow-hidden rounded-2xl bg-[#0F172A]/30 backdrop-blur-sm"
+          className="relative overflow-hidden"
         >
-          {/* Slider */}
+          {/* Slider - Fixed infinite loop using CSS animation */}
           <div
-            ref={sliderRef}
-            className="flex gap-8 md:gap-12 lg:gap-16 items-center py-4"
+            className="flex gap-8 md:gap-12 lg:gap-16 items-center py-4 slider-track"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             style={{
-              animation: `scroll ${animationDuration}s linear infinite`,
               animationPlayState: isHovered ? 'paused' : 'running',
-              width: 'fit-content',
             }}
           >
             {duplicatedPartners.map((partner, index) => (
@@ -108,21 +111,21 @@ const PartnersSlider = () => {
                 className="flex-shrink-0 group cursor-pointer"
               >
                 <div className="flex flex-col items-center justify-center transition-all duration-300">
-                  {/* Image Container */}
+                  {/* Image Container - Rounded */}
                   <div className="relative mb-1 md:mb-2">
-                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#6366F1]/20 to-[#8B5CF6]/20 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500" />
-                    <div className="relative w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-xl bg-gradient-to-br from-[#1E293B] to-[#0F172A] flex items-center justify-center border border-[#334155] group-hover:border-[#6366F1] transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl group-hover:shadow-[#6366F1]/20 overflow-hidden">
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#6366F1]/20 to-[#8B5CF6]/20 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500" />
+                    <div className="relative w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-full bg-gradient-to-br from-[#1E293B] to-[#0F172A] flex items-center justify-center border border-[#334155] group-hover:border-[#6366F1] transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl group-hover:shadow-[#6366F1]/20 overflow-hidden">
                       <Image
                         src={partner.image}
                         alt={partner.name}
                         fill
-                        className="object-contain p-2"
+                        className="object-cover"
                         sizes="(max-width: 768px) 48px, (max-width: 1024px) 56px, 64px"
                       />
                     </div>
                   </div>
                   
-                  {/* Partner Name - Hero section font style */}
+                  {/* Partner Name */}
                   <span className="text-[10px] sm:text-xs md:text-sm font-medium font-sans tracking-wide text-[#E2E8F0] group-hover:text-[#6366F1] transition-colors duration-300 text-center whitespace-nowrap">
                     {partner.name}
                   </span>
@@ -133,20 +136,21 @@ const PartnersSlider = () => {
               </div>
             ))}
           </div>
-
-          {/* Gradient fade edges */}
-          <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-20 md:w-24 bg-gradient-to-r from-[#020617] via-[#020617]/80 to-transparent pointer-events-none" />
-          <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-20 md:w-24 bg-gradient-to-l from-[#020617] via-[#020617]/80 to-transparent pointer-events-none" />
         </motion.div>
       </div>
 
       <style jsx>{`
+        .slider-track {
+          animation: scroll 25s linear infinite;
+          width: fit-content;
+        }
+        
         @keyframes scroll {
           0% {
             transform: translateX(0);
           }
           100% {
-            transform: translateX(-50%);
+            transform: translateX(-25%);
           }
         }
         

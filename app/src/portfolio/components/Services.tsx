@@ -167,15 +167,15 @@ const Services = () => {
           viewport={{ once: true, amount: 0.2 }}
           className="max-w-3xl mb-8 sm:mb-10 lg:mb-16 text-left"
         >
-       {/* Badge - Hero section style */}
-<motion.div 
-  variants={fromLeftVariants}
-  className="inline-flex items-center gap-2 px-3 sm:px-4 py-1 sm:py-2 bg-[#6366F1]/10 border border-[#6366F1]/20 rounded-full mb-3 sm:mb-4 cursor-pointer transition-all duration-300 hover:border-[#6366F1] hover:bg-[#6366F1]/20"
->
-  <span className="text-xs sm:text-sm font-medium font-sans tracking-wide text-[#6366F1] italic ml-[.5rem]">Our Services</span>
-</motion.div>
+          {/* Badge - Hero section style */}
+          <motion.div 
+            variants={fromLeftVariants}
+            className="inline-flex items-center gap-2 px-3 sm:px-4 py-1 sm:py-2 bg-[#6366F1]/10 border border-[#6366F1]/20 rounded-full mb-3 sm:mb-4 cursor-pointer transition-all duration-300 hover:border-[#6366F1] hover:bg-[#6366F1]/20"
+          >
+            <span className="text-xs sm:text-sm font-medium font-sans tracking-wide text-[#6366F1] italic ml-[.5rem]">Our Services</span>
+          </motion.div>
           
-          {/* Heading - Hero section style (font-serif, bold, tracking-tight) */}
+          {/* Heading - Hero section style */}
           <motion.h2 
             variants={fromLeftVariants}
             className="text-2xl sm:text-2xl lg:text-3xl font-bold font-serif tracking-tight text-white mb-2 ml-[.5rem] sm:mb-4 leading-tight"
@@ -186,7 +186,7 @@ const Services = () => {
             </span>
           </motion.h2>
           
-          {/* Description - Hero section style (font-light, tracking-wide) */}
+          {/* Description - Hero section style */}
           <motion.p 
             variants={fromLeftVariants}
             className="text-sm sm:text-base ml-[.5rem] lg:text-lg text-[#94A3B8] max-w-2xl leading-relaxed font-light tracking-wide"
@@ -231,7 +231,7 @@ const Services = () => {
                   />
                   
                   {/* Main Card */}
-                  <div className="relative bg-[#0F172A] border border-[#1E293B] rounded-xl p-4 sm:p-5 lg:p-6 hover:border-transparent transition-all duration-300 hover:shadow-xl hover:shadow-[#6366F1]/5 h-full flex flex-col cursor-pointer">
+                  <div className="relative bg-[#0F172A] border border-[#1E293B] rounded-xl p-4 sm:p-5 lg:p-6 hover:border-transparent transition-all duration-300 hover:shadow-xl hover:shadow-[#6366F1]/5 h-full flex flex-col cursor-pointer overflow-hidden">
                     
                     {/* Icon Container */}
                     <div className="relative mb-3 sm:mb-4 flex-shrink-0">
@@ -248,12 +248,12 @@ const Services = () => {
                       />
                     </div>
 
-                    {/* Title - Hero section style (font-sans, font-semibold, tracking-wide) */}
+                    {/* Title - Hero section style */}
                     <h3 className="text-base sm:text-lg font-semibold font-sans tracking-wide text-white mb-1 sm:mb-2 group-hover:text-[#6366F1] transition-colors duration-300 flex-shrink-0">
                       {service.title}
                     </h3>
 
-                    {/* Description - Hero section style (font-light, tracking-wide) */}
+                    {/* Description - Hero section style */}
                     <p className="text-xs sm:text-sm text-[#94A3B8] leading-relaxed font-light tracking-wide line-clamp-3 flex-grow">
                       {service.description}
                     </p>
@@ -262,6 +262,9 @@ const Services = () => {
                     <div className="mt-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-0 group-hover:translate-x-1 flex-shrink-0">
                       <ArrowRight className="w-4 h-4 text-[#6366F1]" />
                     </div>
+
+                    {/* Bottom Line - Moves left to right on hover (Blue to Green) */}
+                    <div className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-[#1E293B] to-[#1E293B] group-hover:from-[#3B82F6] group-hover:to-[#22C55E] transition-all duration-500 ease-out transform scale-x-0 group-hover:scale-x-100 origin-left" />
 
                     {/* Corner Accent */}
                     <div className="absolute top-0 right-0 w-12 h-12 overflow-hidden">

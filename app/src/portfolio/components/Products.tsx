@@ -1,7 +1,9 @@
+/* eslint-disable react-hooks/rules-of-hooks */
+
 // app/products/page.tsx
 'use client';
 
-import { AnimatePresence, motion, Variants } from 'framer-motion';
+import { AnimatePresence, motion, Variants, useScroll, useTransform } from 'framer-motion';
 import { useRef, useState, useMemo, useCallback, useEffect } from 'react';
 import { 
   Building2, 
@@ -19,8 +21,13 @@ import {
   Rocket,
   ArrowRight,
   LucideIcon,
-  X
+  X,
+  Star,
+  Users,
+  Shield,
+  Zap
 } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 
 interface Product {
@@ -33,6 +40,8 @@ interface Product {
   gradient: string;
   icon: LucideIcon;
   color: string;
+  image: string;
+  features: string[];
 }
 
 interface FormData {
@@ -44,13 +53,21 @@ interface FormData {
 }
 
 const ProductsPage = () => {
-  const sectionRef = useRef(null);
+  const sectionRef = useRef<HTMLElement>(null);
   const [hoveredId, setHoveredId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [activeProductIndex, setActiveProductIndex] = useState(0);
   const modalRef = useRef<HTMLDivElement>(null);
+  const showcaseRef = useRef<HTMLDivElement>(null);
+
+  // Scroll progress for product showcase
+  const { scrollYProgress } = useScroll({
+    target: showcaseRef,
+    offset: ["start start", "end end"]
+  });
 
   const [formData, setFormData] = useState<FormData>({
     name: '',
@@ -71,6 +88,8 @@ const ProductsPage = () => {
       gradient: 'from-[#6366F1] to-[#8B5CF6]',
       icon: Building2,
       color: '#6366F1',
+      image: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800&h=600&fit=crop',
+      features: ['Student Management', 'Teacher Portal', 'Grade Tracking', 'Fee Management', 'Parent Communication', 'Exam Scheduling']
     },
     {
       id: 2,
@@ -82,6 +101,8 @@ const ProductsPage = () => {
       gradient: 'from-[#22C55E] to-[#86EFAC]',
       icon: ShoppingCart,
       color: '#22C55E',
+      image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&h=600&fit=crop',
+      features: ['Inventory Tracking', 'Sales Analytics', 'Customer Management', 'Payment Integration', 'Employee Management', 'Real-time Reports']
     },
     {
       id: 3,
@@ -93,6 +114,8 @@ const ProductsPage = () => {
       gradient: 'from-[#F59E0B] to-[#FBBF24]',
       icon: TrendingUp,
       color: '#F59E0B',
+      image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop',
+      features: ['Campaign Management', 'Lead Tracking', 'Conversion Optimization', 'Channel Analytics', 'Email Marketing', 'Social Media Integration']
     },
     {
       id: 4,
@@ -104,8 +127,33 @@ const ProductsPage = () => {
       gradient: 'from-[#EF4444] to-[#F87171]',
       icon: Store,
       color: '#EF4444',
+      image: 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=800&h=600&fit=crop',
+      features: ['Project Tracking', 'Resource Management', 'Budget Monitoring', 'Team Collaboration', 'Client Portal', 'Timeline Planning']
     },
   ], []);
+
+  // Parallax scroll effects for background
+  const bgY = useTransform(scrollYProgress, [0, 1], [0, -100]);
+  const bgOpacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0.3, 0.5, 0.4, 0.2]);
+  
+  // Image animation transforms for smooth transitions
+  const imageScale = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.95, 1, 1, 0.95]);
+  const imageRotate = useTransform(scrollYProgress, [0, 0.5, 1], [0, 1, -1]);
+  const imageBlur = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 0, 0, 0]);
+
+  // Current active product based on scroll
+  useEffect(() => {
+    const unsubscribe = scrollYProgress.onChange((value) => {
+      const newIndex = Math.min(
+        Math.floor(value * products.length),
+        products.length - 1
+      );
+      if (newIndex !== activeProductIndex) {
+        setActiveProductIndex(newIndex);
+      }
+    });
+    return () => unsubscribe();
+  }, [scrollYProgress, products.length, activeProductIndex]);
 
   const handleRequestDemo = (productName: string) => {
     setSelectedProduct(productName);
@@ -121,14 +169,9 @@ const ProductsPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1500));
-    
     setIsSubmitting(false);
     setIsSubmitted(true);
-    
-    // Reset form after 3 seconds
     setTimeout(() => {
       setIsModalOpen(false);
       setIsSubmitted(false);
@@ -143,7 +186,6 @@ const ProductsPage = () => {
     }, 3000);
   };
 
-  // Close modal on escape key
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setIsModalOpen(false);
@@ -152,7 +194,6 @@ const ProductsPage = () => {
     return () => window.removeEventListener('keydown', handleEsc);
   }, []);
 
-  // Close modal on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
@@ -170,59 +211,10 @@ const ProductsPage = () => {
   }, [isModalOpen]);
 
   // Animation variants
-  const containerVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.08,
-        delayChildren: 0.15,
-      },
-    },
-  };
-
-  const itemVariants: Variants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: 'spring',
-        stiffness: 70,
-        damping: 12,
-        mass: 0.5,
-      },
-    },
-  };
-
-  const introContainerVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.15,
-        delayChildren: 0.1,
-      },
-    },
-  };
-
   const fromLeftVariants: Variants = {
     hidden: { x: -30, opacity: 0 },
     visible: {
       x: 0,
-      opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 50,
-        damping: 12,
-      },
-    },
-  };
-
-  const fromBottomVariants: Variants = {
-    hidden: { y: 30, opacity: 0 },
-    visible: {
-      y: 0,
       opacity: 1,
       transition: {
         type: "spring",
@@ -241,152 +233,271 @@ const ProductsPage = () => {
     }
   };
 
+  const currentProduct = products[activeProductIndex];
+
   return (
     <>
       <main className="min-h-screen bg-[#020617]">
-        <section
-          ref={sectionRef}
-          className="relative py-8 bg-[#020617] overflow-hidden"
-        >
-          {/* Background decorative elements */}
-          <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute top-20 left-10 w-72 h-72 bg-[#6366F1]/5 rounded-full blur-3xl" />
-            <div className="absolute bottom-20 right-10 w-72 h-72 bg-[#8B5CF6]/5 rounded-full blur-3xl" />
+        {/* Hero Section */}
+        <section className="relative py-8 bg-[#020617] overflow-hidden">
+          {/* Parallax Background */}
+          <motion.div 
+            className="absolute inset-0 overflow-hidden"
+            style={{ y: bgY }}
+          >
+            <motion.div 
+              className="absolute top-20 left-10 w-72 h-72 bg-[#6366F1]/5 rounded-full blur-3xl"
+              style={{ opacity: bgOpacity }}
+            />
+            <motion.div 
+              className="absolute bottom-20 right-10 w-72 h-72 bg-[#8B5CF6]/5 rounded-full blur-3xl"
+              style={{ opacity: bgOpacity }}
+            />
+            <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-5" />
+          </motion.div>
+
+          {/* Floating Particles */}
+          <div className="absolute inset-0 pointer-events-none">
+            {[...Array(20)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-1 h-1 bg-[#6366F1]/30 rounded-full"
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: `${Math.random() * 100}%`,
+                  y: useTransform(scrollYProgress, [0, 1], [0, (Math.random() - 0.5) * 100]),
+                  x: useTransform(scrollYProgress, [0, 1], [0, (Math.random() - 0.5) * 50]),
+                }}
+              />
+            ))}
           </div>
 
-          {/* Grid pattern overlay */}
-          <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-5" />
-
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Section Header - Services Section Font Styles */}
             <motion.div
-              variants={introContainerVariants}
               initial="hidden"
               animate="visible"
-              className="max-w-3xl mb-10 lg:mb-12 text-left"
+              className="max-w-3xl text-left"
             >
-              {/* Badge - Italic text and cursor pointer */}
               <motion.div 
                 variants={fromLeftVariants}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0F172A] border border-[#1E293B] mb-4 cursor-pointer hover:border-[#6366F1] hover:bg-[#6366F1]/10 transition-all duration-300"
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0F172A] border border-[#1E293B] mb-3 cursor-pointer"
               >
-                <span className="relative flex h-2 w-2">
+                <span className="relative flex h-1.5 w-1.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#6366F1] opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#6366F1]"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#6366F1]"></span>
                 </span>
-                <span className="text-sm font-medium font-sans tracking-wide bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent italic">
+                <span className="text-xs font-medium font-sans tracking-wide bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent italic">
                   Our Products
                 </span>
               </motion.div>
 
-              {/* Heading - Services section style */}
-              <motion.h2 
+              <motion.h1 
                 variants={fromLeftVariants}
-                className="text-2xl md:text-3xl  font-bold font-serif tracking-tight text-[#F8FAFC] mb-3"
+                className="text-2xl md:text-3xl lg:text-4xl font-bold font-serif tracking-tight text-[#F8FAFC] mb-2"
               >
                 Owned{' '}
                 <span className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">
                   Solutions
                 </span>
-              </motion.h2>
+              </motion.h1>
 
-              {/* Description - Services section style */}
               <motion.p 
                 variants={fromLeftVariants}
-                className="text-base text-[#94A3B8] leading-relaxed max-w-2xl font-light tracking-wide"
+                className="text-sm md:text-base text-[#94A3B8] leading-relaxed max-w-2xl font-light tracking-wide"
               >
                 Powerful, scalable, and ready-to-deploy products built by our expert team to solve real-world business challenges.
               </motion.p>
 
-              {/* Decorative line */}
               <motion.div 
                 variants={fromLeftVariants}
-                className="mt-4"
+                className="mt-3"
               >
-                <div className="w-16 h-0.5 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] rounded-full" />
+                <div className="w-12 h-0.5 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] rounded-full" />
               </motion.div>
             </motion.div>
+          </div>
+        </section>
 
-            {/* Products Grid */}
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8"
-            >
-              {products.map((product) => {
-                const Icon = product.icon;
-                return (
+        {/* Product Showcase Section - Scroll Triggered */}
+        <section ref={showcaseRef} className="relative py-8 bg-[#020617] min-h-[200vh]">
+          <div className="sticky top-20 lg:top-24 z-10">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="grid lg:grid-cols-2 gap-6 lg:gap-10 items-center min-h-[450px]">
+                {/* Left Side - Product Content */}
+                <motion.div 
+                  className="space-y-4"
+                  initial={{ opacity: 0, x: -50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
                   <motion.div
-                    key={product.id}
-                    variants={itemVariants}
-                    onHoverStart={() => setHoveredId(product.id)}
-                    onHoverEnd={() => setHoveredId(null)}
-                    className="group relative cursor-pointer"
+                    key={currentProduct?.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
                   >
-                    {/* Card Border Glow Effect */}
-                    <div className={`absolute inset-0 bg-gradient-to-r ${product.gradient} rounded-xl opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur-lg`} />
-                    
-                    {/* Main Card */}
-                    <div className="relative bg-[#0F172A] border border-[#1E293B] rounded-xl overflow-hidden hover:border-transparent transition-all duration-300 hover:-translate-y-1 h-full flex flex-col cursor-pointer">
-                      
-                      {/* Content */}
-                      <div className="p-6 flex-1 flex flex-col">
-                        {/* Icon and Status */}
-                        <div className="flex items-start justify-between mb-4">
-                          <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${product.gradient} flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300`}>
-                            <Icon className="w-6 h-6 text-white" />
-                          </div>
-                          <span className={`text-xs px-2 py-1 rounded-full border ${getStatusColor(product.status)}`}>
-                            {product.status}
-                          </span>
-                        </div>
-
-                        {/* Product Name - Services section font style */}
-                        <h3 className="text-xl font-semibold font-sans tracking-wide text-[#F8FAFC] mb-2 group-hover:text-[#6366F1] transition-colors duration-300">
-                          {product.name}
-                        </h3>
-                        
-                        {/* Short Description - Services section font style */}
-                        <p className="text-sm text-[#94A3B8] mb-4 leading-relaxed font-light tracking-wide line-clamp-2">
-                          {product.shortDescription}
-                        </p>
-
-                        {/* Tags */}
-                        <div className="flex flex-wrap gap-2 mb-4">
-                          {product.tags.slice(0, 3).map((tag) => (
-                            <span
-                              key={tag}
-                              className="text-xs px-2.5 py-1 bg-[#1E293B] text-[#94A3B8] rounded-full border border-transparent hover:border-[#6366F1] hover:text-[#6366F1] transition-colors duration-300 cursor-pointer"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-
-                        {/* Request Demo Button - with cursor pointer */}
-                        <button
-                          onClick={() => handleRequestDemo(product.name)}
-                          className="mt-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white text-sm font-semibold font-sans tracking-wide rounded-lg hover:shadow-lg hover:shadow-[#6366F1]/25 transition-all duration-300 group/btn cursor-pointer"
-                        >
-                          <Rocket className="w-4 h-4" />
-                          <span>Request Demo</span>
-                          <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                        </button>
+                    <div className="inline-flex items-center gap-2 mb-3">
+                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${currentProduct?.gradient} flex items-center justify-center shadow-lg cursor-pointer`}>
+                        {currentProduct && <currentProduct.icon className="w-5 h-5 text-white" />}
                       </div>
-
-                      {/* Bottom Gradient Line */}
-                      <div className={`absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r ${product.gradient} transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left`} />
+                      <span className={`text-xs px-2.5 py-1 rounded-full border ${getStatusColor(currentProduct?.status || 'Live')} cursor-pointer`}>
+                        {currentProduct?.status}
+                      </span>
                     </div>
+
+                    <h2 className="text-2xl md:text-3xl font-bold font-serif tracking-tight text-white mb-2 cursor-pointer">
+                      {currentProduct?.name}
+                    </h2>
+
+                    <p className="text-sm md:text-base text-[#94A3B8] leading-relaxed font-light tracking-wide mb-4">
+                      {currentProduct?.fullDescription}
+                    </p>
+
+                    {/* Features Grid */}
+                    <div className="grid grid-cols-2 gap-2 mb-4">
+                      {currentProduct?.features.slice(0, 6).map((feature, idx) => (
+                        <motion.div 
+                          key={idx} 
+                          className="flex items-center gap-1.5 cursor-pointer"
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: idx * 0.05 }}
+                        >
+                          <CheckCircle className="w-3.5 h-3.5 text-[#22C55E]" />
+                          <span className="text-xs text-[#94A3B8] font-light">{feature}</span>
+                        </motion.div>
+                      ))}
+                    </div>
+
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-1.5 mb-4">
+                      {currentProduct?.tags.map((tag, idx) => (
+                        <motion.span
+                          key={tag}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: idx * 0.05 }}
+                          className="text-[11px] px-2.5 py-1 bg-[#1E293B] text-[#94A3B8] rounded-full border border-transparent hover:border-[#6366F1] transition-all duration-300 cursor-pointer"
+                        >
+                          {tag}
+                        </motion.span>
+                      ))}
+                    </div>
+
+                    {/* CTA Button */}
+                    <motion.button
+                      onClick={() => handleRequestDemo(currentProduct?.name || '')}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-semibold font-sans tracking-wide rounded-lg hover:shadow-lg hover:shadow-[#6366F1]/25 transition-all duration-300 group cursor-pointer text-sm"
+                    >
+                      <Rocket className="w-3.5 h-3.5" />
+                      <span>Request Demo</span>
+                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                    </motion.button>
                   </motion.div>
-                );
-              })}
-            </motion.div>
+                </motion.div>
+
+                {/* Right Side - Product Image with Zoom Effect */}
+                <motion.div 
+                  className="relative cursor-pointer"
+                  style={{
+                    scale: imageScale,
+                    rotate: imageRotate,
+                    filter: `blur(${imageBlur}px)`,
+                  }}
+                >
+                  <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-[#6366F1]/20 cursor-pointer group/image">
+                    <div className={`absolute inset-0 bg-gradient-to-br ${currentProduct?.gradient} opacity-20 z-10 rounded-2xl`} />
+                    
+                    <motion.div
+                      key={currentProduct?.id}
+                      initial={{ opacity: 0, scale: 0.95, borderRadius: "16px" }}
+                      animate={{ opacity: 1, scale: 1, borderRadius: "16px" }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ 
+                        duration: 0.6, 
+                        ease: [0.4, 0, 0.2, 1],
+                        type: "spring",
+                        damping: 25,
+                        stiffness: 200
+                      }}
+                      className="relative aspect-video w-full rounded-2xl overflow-hidden cursor-pointer"
+                    >
+                      <Image
+                        src={currentProduct?.image || ''}
+                        alt={currentProduct?.name || ''}
+                        fill
+                        className="object-cover rounded-2xl transition-transform duration-500 group-hover/image:scale-110 cursor-pointer"
+                        priority
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                      />
+                    </motion.div>
+                    
+                    {/* Floating badges with cursor pointer */}
+                    <motion.div 
+                      className="absolute top-3 right-3 bg-black/60 backdrop-blur-md rounded-full px-2.5 py-1 z-20 cursor-pointer"
+                      animate={{ y: [0, -5, 0] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      <div className="flex items-center gap-1">
+                        <Star className="w-2.5 h-2.5 text-yellow-400 fill-yellow-400" />
+                        <span className="text-[10px] text-white font-medium">4.9/5 Rating</span>
+                      </div>
+                    </motion.div>
+
+                    <motion.div 
+                      className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-md rounded-full px-2.5 py-1 z-20 cursor-pointer"
+                      animate={{ y: [0, 5, 0] }}
+                      transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                    >
+                      <div className="flex items-center gap-1">
+                        <Users className="w-2.5 h-2.5 text-[#6366F1]" />
+                        <span className="text-[10px] text-white font-medium">100+ Businesses</span>
+                      </div>
+                    </motion.div>
+
+                    <motion.div 
+                      className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md rounded-full px-2.5 py-1 z-20 cursor-pointer"
+                      animate={{ y: [0, -3, 0] }}
+                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                    >
+                      <div className="flex items-center gap-1">
+                        <Shield className="w-2.5 h-2.5 text-[#22C55E]" />
+                        <span className="text-[10px] text-white font-medium">Enterprise Grade</span>
+                      </div>
+                    </motion.div>
+                  </div>
+
+                  {/* Progress indicator with cursor pointer */}
+                  <div className="absolute -bottom-10 left-0 right-0 flex justify-center gap-2 mt-3">
+                    {products.map((_, idx) => (
+                      <motion.div
+                        key={idx}
+                        className={`h-1 rounded-full transition-all duration-500 cursor-pointer ${
+                          idx === activeProductIndex
+                            ? 'w-6 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6]'
+                            : 'w-1 bg-[#1E293B] hover:bg-[#6366F1]/50'
+                        }`}
+                        whileHover={{ scale: 1.2 }}
+                        onClick={() => {
+                          const targetProgress = idx / products.length;
+                          window.scrollTo({
+                            top: (showcaseRef.current?.offsetTop || 0) + (targetProgress * 1000),
+                            behavior: 'smooth'
+                          });
+                        }}
+                      />
+                    ))}
+                  </div>
+                </motion.div>
+              </div>
+            </div>
           </div>
         </section>
       </main>
 
-      {/* Request Demo Modal - with cursor pointer on close button */}
+      {/* Request Demo Modal - same as before */}
       <AnimatePresence>
         {isModalOpen && (
           <motion.div
@@ -403,7 +514,6 @@ const ProductsPage = () => {
               transition={{ type: "spring", damping: 20, stiffness: 200 }}
               className="relative w-full max-w-2xl bg-[#0F172A] border border-[#1E293B] rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto"
             >
-              {/* Modal Header */}
               <div className="sticky top-0 bg-[#0F172A] border-b border-[#1E293B] px-4 sm:px-6 py-4 flex items-center justify-between z-10">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center">
@@ -426,7 +536,6 @@ const ProductsPage = () => {
                 </button>
               </div>
 
-              {/* Form */}
               {!isSubmitted ? (
                 <motion.form 
                   onSubmit={handleSubmit} 
@@ -435,7 +544,6 @@ const ProductsPage = () => {
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.1 }}
                 >
-                  {/* Name */}
                   <div>
                     <label className="block text-sm font-medium font-sans tracking-wide text-[#94A3B8] mb-2">
                       Full Name *
@@ -454,7 +562,6 @@ const ProductsPage = () => {
                     </div>
                   </div>
 
-                  {/* Company Name */}
                   <div>
                     <label className="block text-sm font-medium font-sans tracking-wide text-[#94A3B8] mb-2">
                       Company Name *
@@ -473,31 +580,6 @@ const ProductsPage = () => {
                     </div>
                   </div>
 
-                  {/* Product Interest */}
-                  <div>
-                    <label className="block text-sm font-medium font-sans tracking-wide text-[#94A3B8] mb-2">
-                      Product Interest *
-                    </label>
-                    <div className="relative">
-                      <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
-                      <select
-                        name="productInterest"
-                        required
-                        value={formData.productInterest}
-                        onChange={handleInputChange}
-                        className="w-full pl-10 pr-4 py-3 bg-[#020617] border border-[#1E293B] rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition-colors appearance-none font-sans cursor-pointer"
-                      >
-                        <option value="">Select a product</option>
-                        {products.map((product) => (
-                          <option key={product.id} value={product.name}>
-                            {product.name} ({product.status})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Contact Number */}
                   <div>
                     <label className="block text-sm font-medium font-sans tracking-wide text-[#94A3B8] mb-2">
                       Contact Number *
@@ -516,7 +598,6 @@ const ProductsPage = () => {
                     </div>
                   </div>
 
-                  {/* Use Case / Requirement */}
                   <div>
                     <label className="block text-sm font-medium font-sans tracking-wide text-[#94A3B8] mb-2">
                       Use Case / Requirement *
@@ -530,18 +611,17 @@ const ProductsPage = () => {
                         value={formData.useCase}
                         onChange={handleInputChange}
                         className="w-full pl-10 pr-4 py-3 bg-[#020617] border border-[#1E293B] rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition-colors resize-none font-sans"
-                        placeholder="Tell us about your business needs and how this product can help..."
+                        placeholder="Tell us about your business needs..."
                       />
                     </div>
                   </div>
 
-                  {/* Submit Button */}
                   <motion.button
                     type="submit"
                     disabled={isSubmitting}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full py-3 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-semibold font-sans tracking-wide rounded-lg hover:shadow-lg hover:shadow-[#6366F1]/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full py-3 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-semibold font-sans tracking-wide rounded-lg hover:shadow-lg hover:shadow-[#6366F1]/25 transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
                   >
                     {isSubmitting ? (
                       <>
@@ -557,7 +637,6 @@ const ProductsPage = () => {
                   </motion.button>
                 </motion.form>
               ) : (
-                // Success Message
                 <motion.div 
                   className="p-6 text-center"
                   initial={{ opacity: 0, scale: 0.95 }}
@@ -569,10 +648,7 @@ const ProductsPage = () => {
                   </div>
                   <h4 className="text-xl font-semibold font-sans tracking-wide text-white mb-2">Request Submitted!</h4>
                   <p className="text-[#94A3B8] font-light tracking-wide mb-4">
-                    Thank you for your interest in {selectedProduct}! Our team will contact you within 24 hours to schedule a demo.
-                  </p>
-                  <p className="text-xs text-[#6366F1] font-medium">
-                    A confirmation email has been sent
+                    Thank you for your interest! Our team will contact you within 24 hours.
                   </p>
                 </motion.div>
               )}

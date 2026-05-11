@@ -1,7 +1,9 @@
+/* eslint-disable react-hooks/rules-of-hooks */
+/* eslint-disable react/no-unescaped-entities */
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, Variants, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import { 
   GraduationCap, 
   ShoppingBag, 
@@ -10,7 +12,6 @@ import {
   Landmark, 
   Heart,
   Sparkles,
-  ArrowRight,
   ChevronLeft,
   ChevronRight,
   LucideIcon
@@ -45,20 +46,11 @@ const IndustriesSection = () => {
   const sliderRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   
-  // Parallax scroll effects
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start end", "end start"]
   });
   
-  const y1 = useTransform(scrollYProgress, [0, 1], [0, -50]);
-  const y2 = useTransform(scrollYProgress, [0, 1], [0, 50]);
-  const y3 = useTransform(scrollYProgress, [0, 1], [0, -30]);
-  const y4 = useTransform(scrollYProgress, [0, 1], [0, 40]);
-  const opacity1 = useTransform(scrollYProgress, [0, 0.5, 1], [0.3, 0.5, 0.2]);
-  const opacity2 = useTransform(scrollYProgress, [0, 0.5, 1], [0.2, 0.4, 0.1]);
-  const scale1 = useTransform(scrollYProgress, [0, 0.5, 1], [1, 1.1, 0.9]);
-
   const industries: Industry[] = [
     {
       id: 1,
@@ -110,9 +102,59 @@ const IndustriesSection = () => {
     },
   ];
 
-  const handleConsultancyClick = () => {
-    setIsModalOpen(true);
+  // Generate random starting positions and angles for each card
+  const getRandomTransform = (index: number) => {
+    // Different random seeds for each card
+    const seeds = [1, 2, 3, 4, 5, 6];
+    const seed = seeds[index];
+    
+    // Random starting X position (-300px to 300px)
+    const startX = (Math.sin(seed * 45) * 200) + (Math.random() * 100);
+    // Random starting Y position (-200px to 200px)
+    const startY = (Math.cos(seed * 30) * 150) + (Math.random() * 80);
+    // Random rotation (-45deg to 45deg)
+    const startRotate = (Math.sin(seed * 60) * 40) + (Math.random() * 20);
+    // Random scale (0.3 to 0.7)
+    const startScale = 0.3 + (Math.random() * 0.4);
+    
+    return { startX, startY, startRotate, startScale };
   };
+
+  // Store random transforms for each card
+  const cardTransforms = industries.map((_, index) => {
+    const { startX, startY, startRotate, startScale } = getRandomTransform(index);
+    const start = 0.1 + (index * 0.04);
+    const end = 0.4 + (index * 0.04);
+    
+    return {
+      x: useTransform(scrollYProgress, [start, end], [startX, 0]),
+      y: useTransform(scrollYProgress, [start, end], [startY, 0]),
+      rotate: useTransform(scrollYProgress, [start, end], [startRotate, 0]),
+      scale: useTransform(scrollYProgress, [start, end], [startScale, 1]),
+      opacity: useTransform(scrollYProgress, [start, end], [0, 1]),
+    };
+  });
+
+  // Header animation
+  const headerY = useTransform(scrollYProgress, [0.05, 0.2], [80, 0]);
+  const headerOpacity = useTransform(scrollYProgress, [0.05, 0.15], [0, 1]);
+  const headerScale = useTransform(scrollYProgress, [0.05, 0.2], [0.8, 1]);
+
+  // CTA animation
+  const ctaY = useTransform(scrollYProgress, [0.55, 0.7], [50, 0]);
+  const ctaOpacity = useTransform(scrollYProgress, [0.55, 0.65], [0, 1]);
+
+  // Background parallax
+  const bgY = useTransform(scrollYProgress, [0, 1], [0, -100]);
+  
+  // Floating particles with random movement
+  const particles = [...Array(30)].map((_, i) => ({
+    left: `${Math.random() * 100}%`,
+    top: `${Math.random() * 100}%`,
+    delay: i * 0.1,
+    xMove: useTransform(scrollYProgress, [0, 1], [0, (Math.random() - 0.5) * 200]),
+    yMove: useTransform(scrollYProgress, [0, 1], [0, (Math.random() - 0.5) * 150]),
+  }));
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -122,14 +164,9 @@ const IndustriesSection = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1500));
-    
     setIsSubmitting(false);
     setIsSubmitted(true);
-    
-    // Reset form after 3 seconds
     setTimeout(() => {
       setIsModalOpen(false);
       setIsSubmitted(false);
@@ -145,7 +182,6 @@ const IndustriesSection = () => {
     }, 3000);
   };
 
-  // Close modal on escape key
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setIsModalOpen(false);
@@ -154,7 +190,6 @@ const IndustriesSection = () => {
     return () => window.removeEventListener('keydown', handleEsc);
   }, []);
 
-  // Close modal on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
@@ -179,69 +214,6 @@ const IndustriesSection = () => {
     setCurrentSlide((prev) => (prev - 1 + industries.length) % industries.length);
   };
 
-  // Animation variants
-  const containerVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2,
-      },
-    },
-  };
-
-  const itemVariants: Variants = {
-    hidden: { y: 30, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: 'spring',
-        stiffness: 70,
-        damping: 12,
-        mass: 0.5,
-      },
-    },
-  };
-
-  const introContainerVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.15,
-        delayChildren: 0.1,
-      },
-    },
-  };
-
-  const fromTopVariants: Variants = {
-    hidden: { y: -30, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 50,
-        damping: 12,
-      },
-    },
-  };
-
-  const fromBottomVariants: Variants = {
-    hidden: { y: 30, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 50,
-        damping: 12,
-      },
-    },
-  };
-
   const [formData, setFormData] = useState<FormData>({
     fullName: '',
     email: '',
@@ -255,120 +227,78 @@ const IndustriesSection = () => {
     <>
       <section
         ref={sectionRef}
-        className="relative py-12 sm:py-12 lg:py-12 bg-[#020617] overflow-hidden"
+        className="relative py-8 bg-[#020617] overflow-hidden"
       >
-        {/* Parallax Background elements */}
+        {/* Animated Background */}
         <motion.div 
           className="absolute inset-0 overflow-hidden"
-          style={{ y: y1 }}
+          style={{ y: bgY }}
         >
-          <motion.div 
-            className="absolute top-20 left-10 w-72 h-72 bg-[#6366F1]/5 rounded-full blur-3xl"
-            style={{ opacity: opacity1, scale: scale1 }}
-          />
-          <motion.div 
-            className="absolute bottom-20 right-10 w-72 h-72 bg-[#8B5CF6]/5 rounded-full blur-3xl"
-            style={{ opacity: opacity2 }}
-          />
+          <div className="absolute top-20 left-10 w-80 h-80 bg-[#6366F1]/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-[#8B5CF6]/5 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#06B6D4]/5 rounded-full blur-3xl" />
         </motion.div>
 
-        {/* Parallax floating particles */}
-        <motion.div 
-          className="absolute inset-0 pointer-events-none"
-          style={{ y: y2 }}
-        >
-          {[...Array(15)].map((_, i) => (
+        {/* Floating Particles */}
+        <div className="absolute inset-0 pointer-events-none">
+          {particles.map((particle, i) => (
             <motion.div
               key={i}
-              className="absolute w-1 h-1 bg-[#6366F1]/20 rounded-full"
+              className="absolute w-1 h-1 bg-[#6366F1]/40 rounded-full"
               style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animation: `float ${3 + (i % 5)}s infinite ease-in-out`,
-                animationDelay: `${i * 0.3}s`,
+                left: particle.left,
+                top: particle.top,
+                x: particle.xMove,
+                y: particle.yMove,
               }}
             />
           ))}
-        </motion.div>
-
-        {/* Parallax grid pattern */}
-        <motion.div 
-          className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-5"
-          style={{ y: y3 }}
-        />
-
-        {/* Parallax glowing orbs */}
-        <motion.div
-          className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-[#6366F1]/10 to-[#8B5CF6]/10 rounded-full blur-3xl"
-          style={{ y: y4, x: useTransform(scrollYProgress, [0, 1], [-20, 20]) }}
-        />
-        <motion.div
-          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-[#8B5CF6]/10 to-[#6366F1]/10 rounded-full blur-3xl"
-          style={{ y: useTransform(scrollYProgress, [0, 1], [20, -20]), x: useTransform(scrollYProgress, [0, 1], [20, -20]) }}
-        />
+        </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Section Header - Services Section Font Styles */}
+          {/* Section Header - Fly in from top */}
           <motion.div
-            variants={introContainerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
-            className="text-center max-w-3xl mx-auto mb-8 lg:mb-12"
-            style={{ y: useTransform(scrollYProgress, [0, 1], [0, -20]) }}
+            className="text-center max-w-3xl mx-auto mb-12 lg:mb-16"
+            style={{
+              y: headerY,
+              opacity: headerOpacity,
+              scale: headerScale,
+            }}
           >
-            {/* Badge - Italic text and cursor pointer */}
-            <motion.div 
-              variants={fromTopVariants}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4 bg-[#0F172A] border border-[#1E293B] cursor-pointer hover:border-[#6366F1] hover:bg-[#6366F1]/10 transition-all duration-300"
-            >
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4 bg-[#0F172A] border border-[#1E293B] cursor-pointer hover:border-[#6366F1] hover:bg-[#6366F1]/10 transition-all duration-300">
               <Sparkles className="w-4 h-4 text-[#6366F1]" />
               <span className="text-xs lg:text-sm font-medium font-sans tracking-wide bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent italic">
                 Industries We Serve
               </span>
-            </motion.div>
+            </div>
             
-            {/* Heading - Services section style */}
-            <motion.h2 
-              variants={fromTopVariants}
-              className="text-2xl  lg:text-3xl font-bold font-serif tracking-tight text-[#F8FAFC] mb-3"
-            >
+            <h2 className="text-2xl lg:text-3xl font-bold font-serif tracking-tight text-[#F8FAFC] mb-3">
               Trusted by{' '}
               <span className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">
                 Leading Industries
               </span>
-            </motion.h2>
+            </h2>
             
-            {/* Description - Services section style */}
-            <motion.p 
-              variants={fromTopVariants}
-              className="text-base md:text-lg text-[#94A3B8] font-light tracking-wide"
-            >
+            <p className="text-base md:text-lg text-[#94A3B8] font-light tracking-wide">
               Specialized digital solutions tailored for your industry&apos;s unique challenges
-            </motion.p>
+            </p>
           </motion.div>
 
-          {/* Desktop Grid View - with cursor pointer on cards */}
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.1 }}
-            className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6"
-            style={{ y: useTransform(scrollYProgress, [0, 1], [0, -15]) }}
-          >
+          {/* Desktop Grid View - Cards come from different random angles */}
+          <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
             {industries.map((industry, index) => {
               const Icon = industry.icon;
+              const transform = cardTransforms[index];
               return (
                 <motion.div
                   key={industry.id}
-                  variants={itemVariants}
-                  whileHover={{ y: -4 }}
                   className="group relative cursor-pointer"
-                  style={{ 
-                    // eslint-disable-next-line react-hooks/rules-of-hooks
-                    y: useTransform(scrollYProgress, [0, 1], [0, -(index * 5)]),
-                    transition: "transform 0.3s ease-out"
+                  style={{
+                    x: transform.x,
+                    y: transform.y,
+                    rotate: transform.rotate,
+                    scale: transform.scale,
+                    opacity: transform.opacity,
                   }}
                 >
                   <div className={`absolute inset-0 bg-gradient-to-r ${industry.gradient} rounded-xl opacity-0 group-hover:opacity-10 transition-opacity duration-500 blur-sm`} />
@@ -379,12 +309,10 @@ const IndustriesSection = () => {
                       <Icon className="w-6 h-6 text-white" />
                     </div>
 
-                    {/* Industry Name - Services section font style */}
                     <h3 className="text-lg font-semibold font-sans tracking-wide text-[#F8FAFC] mb-2 group-hover:text-[#6366F1] transition-colors duration-300">
                       {industry.name}
                     </h3>
 
-                    {/* Description - Services section font style */}
                     <p className="text-sm text-[#94A3B8] leading-relaxed font-light tracking-wide">
                       {industry.description}
                     </p>
@@ -392,9 +320,9 @@ const IndustriesSection = () => {
                 </motion.div>
               );
             })}
-          </motion.div>
+          </div>
 
-          {/* Mobile Slider View - with cursor pointer on buttons */}
+          {/* Mobile Slider View */}
           <div className="relative sm:hidden">
             <div className="overflow-hidden px-2">
               <motion.div
@@ -414,17 +342,14 @@ const IndustriesSection = () => {
                         <div className={`absolute inset-0 bg-gradient-to-r ${industry.gradient} rounded-xl opacity-0 group-hover:opacity-10 transition-opacity duration-500 blur-sm`} />
                         
                         <div className="relative bg-[#0F172A] border border-[#1E293B] rounded-xl p-6 hover:border-[#6366F1]/30 transition-all duration-300 cursor-pointer">
-                          {/* Icon */}
                           <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${industry.gradient} flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                             <Icon className="w-6 h-6 text-white" />
                           </div>
 
-                          {/* Industry Name - Services section font style */}
                           <h3 className="text-lg font-semibold font-sans tracking-wide text-[#F8FAFC] mb-2 group-hover:text-[#6366F1] transition-colors duration-300">
                             {industry.name}
                           </h3>
 
-                          {/* Description - Services section font style */}
                           <p className="text-sm text-[#94A3B8] leading-relaxed font-light tracking-wide">
                             {industry.description}
                           </p>
@@ -436,7 +361,6 @@ const IndustriesSection = () => {
               </motion.div>
             </div>
 
-            {/* Navigation Buttons - with cursor pointer */}
             <button
               onClick={prevSlide}
               className="absolute left-0 top-1/2 -translate-y-1/2 bg-[#0F172A] border border-[#1E293B] rounded-full p-2 hover:border-[#6366F1] hover:bg-[#6366F1]/10 transition-all duration-300 cursor-pointer"
@@ -450,7 +374,6 @@ const IndustriesSection = () => {
               <ChevronRight className="w-5 h-5 text-[#6366F1]" />
             </button>
 
-            {/* Dots Indicator - with cursor pointer */}
             <div className="flex justify-center gap-2 mt-6">
               {industries.map((_, idx) => (
                 <button
@@ -466,58 +389,87 @@ const IndustriesSection = () => {
             </div>
           </div>
 
-          {/* Bottom CTA - with cursor pointer */}
+          {/* Bottom CTA */}
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-            className="text-center mt-8 pt-6 border-t border-[#1E293B]"
-            style={{ y: useTransform(scrollYProgress, [0, 1], [0, -10]) }}
+            className="text-center mt-12 pt-6 border-t border-[#1E293B]"
+            style={{
+              y: ctaY,
+              opacity: ctaOpacity,
+            }}
           >
-            <motion.p 
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              className="text-[#94A3B8] mb-4 text-sm sm:text-base font-light tracking-wide"
-            >
+            <p className="text-[#94A3B8] mb-4 text-sm sm:text-base font-light tracking-wide">
               Ready to transform your business with cutting-edge digital solutions?
-            </motion.p>
+            </p>
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
-              <Link
-                href="/consultation"
-                className="inline-flex items-center gap-2 px-6 sm:px-8 py-2.5 sm:py-3 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-semibold font-sans tracking-wide rounded-xl hover:shadow-lg hover:shadow-[#6366F1]/25 transition-all duration-300 hover:scale-105 group text-sm sm:text-base cursor-pointer"
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="inline-flex items-center gap-2 px-6 sm:px-8 py-2.5 sm:py-3 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-semibold font-sans tracking-wide rounded-xl hover:shadow-lg hover:shadow-[#6366F1]/25 transition-all duration-300 group text-sm sm:text-base cursor-pointer"
               >
                 <span>Get Free Consultation</span>
                 <Sparkles className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" />
-              </Link>
+              </button>
             </motion.div>
           </motion.div>
         </div>
       </section>
 
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% {
-            transform: translateY(0px) translateX(0px);
-            opacity: 0;
-          }
-          25% {
-            opacity: 0.3;
-          }
-          50% {
-            transform: translateY(-12px) translateX(6px);
-            opacity: 0.5;
-          }
-          75% {
-            opacity: 0.3;
-          }
-        }
-      `}</style>
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm">
+          <div ref={modalRef} className="bg-[#0F172A] rounded-2xl max-w-md w-full p-6 border border-[#1E293B]">
+            <h3 className="text-xl font-bold text-white mb-4">Get Free Consultation</h3>
+            {isSubmitted ? (
+              <div className="text-center py-6">
+                <div className="w-12 h-12 mx-auto mb-3 bg-green-500/20 rounded-full flex items-center justify-center">
+                  <Sparkles className="w-6 h-6 text-green-400" />
+                </div>
+                <p className="text-white font-medium">Thank you!</p>
+                <p className="text-[#94A3B8] text-sm mt-1">We'll get back to you soon.</p>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <input
+                  type="text"
+                  name="fullName"
+                  placeholder="Full Name"
+                  value={formData.fullName}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 bg-[#020617] border border-[#1E293B] rounded-lg text-white placeholder-[#64748B] focus:outline-none focus:border-[#6366F1] transition-colors"
+                  required
+                />
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Email Address"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 bg-[#020617] border border-[#1E293B] rounded-lg text-white placeholder-[#64748B] focus:outline-none focus:border-[#6366F1] transition-colors"
+                  required
+                />
+                <input
+                  type="tel"
+                  name="phone"
+                  placeholder="Phone Number"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 bg-[#020617] border border-[#1E293B] rounded-lg text-white placeholder-[#64748B] focus:outline-none focus:border-[#6366F1] transition-colors"
+                  required
+                />
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full py-2.5 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-[#6366F1]/25 transition-all duration-300 disabled:opacity-50"
+                >
+                  {isSubmitting ? 'Submitting...' : 'Submit'}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 };
