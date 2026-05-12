@@ -266,6 +266,9 @@ const Services = () => {
                     {/* Bottom Line - Moves left to right on hover (Blue to Green) */}
                     <div className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-[#1E293B] to-[#1E293B] group-hover:from-[#3B82F6] group-hover:to-[#22C55E] transition-all duration-500 ease-out transform scale-x-0 group-hover:scale-x-100 origin-left" />
 
+                    {/* Right Side Thin Gradient Line - Appears on hover */}
+                    <div className="absolute top-0 right-0 w-0.5 h-0 bg-gradient-to-b from-[#3B82F6] to-[#22C55E] group-hover:h-full transition-all duration-500 ease-out origin-top" />
+
                     {/* Corner Accent */}
                     <div className="absolute top-0 right-0 w-12 h-12 overflow-hidden">
                       <div 

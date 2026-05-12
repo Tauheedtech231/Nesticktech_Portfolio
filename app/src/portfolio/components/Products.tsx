@@ -63,7 +63,7 @@ const ProductsPage = () => {
   const modalRef = useRef<HTMLDivElement>(null);
   const showcaseRef = useRef<HTMLDivElement>(null);
 
-  // Scroll progress for product showcase
+  // Scroll progress for product showcase - much slower transition
   const { scrollYProgress } = useScroll({
     target: showcaseRef,
     offset: ["start start", "end end"]
@@ -136,19 +136,17 @@ const ProductsPage = () => {
   const bgY = useTransform(scrollYProgress, [0, 1], [0, -100]);
   const bgOpacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0.3, 0.5, 0.4, 0.2]);
   
-  // Image animation transforms for smooth transitions
-  const imageScale = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.95, 1, 1, 0.95]);
-  const imageRotate = useTransform(scrollYProgress, [0, 0.5, 1], [0, 1, -1]);
-  const imageBlur = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 0, 0, 0]);
+  // Card scale animation
+  const cardScale = useTransform(scrollYProgress, [0, 0.1, 0.9, 1], [0.95, 1, 1, 0.95]);
 
-  // Current active product based on scroll
+  // Current active product based on scroll - MUCH slower change
   useEffect(() => {
     const unsubscribe = scrollYProgress.onChange((value) => {
       const newIndex = Math.min(
-        Math.floor(value * products.length),
+        Math.floor(value * products.length * 0.6),
         products.length - 1
       );
-      if (newIndex !== activeProductIndex) {
+      if (newIndex !== activeProductIndex && newIndex >= 0) {
         setActiveProductIndex(newIndex);
       }
     });
@@ -239,7 +237,7 @@ const ProductsPage = () => {
     <>
       <main className="min-h-screen bg-[#020617]">
         {/* Hero Section */}
-        <section className="relative py-8 bg-[#020617] overflow-hidden">
+        <section className="relative  bg-[#020617] overflow-hidden">
           {/* Parallax Background */}
           <motion.div 
             className="absolute inset-0 overflow-hidden"
@@ -318,178 +316,167 @@ const ProductsPage = () => {
           </div>
         </section>
 
-        {/* Product Showcase Section - Scroll Triggered */}
+        {/* Product Showcase Section - Single Card with Image and Description */}
         <section ref={showcaseRef} className="relative py-8 bg-[#020617] min-h-[200vh]">
           <div className="sticky top-20 lg:top-24 z-10">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="grid lg:grid-cols-2 gap-6 lg:gap-10 items-center min-h-[450px]">
-                {/* Left Side - Product Content */}
+              <div className="flex justify-center">
                 <motion.div 
-                  className="space-y-4"
-                  initial={{ opacity: 0, x: -50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5 }}
+                  className="w-full max-w-5xl"
+                  style={{
+                    scale: cardScale,
+                  }}
                 >
                   <motion.div
                     key={currentProduct?.id}
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
+                    className="relative bg-[#0F172A] border border-[#1E293B] rounded-2xl overflow-hidden shadow-2xl shadow-[#6366F1]/10 hover:shadow-[#6366F1]/20 transition-all duration-500"
                   >
-                    <div className="inline-flex items-center gap-2 mb-3">
-                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${currentProduct?.gradient} flex items-center justify-center shadow-lg cursor-pointer`}>
-                        {currentProduct && <currentProduct.icon className="w-5 h-5 text-white" />}
+                    {/* Card Gradient Border Effect */}
+                    <div className={`absolute inset-0 bg-gradient-to-r ${currentProduct?.gradient} opacity-0 hover:opacity-10 transition-opacity duration-500`} />
+                    
+                    <div className="relative flex flex-col lg:flex-row gap-6 p-6 lg:p-8">
+                      {/* Left Side - Content Section */}
+                      <div className="lg:w-1/2 space-y-4">
+                        <div className="inline-flex items-center gap-2">
+                          <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${currentProduct?.gradient} flex items-center justify-center shadow-lg cursor-pointer`}>
+                            {currentProduct && <currentProduct.icon className="w-5 h-5 text-white" />}
+                          </div>
+                          <span className={`text-xs px-2.5 py-1 rounded-full border ${getStatusColor(currentProduct?.status || 'Live')} cursor-pointer`}>
+                            {currentProduct?.status}
+                          </span>
+                        </div>
+
+                        <h2 className="text-2xl md:text-3xl font-bold font-serif tracking-tight text-white cursor-pointer hover:text-[#6366F1] transition-colors duration-300">
+                          {currentProduct?.name}
+                        </h2>
+
+                        <p className="text-sm md:text-base text-[#94A3B8] leading-relaxed font-light tracking-wide">
+                          {currentProduct?.fullDescription}
+                        </p>
+
+                        {/* Features Grid */}
+                        <div className="grid grid-cols-2 gap-2 pt-2">
+                          {currentProduct?.features.slice(0, 6).map((feature, idx) => (
+                            <motion.div 
+                              key={idx} 
+                              className="flex items-center gap-1.5 cursor-pointer"
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: idx * 0.05 }}
+                            >
+                              <CheckCircle className="w-3.5 h-3.5 text-[#22C55E]" />
+                              <span className="text-xs text-[#94A3B8] font-light">{feature}</span>
+                            </motion.div>
+                          ))}
+                        </div>
+
+                        {/* Tags */}
+                        <div className="flex flex-wrap gap-1.5 pt-2">
+                          {currentProduct?.tags.map((tag, idx) => (
+                            <motion.span
+                              key={tag}
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: idx * 0.05 }}
+                              className="text-[11px] px-2.5 py-1 bg-[#1E293B] text-[#94A3B8] rounded-full border border-transparent hover:border-[#6366F1] hover:text-[#6366F1] transition-all duration-300 cursor-pointer"
+                            >
+                              {tag}
+                            </motion.span>
+                          ))}
+                        </div>
+
+                        {/* CTA Button */}
+                        <motion.button
+                          onClick={() => handleRequestDemo(currentProduct?.name || '')}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-semibold font-sans tracking-wide rounded-lg hover:shadow-lg hover:shadow-[#6366F1]/25 transition-all duration-300 group cursor-pointer text-sm mt-2"
+                        >
+                          <Rocket className="w-3.5 h-3.5" />
+                          <span>Request Demo</span>
+                          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                        </motion.button>
                       </div>
-                      <span className={`text-xs px-2.5 py-1 rounded-full border ${getStatusColor(currentProduct?.status || 'Live')} cursor-pointer`}>
-                        {currentProduct?.status}
-                      </span>
+
+                      {/* Right Side - Image Section */}
+                      <motion.div 
+                        className="relative lg:w-1/2 cursor-pointer group/image"
+                        whileHover={{ scale: 1.02 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <div className="relative rounded-2xl overflow-hidden">
+                          <div className={`absolute inset-0 bg-gradient-to-br ${currentProduct?.gradient} opacity-20 rounded-2xl z-10`} />
+                          <Image
+                            src={currentProduct?.image || ''}
+                            alt={currentProduct?.name || ''}
+                            width={800}
+                            height={600}
+                            className="w-full h-auto object-cover rounded-2xl transition-transform duration-700 group-hover/image:scale-110 cursor-pointer"
+                            priority
+                          />
+                          
+                          {/* Floating badges */}
+                          <motion.div 
+                            className="absolute top-3 right-3 bg-black/60 backdrop-blur-md rounded-full px-2.5 py-1 z-20 cursor-pointer"
+                            animate={{ y: [0, -5, 0] }}
+                            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                          >
+                            <div className="flex items-center gap-1">
+                              <Star className="w-2.5 h-2.5 text-yellow-400 fill-yellow-400" />
+                              <span className="text-[10px] text-white font-medium">4.9/5 Rating</span>
+                            </div>
+                          </motion.div>
+
+                          <motion.div 
+                            className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-md rounded-full px-2.5 py-1 z-20 cursor-pointer"
+                            animate={{ y: [0, 5, 0] }}
+                            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                          >
+                            <div className="flex items-center gap-1">
+                              <Users className="w-2.5 h-2.5 text-[#6366F1]" />
+                              <span className="text-[10px] text-white font-medium">100+ Businesses</span>
+                            </div>
+                          </motion.div>
+
+                          <motion.div 
+                            className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md rounded-full px-2.5 py-1 z-20 cursor-pointer"
+                            animate={{ y: [0, -3, 0] }}
+                            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                          >
+                            <div className="flex items-center gap-1">
+                              <Shield className="w-2.5 h-2.5 text-[#22C55E]" />
+                              <span className="text-[10px] text-white font-medium">Enterprise Grade</span>
+                            </div>
+                          </motion.div>
+                        </div>
+                      </motion.div>
                     </div>
 
-                    <h2 className="text-2xl md:text-3xl font-bold font-serif tracking-tight text-white mb-2 cursor-pointer">
-                      {currentProduct?.name}
-                    </h2>
-
-                    <p className="text-sm md:text-base text-[#94A3B8] leading-relaxed font-light tracking-wide mb-4">
-                      {currentProduct?.fullDescription}
-                    </p>
-
-                    {/* Features Grid */}
-                    <div className="grid grid-cols-2 gap-2 mb-4">
-                      {currentProduct?.features.slice(0, 6).map((feature, idx) => (
-                        <motion.div 
-                          key={idx} 
-                          className="flex items-center gap-1.5 cursor-pointer"
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: idx * 0.05 }}
-                        >
-                          <CheckCircle className="w-3.5 h-3.5 text-[#22C55E]" />
-                          <span className="text-xs text-[#94A3B8] font-light">{feature}</span>
-                        </motion.div>
+                    {/* Bottom Progress Indicator */}
+                    <div className="absolute bottom-0 left-0 right-0 flex justify-center gap-2 py-3 bg-gradient-to-t from-[#0F172A] to-transparent">
+                      {products.map((_, idx) => (
+                        <motion.div
+                          key={idx}
+                          className={`h-1 rounded-full transition-all duration-500 cursor-pointer ${
+                            idx === activeProductIndex
+                              ? 'w-6 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6]'
+                              : 'w-1 bg-[#1E293B] hover:bg-[#6366F1]/50'
+                          }`}
+                          whileHover={{ scale: 1.2 }}
+                          onClick={() => {
+                            const targetProgress = idx / products.length;
+                            window.scrollTo({
+                              top: (showcaseRef.current?.offsetTop || 0) + (targetProgress * window.innerHeight * 2),
+                              behavior: 'smooth'
+                            });
+                          }}
+                        />
                       ))}
                     </div>
-
-                    {/* Tags */}
-                    <div className="flex flex-wrap gap-1.5 mb-4">
-                      {currentProduct?.tags.map((tag, idx) => (
-                        <motion.span
-                          key={tag}
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: idx * 0.05 }}
-                          className="text-[11px] px-2.5 py-1 bg-[#1E293B] text-[#94A3B8] rounded-full border border-transparent hover:border-[#6366F1] transition-all duration-300 cursor-pointer"
-                        >
-                          {tag}
-                        </motion.span>
-                      ))}
-                    </div>
-
-                    {/* CTA Button */}
-                    <motion.button
-                      onClick={() => handleRequestDemo(currentProduct?.name || '')}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-semibold font-sans tracking-wide rounded-lg hover:shadow-lg hover:shadow-[#6366F1]/25 transition-all duration-300 group cursor-pointer text-sm"
-                    >
-                      <Rocket className="w-3.5 h-3.5" />
-                      <span>Request Demo</span>
-                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                    </motion.button>
                   </motion.div>
-                </motion.div>
-
-                {/* Right Side - Product Image with Zoom Effect */}
-                <motion.div 
-                  className="relative cursor-pointer"
-                  style={{
-                    scale: imageScale,
-                    rotate: imageRotate,
-                    filter: `blur(${imageBlur}px)`,
-                  }}
-                >
-                  <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-[#6366F1]/20 cursor-pointer group/image">
-                    <div className={`absolute inset-0 bg-gradient-to-br ${currentProduct?.gradient} opacity-20 z-10 rounded-2xl`} />
-                    
-                    <motion.div
-                      key={currentProduct?.id}
-                      initial={{ opacity: 0, scale: 0.95, borderRadius: "16px" }}
-                      animate={{ opacity: 1, scale: 1, borderRadius: "16px" }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      transition={{ 
-                        duration: 0.6, 
-                        ease: [0.4, 0, 0.2, 1],
-                        type: "spring",
-                        damping: 25,
-                        stiffness: 200
-                      }}
-                      className="relative aspect-video w-full rounded-2xl overflow-hidden cursor-pointer"
-                    >
-                      <Image
-                        src={currentProduct?.image || ''}
-                        alt={currentProduct?.name || ''}
-                        fill
-                        className="object-cover rounded-2xl transition-transform duration-500 group-hover/image:scale-110 cursor-pointer"
-                        priority
-                        sizes="(max-width: 768px) 100vw, 50vw"
-                      />
-                    </motion.div>
-                    
-                    {/* Floating badges with cursor pointer */}
-                    <motion.div 
-                      className="absolute top-3 right-3 bg-black/60 backdrop-blur-md rounded-full px-2.5 py-1 z-20 cursor-pointer"
-                      animate={{ y: [0, -5, 0] }}
-                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                    >
-                      <div className="flex items-center gap-1">
-                        <Star className="w-2.5 h-2.5 text-yellow-400 fill-yellow-400" />
-                        <span className="text-[10px] text-white font-medium">4.9/5 Rating</span>
-                      </div>
-                    </motion.div>
-
-                    <motion.div 
-                      className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-md rounded-full px-2.5 py-1 z-20 cursor-pointer"
-                      animate={{ y: [0, 5, 0] }}
-                      transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                    >
-                      <div className="flex items-center gap-1">
-                        <Users className="w-2.5 h-2.5 text-[#6366F1]" />
-                        <span className="text-[10px] text-white font-medium">100+ Businesses</span>
-                      </div>
-                    </motion.div>
-
-                    <motion.div 
-                      className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md rounded-full px-2.5 py-1 z-20 cursor-pointer"
-                      animate={{ y: [0, -3, 0] }}
-                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                    >
-                      <div className="flex items-center gap-1">
-                        <Shield className="w-2.5 h-2.5 text-[#22C55E]" />
-                        <span className="text-[10px] text-white font-medium">Enterprise Grade</span>
-                      </div>
-                    </motion.div>
-                  </div>
-
-                  {/* Progress indicator with cursor pointer */}
-                  <div className="absolute -bottom-10 left-0 right-0 flex justify-center gap-2 mt-3">
-                    {products.map((_, idx) => (
-                      <motion.div
-                        key={idx}
-                        className={`h-1 rounded-full transition-all duration-500 cursor-pointer ${
-                          idx === activeProductIndex
-                            ? 'w-6 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6]'
-                            : 'w-1 bg-[#1E293B] hover:bg-[#6366F1]/50'
-                        }`}
-                        whileHover={{ scale: 1.2 }}
-                        onClick={() => {
-                          const targetProgress = idx / products.length;
-                          window.scrollTo({
-                            top: (showcaseRef.current?.offsetTop || 0) + (targetProgress * 1000),
-                            behavior: 'smooth'
-                          });
-                        }}
-                      />
-                    ))}
-                  </div>
                 </motion.div>
               </div>
             </div>
@@ -497,7 +484,7 @@ const ProductsPage = () => {
         </section>
       </main>
 
-      {/* Request Demo Modal - same as before */}
+      {/* Request Demo Modal - Keep as is */}
       <AnimatePresence>
         {isModalOpen && (
           <motion.div

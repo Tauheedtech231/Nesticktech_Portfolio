@@ -1,28 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { MessageCircle } from "lucide-react";
 
 const WhatsappButton = () => {
   const phoneNumber = "923193236529";
-  const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
-
-  // Hide button on scroll down, show on scroll up
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      if (currentScrollY > lastScrollY && currentScrollY > 100) {
-        setIsVisible(false);
-      } else {
-        setIsVisible(true);
-      }
-      setLastScrollY(currentScrollY);
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [lastScrollY]);
 
   const handleClick = () => {
     window.open(
@@ -32,8 +14,6 @@ const WhatsappButton = () => {
       "_blank"
     );
   };
-
-  if (!isVisible) return null;
 
   return (
     <div className="fixed bottom-6 right-6 z-50">

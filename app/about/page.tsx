@@ -338,23 +338,11 @@ const AboutPage = () => {
 
   return (
     <main className="min-h-screen bg-[#020617] pt-20 lg:pt-24 overflow-hidden relative">
-      {/* Background Video - No Overlay */}
-      <div className="fixed inset-0 z-0">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="w-full h-full object-cover"
-        >
-          <source src="/about.mp4" type="video/mp4" />
-        </video>
-      </div>
-
-      {/* Background Elements */}
+      {/* Background Elements - Removed Video */}
       <div className="fixed inset-0 overflow-hidden z-0 pointer-events-none">
         <div className="absolute top-20 left-10 w-96 h-96 bg-[#6366F1]/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '8s' }} />
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#8B5CF6]/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '10s', animationDelay: '1s' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#06B6D4]/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '12s', animationDelay: '2s' }} />
       </div>
 
       {/* Content */}
@@ -479,7 +467,7 @@ const AboutPage = () => {
         >
           <div className="absolute inset-0 z-0">
             <Image
-              src="https://images.unsplash.com/photo-1556742393-d75f468bfcb0?q=80&w=2070&auto=format&fit=crop"
+              src="https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=2070&auto=format&fit=crop"
               alt="Contact Us - Customer Support"
               fill
               className="object-cover"

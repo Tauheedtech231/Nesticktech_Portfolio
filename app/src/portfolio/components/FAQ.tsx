@@ -2,51 +2,71 @@
 // components/FAQ.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { HelpCircle, Mail, Phone, Send, Sparkles, ArrowRight, MessageCircle, Clock, Award, Users, Plus, Minus } from 'lucide-react';
+import { HelpCircle, Mail, Phone, Send, Sparkles, ArrowRight, MessageCircle, Clock, Award, Users, Plus, Minus, Info } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface FAQItem {
   id: number;
   question: string;
   answer: string;
+  display_order?: number;
 }
 
+// Shimmer Component
+const FAQShimmer = () => {
+  return (
+    <div className="w-full max-w-3xl mx-auto">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <div key={i} className="mb-3 w-full animate-pulse">
+          <div className="bg-[#0F172A] border border-[#1E293B] rounded-xl overflow-hidden">
+            <div className="w-full px-5 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-6 h-6 rounded-full bg-gray-700" />
+                <div className="h-4 bg-gray-700 rounded w-64" />
+              </div>
+              <div className="w-6 h-6 rounded-full bg-gray-700" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const FAQ = () => {
-  const [openItems, setOpenItems] = useState<number[]>([1]); // First item open by default
+  const [faqData, setFaqData] = useState<FAQItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [openItems, setOpenItems] = useState<number[]>([]);
   const [flippedCard, setFlippedCard] = useState<number | null>(null);
 
   const phoneNumber = "923193236529";
   const formattedPhoneNumber = `+${phoneNumber}`;
 
-  const faqData: FAQItem[] = [
-    {
-      id: 1,
-      question: "What services does Nestick Tech offer?",
-      answer: "We offer a comprehensive range of digital solutions including Web Development, POS Systems, LMS Platforms, Mobile Apps, AI Solutions, and IT/Cyber Security services. Our team specializes in creating custom, scalable solutions tailored to your business needs.",
-    },
-    {
-      id: 2,
-      question: "How long does it take to develop a project?",
-      answer: "Project timelines vary depending on complexity and requirements. A typical web application can take 2-4 months, while more complex projects like AI systems or comprehensive POS solutions may take 4-6 months. We provide detailed timelines during the consultation phase.",
-    },
-    {
-      id: 3,
-      question: "What technologies do you use?",
-      answer: "We use modern technologies including React, Next.js, Node.js, Python, TypeScript, MongoDB, PostgreSQL, and various cloud platforms. Our tech stack is chosen to ensure scalability, performance, and maintainability of your project.",
-    },
-    {
-      id: 4,
-      question: "Do you provide ongoing support after launch?",
-      answer: "Yes, we offer comprehensive maintenance and support packages. This includes bug fixes, security updates, performance monitoring, and feature enhancements. We have flexible support plans to suit different business needs.",
-    },
-    {
-      id: 5,
-      question: "How much does a typical project cost?",
-      answer: "Project costs vary based on requirements, complexity, and timeline. We provide transparent pricing and detailed quotes after understanding your specific needs. Contact us for a free consultation and estimate.",
-    },
-  ];
+  // Fetch FAQ from API
+  useEffect(() => {
+    fetchFAQ();
+  }, []);
+
+  const fetchFAQ = async () => {
+    try {
+      const response = await fetch('/api/faq');
+      const data = await response.json();
+      if (data.success && data.faq.length > 0) {
+        setFaqData(data.faq);
+        // Open first item by default if available
+        if (data.faq.length > 0) {
+          setOpenItems([data.faq[0].id]);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching FAQ:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const toggleItem = (id: number) => {
     setOpenItems(prev => 
@@ -56,8 +76,7 @@ const FAQ = () => {
     );
   };
 
-  // Optimized animation variants
-  const containerVariants:Variants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -68,7 +87,7 @@ const FAQ = () => {
     },
   };
 
-  const itemVariants:Variants = {
+  const itemVariants: Variants = {
     hidden: { y: 8, opacity: 0 },
     visible: {
       y: 0,
@@ -140,6 +159,28 @@ const FAQ = () => {
     },
   ];
 
+  // Show shimmer while loading
+  if (loading) {
+    return (
+      <section className="relative py-16 lg:py-20 bg-[#020617] overflow-hidden">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-3xl mb-10 lg:mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#6366F1]/10 border border-[#6366F1]/20 rounded-full mb-4">
+              <div className="w-4 h-4 bg-gray-700 rounded" />
+              <div className="w-16 h-3 bg-gray-700 rounded" />
+            </div>
+            <div className="h-8 w-80 bg-gray-700 rounded mb-3" />
+            <div className="h-5 w-96 bg-gray-700 rounded" />
+            <div className="mt-4">
+              <div className="w-16 h-0.5 bg-gray-700 rounded" />
+            </div>
+          </div>
+          <FAQShimmer />
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="relative py-16 lg:py-20 bg-[#020617] overflow-hidden">
       {/* Background decorative elements */}
@@ -152,7 +193,7 @@ const FAQ = () => {
       <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-5" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header - Services Section Font Styles */}
+        {/* Section Header */}
         <motion.div
           initial={{ x: -10, opacity: 0 }}
           whileInView={{ x: 0, opacity: 1 }}
@@ -160,7 +201,6 @@ const FAQ = () => {
           transition={{ duration: 0.3 }}
           className="max-w-3xl mb-10 lg:mb-12 text-left"
         >
-          {/* Badge - Italic */}
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#6366F1]/10 border border-[#6366F1]/20 rounded-full mb-4 cursor-pointer hover:border-[#6366F1] hover:bg-[#6366F1]/20 transition-all duration-300">
             <HelpCircle className="w-4 h-4 text-[#6366F1]" />
             <span className="text-sm font-medium font-sans tracking-wide text-[#6366F1] italic">
@@ -168,7 +208,6 @@ const FAQ = () => {
             </span>
           </div>
           
-          {/* Heading - Services section style */}
           <h2 className="text-2xl md:text-3xl font-bold font-serif tracking-tight text-[#F8FAFC] mb-3">
             Frequently Asked{' '}
             <span className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">
@@ -176,7 +215,6 @@ const FAQ = () => {
             </span>
           </h2>
           
-          {/* Description - Services section style */}
           <p className="text-base md:text-lg text-[#94A3B8] max-w-2xl font-light tracking-wide">
             Find answers to common questions about our services and process.
           </p>
@@ -186,79 +224,83 @@ const FAQ = () => {
           </div>
         </motion.div>
 
-        {/* FAQ Items - Services section font styles */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          className="w-full max-w-3xl mx-auto"
-        >
-          {faqData.map((faq) => (
-            <motion.div
-              key={faq.id}
-              variants={itemVariants}
-              className="mb-3 w-full"
-            >
-              <div
-                className={`bg-[#0F172A] border border-[#1E293B] rounded-xl overflow-hidden transition-all duration-200 w-full ${
-                  openItems.includes(faq.id) ? 'shadow-md shadow-[#6366F1]/10 border-[#6366F1]/30' : ''
-                }`}
+        {/* FAQ Items - Dynamic from Database */}
+        {faqData.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-[#94A3B8]">No FAQs available at the moment.</p>
+          </div>
+        ) : (
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="w-full max-w-3xl mx-auto"
+          >
+            {faqData.map((faq) => (
+              <motion.div
+                key={faq.id}
+                variants={itemVariants}
+                className="mb-3 w-full"
               >
-                {/* Question Button */}
-                <button
-                  onClick={() => toggleItem(faq.id)}
-                  className="w-full px-5 py-4 flex items-center justify-between text-left group cursor-pointer"
+                <div
+                  className={`bg-[#0F172A] border border-[#1E293B] rounded-xl overflow-hidden transition-all duration-200 w-full ${
+                    openItems.includes(faq.id) ? 'shadow-md shadow-[#6366F1]/10 border-[#6366F1]/30' : ''
+                  }`}
                 >
-                  <div className="flex items-center gap-3 flex-1">
-                    <span className="w-6 h-6 rounded-full bg-[#6366F1]/10 flex items-center justify-center text-[#6366F1] text-xs font-bold flex-shrink-0">
-                      {faq.id}
-                    </span>
-                    <span className="text-[#F8FAFC] text-sm lg:text-base font-medium font-sans tracking-wide group-hover:text-[#6366F1] transition-colors duration-200">
-                      {faq.question}
-                    </span>
-                  </div>
-                  
-                  <motion.div
-                    animate={{ rotate: openItems.includes(faq.id) ? 90 : 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="flex-shrink-0 ml-2 w-6 h-6 rounded-full bg-[#6366F1]/10 flex items-center justify-center group-hover:bg-[#6366F1]/20 transition-all duration-200"
+                  <button
+                    onClick={() => toggleItem(faq.id)}
+                    className="w-full px-5 py-4 flex items-center justify-between text-left group cursor-pointer"
                   >
-                    {openItems.includes(faq.id) ? (
-                      <Minus className="w-3.5 h-3.5 text-[#6366F1]" />
-                    ) : (
-                      <Plus className="w-3.5 h-3.5 text-[#6366F1]" />
-                    )}
-                  </motion.div>
-                </button>
-
-                {/* Answer Panel */}
-                <AnimatePresence>
-                  {openItems.includes(faq.id) && (
+                    <div className="flex items-center gap-3 flex-1">
+                      <span className="w-6 h-6 rounded-full bg-[#6366F1]/10 flex items-center justify-center text-[#6366F1] text-xs font-bold flex-shrink-0">
+                        {faq.id}
+                      </span>
+                      <span className="text-[#F8FAFC] text-sm lg:text-base font-medium font-sans tracking-wide group-hover:text-[#6366F1] transition-colors duration-200">
+                        {faq.question}
+                      </span>
+                    </div>
+                    
                     <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
+                      animate={{ rotate: openItems.includes(faq.id) ? 90 : 0 }}
                       transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
+                      className="flex-shrink-0 ml-2 w-6 h-6 rounded-full bg-[#6366F1]/10 flex items-center justify-center group-hover:bg-[#6366F1]/20 transition-all duration-200"
                     >
-                      <div className="px-5 pb-4 pt-2 border-t border-[#1E293B]">
-                        <div className="flex gap-3">
-                          <div className="w-6 flex-shrink-0" />
-                          <p className="text-[#94A3B8] text-xs lg:text-sm leading-relaxed font-light tracking-wide flex-1">
-                            {faq.answer}
-                          </p>
-                        </div>
-                      </div>
+                      {openItems.includes(faq.id) ? (
+                        <Minus className="w-3.5 h-3.5 text-[#6366F1]" />
+                      ) : (
+                        <Plus className="w-3.5 h-3.5 text-[#6366F1]" />
+                      )}
                     </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
+                  </button>
 
-        {/* Still Have Questions Section - Updated font styles */}
+                  <AnimatePresence>
+                    {openItems.includes(faq.id) && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-5 pb-4 pt-2 border-t border-[#1E293B]">
+                          <div className="flex gap-3">
+                            <div className="w-6 flex-shrink-0" />
+                            <p className="text-[#94A3B8] text-xs lg:text-sm leading-relaxed font-light tracking-wide flex-1">
+                              {faq.answer}
+                            </p>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+
+        {/* Still Have Questions Section - Rest remains same */}
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           whileInView={{ y: 0, opacity: 1 }}
@@ -280,7 +322,6 @@ const FAQ = () => {
 
           {/* Content Container */}
           <div className="relative px-6 py-8 lg:px-10 lg:py-12">
-            {/* Header - Services section font styles */}
             <div className="text-center mb-8 lg:mb-10">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#0F172A]/80 backdrop-blur-sm border border-[#6366F1]/20 rounded-full mb-4 cursor-pointer hover:border-[#6366F1] hover:bg-[#6366F1]/20 transition-all duration-300">
                 <Sparkles className="w-4 h-4 text-[#6366F1]" />
@@ -290,7 +331,7 @@ const FAQ = () => {
               </div>
               
               <h3 className="text-2xl lg:text-3xl font-bold font-serif tracking-tight bg-gradient-to-r from-[#F8FAFC] to-[#94A3B8] bg-clip-text text-transparent mb-3">
-                One a Talk Us
+                Want to Talk to Us?
               </h3>
               
               <p className="text-[#94A3B8] text-sm lg:text-base max-w-md mx-auto font-light tracking-wide">
@@ -306,7 +347,7 @@ const FAQ = () => {
                 return (
                   <div
                     key={option.id}
-                    className="relative h-[280px] perspective-1000 cursor-pointer group"
+                    className="relative min-h-[280px] perspective-1000 cursor-pointer group"
                     onMouseEnter={() => setFlippedCard(option.id)}
                     onMouseLeave={() => setFlippedCard(null)}
                   >
@@ -318,38 +359,16 @@ const FAQ = () => {
                       {/* Front Side */}
                       <div className="absolute w-full h-full backface-hidden">
                         <Link href={option.action} className="block h-full">
-                          <div className={`h-full bg-[#0F172A]/80 backdrop-blur-md border border-[#1E293B] rounded-xl p-6 text-center transition-all duration-300 ${option.bgHover} hover:border-[#6366F1]/50 hover:shadow-lg hover:shadow-[#6366F1]/10 cursor-pointer`}>
-                            {/* Icon Container */}
+                          <div className={`h-full bg-[#0F172A]/80 backdrop-blur-md border border-[#1E293B] rounded-xl p-6 text-center transition-all duration-300 ${option.bgHover} hover:border-[#6366F1]/50 hover:shadow-lg hover:shadow-[#6366F1]/10 cursor-pointer flex flex-col items-center justify-center`}>
                             <div className="relative mb-4">
                               <div className={`absolute inset-0 bg-gradient-to-r ${option.color} rounded-full blur-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300`} />
-                              <div className={`relative w-14 h-14 mx-auto bg-gradient-to-br ${option.color} rounded-full flex items-center justify-center shadow-lg`}>
-                                <Icon className="w-7 h-7 text-white" />
+                              <div className={`relative w-20 h-20 bg-gradient-to-br ${option.color} rounded-full flex items-center justify-center shadow-lg`}>
+                                <Icon className="w-10 h-10 text-white" />
                               </div>
                             </div>
-                            
-                            {/* Title - Services section font style */}
-                            <h4 className="text-white font-semibold font-sans tracking-wide text-lg lg:text-xl mb-2">
-                              {option.title}
-                            </h4>
-                            
-                            {/* Description - Services section font style */}
-                            <p className="text-[#94A3B8] text-sm mb-3 font-light tracking-wide">
-                              {option.description}
+                            <p className="text-[#94A3B8] text-sm mt-2 font-light tracking-wide">
+                              Hover to see details
                             </p>
-                            
-                            {/* Front Stats */}
-                            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#6366F1]/10 rounded-full mb-3">
-                              <FrontStatIcon className="w-3.5 h-3.5 text-[#6366F1]" />
-                              <span className="text-[#6366F1] text-xs font-medium font-sans tracking-wide">
-                                {option.frontInfo.stats}
-                              </span>
-                            </div>
-                            
-                            {/* Link */}
-                            <div className="inline-flex items-center gap-1 text-[#6366F1] text-sm font-medium font-sans tracking-wide group-hover:gap-2 transition-all duration-300">
-                              <span>{option.linkText}</span>
-                              <ArrowRight className="w-4 h-4" />
-                            </div>
                           </div>
                         </Link>
                       </div>

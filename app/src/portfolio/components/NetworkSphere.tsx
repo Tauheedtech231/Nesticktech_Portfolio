@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useRef, useMemo, useEffect, useState } from 'react';
@@ -69,137 +70,83 @@ const generateParticlePositions = (
 const SphereContent = ({ isMobile = false }) => {
   const sphereRef = useRef<THREE.Group>(null);
   const [isHovering, setIsHovering] = useState(false);
-  const [hoveredNode, setHoveredNode] = useState<number | null>(null);
-  const [lineColors, setLineColors] = useState<{ [key: number]: number }>({});
-  const [timeoutIds, setTimeoutIds] = useState<NodeJS.Timeout[]>([]);
+  const [lineProgress, setLineProgress] = useState<{ [key: number]: number }>({});
+  const animationRef = useRef<NodeJS.Timeout[]>([]);
 
   const nodeCount = isMobile ? 20 : 40;
   const connectionThreshold = isMobile ? 1.8 : 2.0;
   const particleCount = isMobile ? 60 : 150;
 
   const nodes = useMemo(() => {
-    return generateSpherePoints(nodeCount, 1.5);
+    return generateSpherePoints(nodeCount, 1.8);
   }, [nodeCount]);
 
   const connections = useMemo(() => {
     return generateConnections(nodes, connectionThreshold);
   }, [nodes, connectionThreshold]);
 
-  const nodeGeometry = useMemo(() => {
-    const geometry = new THREE.BufferGeometry();
-    const positions = new Float32Array(
-      nodes.flatMap((v) => [v.x, v.y, v.z])
-    );
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    return geometry;
-  }, [nodes]);
-
   const particleGeometry = useMemo(() => {
     const geometry = new THREE.BufferGeometry();
-    const positions = generateParticlePositions(particleCount, 2.0, 3.2);
+    const positions = generateParticlePositions(particleCount, 2.5, 4.0);
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     return geometry;
   }, [particleCount]);
 
   // Clear all timeouts
   const clearAllTimeouts = () => {
-    timeoutIds.forEach(id => clearTimeout(id));
-    setTimeoutIds([]);
+    animationRef.current.forEach(timeout => clearTimeout(timeout));
+    animationRef.current = [];
   };
 
-  // Reset to original state
-  const resetToOriginal = () => {
-    clearAllTimeouts();
-    setIsHovering(false);
-    setHoveredNode(null);
-    setLineColors({});
-  };
-
-  // Handle hover on sphere shells
-  const handleShellHover = () => {
-    if (!isHovering) {
-      setIsHovering(true);
-      // Make all lines gradually turn green
-      const allLineIndices = connections.map((_, idx) => idx);
-      const newTimeouts: NodeJS.Timeout[] = [];
-      
-      allLineIndices.forEach((idx, order) => {
-        const timeout = setTimeout(() => {
-          setLineColors(prev => ({ ...prev, [idx]: 1 }));
-        }, order * 30);
-        newTimeouts.push(timeout);
-      });
-      
-      setTimeoutIds(prev => [...prev, ...newTimeouts]);
-    }
-  };
-
-  const handleShellLeave = () => {
-    resetToOriginal();
-  };
-
-  // Handle hover on specific nodes
-  const handleNodeHover = (index: number) => {
-    // Clear any previous timeouts
-    clearAllTimeouts();
-    setHoveredNode(index);
+  // Handle hover on sphere shells - gradual connection
+  const handleSphereHover = () => {
+    if (isHovering) return;
+    setIsHovering(true);
     
-    if (!isHovering) {
-      setIsHovering(true);
-      // Find connected lines to this node
-      const connectedIndices: number[] = [];
-      connections.forEach(([start, end], idx) => {
-        if (start === nodes[index] || end === nodes[index]) {
-          connectedIndices.push(idx);
-        }
-      });
-      
-      // Gradually change connected lines to green
-      const newTimeouts: NodeJS.Timeout[] = [];
-      connectedIndices.forEach((idx, order) => {
-        const timeout = setTimeout(() => {
-          setLineColors(prev => ({ ...prev, [idx]: 1 }));
-        }, order * 50);
-        newTimeouts.push(timeout);
-      });
-      
-      setTimeoutIds(prev => [...prev, ...newTimeouts]);
-    } else {
-      // If already hovering, just highlight the node's connections
-      const connectedIndices: number[] = [];
-      connections.forEach(([start, end], idx) => {
-        if (start === nodes[index] || end === nodes[index]) {
-          connectedIndices.push(idx);
-        }
-      });
-      
-      connectedIndices.forEach(idx => {
-        setLineColors(prev => ({ ...prev, [idx]: 1 }));
-      });
-    }
+    // Clear any existing timeouts
+    clearAllTimeouts();
+    
+    // Gradually connect lines one by one
+    const allLineIndices = connections.map((_, idx) => idx);
+    allLineIndices.forEach((idx, order) => {
+      const timeout = setTimeout(() => {
+        setLineProgress(prev => ({ ...prev, [idx]: 1 }));
+      }, order * 25); // 25ms delay between each line for smooth behavior
+      animationRef.current.push(timeout);
+    });
   };
 
-  const handleNodeLeave = () => {
-    setHoveredNode(null);
-    // When leaving a node, if we're not hovering the shell, reset completely
-    // If we're still hovering the shell, keep the shell effects and only clear node-specific highlights
-    if (!isHovering) {
-      resetToOriginal();
-    } else {
-      // Just clear node highlight but keep shell effects
-      setHoveredNode(null);
-    }
+  const handleSphereLeave = () => {
+    setIsHovering(false);
+    
+    // Clear all timeouts to stop any pending animations
+    clearAllTimeouts();
+    
+    // Immediately reset all lines to original state
+    setLineProgress({});
   };
 
   useFrame(({ clock }) => {
-    const time = clock.getElapsedTime() * 0.15;
+    const time = clock.getElapsedTime() * 0.3;
 
     if (sphereRef.current) {
-      sphereRef.current.rotation.y = time * 0.1;
-      sphereRef.current.rotation.x = Math.sin(time * 0.05) * 0.03;
-      sphereRef.current.rotation.z = Math.cos(time * 0.03) * 0.02;
+      sphereRef.current.rotation.y = time * (isMobile ? 0.15 : 0.2);
+      if (!isMobile) {
+        sphereRef.current.rotation.x = Math.sin(time * 0.1) * 0.1;
+      }
     }
   });
+
+  // Create node positions for points material
+  const nodePositions = useMemo(() => {
+    const positions = new Float32Array(nodes.length * 3);
+    nodes.forEach((node, i) => {
+      positions[i * 3] = node.x;
+      positions[i * 3 + 1] = node.y;
+      positions[i * 3 + 2] = node.z;
+    });
+    return positions;
+  }, [nodes]);
 
   // Cleanup timeouts on unmount
   useEffect(() => {
@@ -210,43 +157,47 @@ const SphereContent = ({ isMobile = false }) => {
 
   return (
     <group ref={sphereRef}>
-      {/* 🌐 Outer Shell (Main Sphere with wireframe) - Hover detection on shell */}
+      {/* 🌐 Main Sphere with hover detection */}
       <mesh 
-        onPointerOver={handleShellHover} 
-        onPointerOut={handleShellLeave}
+        onPointerOver={handleSphereHover} 
+        onPointerOut={handleSphereLeave}
       >
-        <sphereGeometry args={[1.2, isMobile ? 16 : 24, isMobile ? 16 : 24]} />
+        <sphereGeometry args={[1.5, isMobile ? 16 : 24, isMobile ? 16 : 24]} />
         <meshPhongMaterial
           color={isHovering ? "#3B82F6" : "#818CF8"}
           emissive={isHovering ? "#2563EB" : "#A78BFA"}
-          emissiveIntensity={isHovering ? 1.2 : 0.8}
+          emissiveIntensity={isHovering ? 1.8 : 1.5}
           transparent
-          opacity={isMobile ? 0.4 : 0.3}
+          opacity={isMobile ? 0.35 : 0.25}
           wireframe
         />
       </mesh>
 
-      {/* Inner Shell */}
-      <mesh>
-        <sphereGeometry args={[0.8, 16, 16]} />
-        <meshBasicMaterial
-          color={isHovering ? "#3B82F6" : "#C084FC"}
-          wireframe
-          transparent
-          opacity={isHovering ? 0.4 : 0.2}
-        />
-      </mesh>
+      {/* Inner sphere */}
+      {!isMobile && (
+        <mesh>
+          <sphereGeometry args={[1.0, 16, 16]} />
+          <meshBasicMaterial
+            color={isHovering ? "#3B82F6" : "#C084FC"}
+            wireframe
+            transparent
+            opacity={isHovering ? 0.3 : 0.15}
+          />
+        </mesh>
+      )}
 
-      {/* 🔗 Connections - Turn green on hover */}
+      {/* 🔗 Connections - Gradual green transition on hover */}
       {connections.slice(0, isMobile ? 30 : undefined).map(([start, end], i) => {
-        const isConnected = lineColors[i] !== undefined;
+        const progress = lineProgress[i] || 0;
+        const isConnected = progress === 1;
         
-        const color = isConnected 
-          ? new THREE.Color(0x22C55E) // Green
-          : new THREE.Color(0xA78BFA); // Purple
+        // Interpolate between purple and green based on progress
+        const purpleColor = new THREE.Color(0xA78BFA);
+        const greenColor = new THREE.Color(0x22C55E);
+        const color = purpleColor.clone().lerp(greenColor, progress);
         
-        const opacity = isConnected ? 0.9 : 0.3;
-        const lineWidth = isConnected ? (isMobile ? 1.8 : 2.2) : (isMobile ? 0.6 : 0.8);
+        const opacity = isConnected ? 0.9 : 0.35;
+        const lineWidth = isMobile ? 0.8 : 1.0;
         
         return (
           <Line
@@ -261,50 +212,33 @@ const SphereContent = ({ isMobile = false }) => {
       })}
 
       {/* ✨ Nodes - Blue on hover */}
-      {nodes.map((node, idx) => {
-        const isHovered = hoveredNode === idx;
-        return (
-          <mesh
-            key={idx}
-            position={[node.x, node.y, node.z]}
-            onPointerOver={() => handleNodeHover(idx)}
-            onPointerOut={handleNodeLeave}
-          >
-            <sphereGeometry args={[isHovered ? 0.08 : 0.04, 8, 8]} />
-            <meshStandardMaterial
-              color={isHovering || isHovered ? "#3B82F6" : "#C4B5FD"}
-              emissive={isHovering || isHovered ? "#2563EB" : "#A78BFA"}
-              emissiveIntensity={isHovering || isHovered ? 0.8 : 0.2}
-              metalness={0.6}
-              roughness={0.3}
-            />
-          </mesh>
-        );
-      })}
+ <points>
+  <bufferGeometry>
+    <bufferAttribute
+      attach="attributes-position"
+      args={[nodePositions, 3]}
+    />
+  </bufferGeometry>
+
+  <pointsMaterial
+    size={isMobile ? 0.14 : 0.12}
+    color={isHovering ? "#3B82F6" : "#C4B5FD"}
+    sizeAttenuation
+    transparent
+    opacity={isHovering ? 1 : 0.9}
+  />
+</points>
 
       {/* 🌌 Particles */}
       <points geometry={particleGeometry}>
         <pointsMaterial
-          size={isMobile ? 0.015 : 0.01}
+          size={isMobile ? 0.05 : 0.04}
           color="#22D3EE"
           sizeAttenuation
           transparent
-          opacity={isMobile ? 0.15 : 0.1}
+          opacity={isMobile ? 0.5 : 0.35}
         />
       </points>
-
-      {/* Network Light Effect on Node Hover */}
-      {hoveredNode !== null && (
-        <mesh position={nodes[hoveredNode]}>
-          <sphereGeometry args={[0.18, 16, 16]} />
-          <meshBasicMaterial
-            color="#3B82F6"
-            transparent
-            opacity={0.3}
-            blending={THREE.AdditiveBlending}
-          />
-        </mesh>
-      )}
     </group>
   );
 };
@@ -333,12 +267,12 @@ const NetworkSphere = () => {
 
   return (
     <div 
-      className="w-full h-full relative"
+      className="w-full h-full"
       style={{ cursor: 'pointer' }}
     >
       <Canvas
         camera={{
-          position: isMobile ? [2.2, 0.3, 3.2] : [2.5, 0.5, 3.5],
+          position: isMobile ? [2.5, 0.5, 3.5] : [3, 1, 4],
           fov: isMobile ? 45 : 40,
         }}
         style={{
@@ -359,11 +293,11 @@ const NetworkSphere = () => {
         performance={{ min: 0.5 }}
       >
         {/* 💡 Lighting */}
-        <ambientLight intensity={0.4} />
-        
-        <pointLight position={[1, 1, 1]} intensity={0.5} color="#818CF8" />
-        <pointLight position={[-1, -0.5, 1]} intensity={0.3} color="#C084FC" />
-        <pointLight position={[0, 1.5, -1.5]} intensity={0.2} color="#22D3EE" />
+        <ambientLight intensity={1} />
+
+        <pointLight position={[2, 2, 2]} intensity={1.2} color="#818CF8" />
+        <pointLight position={[-2, -1, 2]} intensity={0.8} color="#C084FC" />
+        <pointLight position={[0, 3, -2]} intensity={0.6} color="#22D3EE" />
 
         <SphereContent isMobile={isMobile} />
       </Canvas>

@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import { 
   Sparkles, X, Braces, Box, Code2, Server, Cpu, Terminal, Database, 
   Cloud, GitBranch, Smartphone, Figma, Zap
@@ -108,7 +109,7 @@ const TechStackPage = () => {
           </div>
           
           {/* Heading - Services section style */}
-          <h2 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold font-serif tracking-tight text-[#F8FAFC]">
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold font-serif tracking-tight text-[#F8FAFC]">
             Our Technology Stack
           </h2>
           
@@ -133,22 +134,52 @@ const TechStackPage = () => {
 
         {/* Orbit Container - Reduced Height */}
         <div className="relative w-full flex items-center justify-center overflow-visible min-h-[280px] sm:min-h-[320px] lg:min-h-[380px]">
-          {/* Outer Rings */}
+          {/* Outer Rings - Full White */}
           <div className="relative flex items-center justify-center" style={{ width: ringSizes.large, height: ringSizes.large }}>
-            {/* Ring 1 - Largest */}
-            <div className="absolute rounded-full border border-[#6366F1]/15" style={{ width: ringSizes.large, height: ringSizes.large }} />
+            {/* Ring 1 - Largest - Full White, Thicker */}
+            <div 
+              className="absolute rounded-full" 
+              style={{ 
+                width: ringSizes.large, 
+                height: ringSizes.large,
+                border: '3px solid rgba(255, 255, 255, 0.3)',
+                boxShadow: '0 0 30px rgba(255, 255, 255, 0.15)'
+              }} 
+            />
             
-            {/* Ring 2 - Middle */}
-            <div className="absolute rounded-full border border-[#8B5CF6]/10" style={{ width: ringSizes.medium, height: ringSizes.medium }} />
+            {/* Ring 2 - Middle - Full White */}
+            <div 
+              className="absolute rounded-full" 
+              style={{ 
+                width: ringSizes.medium, 
+                height: ringSizes.medium,
+                border: '2px solid rgba(255, 255, 255, 0.25)',
+                boxShadow: '0 0 20px rgba(255, 255, 255, 0.1)'
+              }} 
+            />
             
-            {/* Ring 3 - Smallest */}
-            <div className="absolute rounded-full border border-[#22C55E]/8" style={{ width: ringSizes.small, height: ringSizes.small }} />
+            {/* Ring 3 - Smallest - Full White */}
+            <div 
+              className="absolute rounded-full" 
+              style={{ 
+                width: ringSizes.small, 
+                height: ringSizes.small,
+                border: '1.5px solid rgba(255, 255, 255, 0.2)',
+                boxShadow: '0 0 15px rgba(255, 255, 255, 0.08)'
+              }} 
+            />
             
-            {/* Center Logo - Smaller */}
+            {/* Center Logo - Using Real Logo */}
             <div className="absolute z-20 text-center">
-              <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] p-[2px]">
-                <div className="w-full h-full rounded-full bg-[#020617] flex items-center justify-center">
-                  <span className="text-[8px] lg:text-[10px] font-bold font-sans tracking-wide text-[#F8FAFC] px-1">Nestick Tech</span>
+              <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] p-[2px] shadow-lg shadow-[#6366F1]/20">
+                <div className="w-full h-full rounded-full bg-[#020617] flex items-center justify-center overflow-hidden">
+                  <Image
+                    src="/nesticklogo.jpg"
+                    alt="Nestick Tech Logo"
+                    width={60}
+                    height={60}
+                    className="object-cover w-full h-full"
+                  />
                 </div>
               </div>
             </div>

@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // components/Footer.tsx
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, Variants } from 'framer-motion';
@@ -22,10 +24,54 @@ import {
   Sparkles
 } from 'lucide-react';
 
+// Map icon names to components
+const iconMap: Record<string, any> = {
+  Github: Github,
+  Linkedin: Linkedin,
+  Twitter: Twitter,
+  Instagram: Instagram,
+  Mail: Mail,
+  Phone: Phone,
+  MapPin: MapPin
+};
+
+interface Contact {
+  id: number;
+  type: 'phone' | 'email' | 'location';
+  value: string;
+  url: string | null;
+  display_order: number;
+}
+
+interface SocialLink {
+  id: number;
+  platform: string;
+  url: string;
+  icon_name: string;
+  color: string;
+  display_order: number;
+}
+
+interface FooterSettings {
+  ceo_name: string;
+  ceo_message: string;
+  ceo_title: string;
+  social_handle: string;
+}
+
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
+  const [settings, setSettings] = useState<FooterSettings>({
+    ceo_name: 'Mr. Hamza Hassan',
+    ceo_message: 'We believe in building technology that empowers businesses and transforms ideas into reality. Our mission is to deliver excellence through innovation and dedication.',
+    ceo_title: 'CEO of Nestick Tech',
+    social_handle: 'nesticktech'
+  });
+  const [loading, setLoading] = useState(true);
 
-  // Services Links
+  // Services Links (Can also be made dynamic)
   const services = [
     { name: 'Web Development', href: '/services' },
     { name: 'Mobile App Development', href: '/services' },
@@ -43,18 +89,35 @@ const Footer = () => {
     { name: 'Build N (Construction)', href: '/products' },
   ];
 
-  const socialLinks = [
-    { name: 'GitHub', icon: Github, href: 'https://github.com/nesticktech', color: 'hover:text-[#6366F1]' },
-    { name: 'LinkedIn', icon: Linkedin, href: 'https://www.linkedin.com/in/abdullah-amin005', color: 'hover:text-[#0A66C2]' },
-    { name: 'Twitter', icon: Twitter, href: 'https://twitter.com/nesticktech', color: 'hover:text-[#1DA1F2]' },
-    { name: 'Instagram', icon: Instagram, href: 'https://instagram.com/nesticktech', color: 'hover:text-[#E4405F]' },
-  ];
+  useEffect(() => {
+    fetchFooterData();
+  }, []);
 
-  const contactInfo = [
-    { icon: Mail, text: 'nesticktech@gmail.com', href: 'mailto:nesticktech@gmail.com' },
-    { icon: Phone, text: '+92 320 8423427', href: 'tel:+923208423427' },
-    { icon: MapPin, text: 'Johar Town, Lahore, Pakistan', href: 'https://maps.google.com/?q=Johar+Town+Lahore' },
-  ];
+  const fetchFooterData = async () => {
+    try {
+      const response = await fetch('/api/footer');
+      const data = await response.json();
+      if (data.success) {
+        setContacts(data.contacts);
+        setSocialLinks(data.social);
+        setSettings(prev => ({ ...prev, ...data.settings }));
+      }
+    } catch (error) {
+      console.error('Error fetching footer data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Get icon component for contact type
+  const getContactIcon = (type: string) => {
+    switch(type) {
+      case 'phone': return Phone;
+      case 'email': return Mail;
+      case 'location': return MapPin;
+      default: return MapPin;
+    }
+  };
 
   // Animation variants
   const containerVariants: Variants = {
@@ -81,6 +144,18 @@ const Footer = () => {
       },
     },
   };
+
+  if (loading) {
+    return (
+      <footer className="relative bg-[#020617] border-t border-[#1E293B] py-12">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="animate-pulse">
+            <div className="h-40 bg-gray-800 rounded-xl" />
+          </div>
+        </div>
+      </footer>
+    );
+  }
 
   return (
     <footer className="relative bg-[#020617] border-t border-[#1E293B] overflow-hidden">
@@ -122,35 +197,35 @@ const Footer = () => {
               </div>
             </Link>
             
-            {/* CEO Message - Services section font styles */}
+            {/* CEO Message - Dynamic */}
             <div className="mb-4 p-4 bg-[#0F172A]/50 rounded-xl border border-[#1E293B]">
               <p className="text-[#94A3B8] text-xs font-light tracking-wide italic leading-relaxed mb-2">
-                &quot;We believe in building technology that empowers businesses and transforms ideas into reality. Our mission is to deliver excellence through innovation and dedication.&quot;
+                &quot;{settings.ceo_message}&quot;
               </p>
-              <p className="text-[#F8FAFC] text-xs font-semibold font-sans tracking-wide">— Mr. Hamza Hassan</p>
-              <p className="text-[#6366F1] text-[10px] font-medium font-sans tracking-wide">CEO of Nestick Tech</p>
+              <p className="text-[#F8FAFC] text-xs font-semibold font-sans tracking-wide">— {settings.ceo_name}</p>
+              <p className="text-[#6366F1] text-[10px] font-medium font-sans tracking-wide mt-1">{settings.ceo_title}</p>
             </div>
 
-            {/* Contact Info - Services section font styles */}
+            {/* Contact Info - Dynamic from database */}
             <div className="space-y-2">
-              {contactInfo.map((item, index) => {
-                const Icon = item.icon;
+              {contacts.map((contact) => {
+                const Icon = getContactIcon(contact.type);
                 return (
                   <Link
-                    key={index}
-                    href={item.href}
-                    target={item.icon === MapPin ? "_blank" : undefined}
+                    key={contact.id}
+                    href={contact.url || '#'}
+                    target={contact.type === 'location' ? "_blank" : undefined}
                     className="flex items-center gap-2 text-[#94A3B8] hover:text-[#6366F1] transition-colors duration-200 group cursor-pointer"
                   >
                     <Icon className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-                    <span className="text-xs font-light tracking-wide">{item.text}</span>
+                    <span className="text-xs font-light tracking-wide">{contact.value}</span>
                   </Link>
                 );
               })}
             </div>
           </motion.div>
 
-          {/* Services Links - Services section font styles */}
+          {/* Services Links */}
           <motion.div variants={itemVariants} className="lg:col-span-3">
             <div className="flex items-center gap-2 mb-3">
               <Code className="w-4 h-4 text-[#6366F1]" />
@@ -171,7 +246,7 @@ const Footer = () => {
             </ul>
           </motion.div>
 
-          {/* Products Links - Services section font styles */}
+          {/* Products Links */}
           <motion.div variants={itemVariants} className="lg:col-span-3">
             <div className="flex items-center gap-2 mb-3">
               <ShoppingBag className="w-4 h-4 text-[#22C55E]" />
@@ -192,25 +267,25 @@ const Footer = () => {
             </ul>
           </motion.div>
 
-          {/* Social & Connect - Services section font styles */}
+          {/* Social & Connect */}
           <motion.div variants={itemVariants} className="lg:col-span-2">
             <div className="flex items-center gap-2 mb-3">
               <Sparkles className="w-4 h-4 text-[#F59E0B]" />
               <h3 className="text-[#F8FAFC] font-semibold font-sans tracking-wide text-base">Connect</h3>
             </div>
             
-            {/* Social Links */}
+            {/* Social Links - Dynamic from database */}
             <div className="flex flex-wrap gap-2 mb-4">
               {socialLinks.map((social) => {
-                const Icon = social.icon;
+                const Icon = iconMap[social.icon_name] || Github;
                 return (
                   <Link
-                    key={social.name}
-                    href={social.href}
+                    key={social.id}
+                    href={social.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`w-9 h-9 rounded-lg bg-[#0F172A] border border-[#1E293B] flex items-center justify-center text-[#94A3B8] ${social.color} hover:border-[#6366F1] transition-all duration-200 group cursor-pointer`}
-                    aria-label={social.name}
+                    className={`w-9 h-9 rounded-lg bg-[#0F172A] border border-[#1E293B] flex items-center justify-center text-[#94A3B8] hover:text-[${social.color}] hover:border-[#6366F1] transition-all duration-200 group cursor-pointer`}
+                    aria-label={social.platform}
                   >
                     <Icon className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
                   </Link>
@@ -218,13 +293,13 @@ const Footer = () => {
               })}
             </div>
             
-            {/* Social handles - Services section font styles */}
+            {/* Social handles */}
             <p className="text-xs text-[#94A3B8] font-light tracking-wide">Follow us for updates</p>
-            <p className="text-[10px] text-[#6366F1] font-medium tracking-wide mt-1">@nesticktech</p>
+            <p className="text-[10px] text-[#6366F1] font-medium tracking-wide mt-1">@{settings.social_handle}</p>
           </motion.div>
         </motion.div>
 
-        {/* Bottom Bar - Services section font styles */}
+        {/* Bottom Bar */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -233,17 +308,12 @@ const Footer = () => {
           className="mt-10 pt-4 border-t border-[#1E293B]"
         >
           <div className="flex flex-col md:flex-row justify-between items-center gap-3">
-            {/* Copyright */}
             <p className="text-[#94A3B8] text-xs font-light tracking-wide text-center md:text-left">
               © {currentYear} Nestick Tech. All rights reserved.
             </p>
-
-            {/* Made with love */}
             <p className="text-[#94A3B8] text-xs font-light tracking-wide flex items-center gap-1">
               Made with <Heart className="w-3 h-3 text-[#EF4444] fill-[#EF4444] animate-pulse" /> in Lahore, Pakistan
             </p>
-
-            {/* Quick Contact */}
             <Link 
               href="/contact" 
               className="text-[#6366F1] text-xs font-medium tracking-wide hover:underline transition-colors cursor-pointer"

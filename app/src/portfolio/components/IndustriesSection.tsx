@@ -16,7 +16,6 @@ import {
   ChevronRight,
   LucideIcon
 } from 'lucide-react';
-import Link from 'next/link';
 
 interface Industry {
   id: number;
@@ -25,6 +24,11 @@ interface Industry {
   description: string;
   color: string;
   gradient: string;
+  bgPattern: string;
+  borderHighlight: string;
+  offsetX: string;
+  offsetY: string;
+  zIndex: number;
 }
 
 interface FormData {
@@ -42,15 +46,51 @@ const IndustriesSection = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [selectedIndustry, setSelectedIndustry] = useState('');
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isMounted, setIsMounted] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   
+  // Fix: Only enable useScroll after component is mounted
   const { scrollYProgress } = useScroll({
-    target: sectionRef,
+    target: isMounted ? sectionRef : undefined,
     offset: ["start end", "end start"]
   });
   
+  // Fixed particles - no random values to prevent hydration mismatch
+  const particles = [
+    { left: "8.71%", top: "58.48%" },
+    { left: "62.73%", top: "53.49%" },
+    { left: "44.48%", top: "15.41%" },
+    { left: "92.23%", top: "33.54%" },
+    { left: "48.74%", top: "77.15%" },
+    { left: "38.83%", top: "4.15%" },
+    { left: "69.60%", top: "42.94%" },
+    { left: "85.73%", top: "28.72%" },
+    { left: "85.39%", top: "36.32%" },
+    { left: "57.09%", top: "82.16%" },
+    { left: "1.75%", top: "2.31%" },
+    { left: "70.22%", top: "22.69%" },
+    { left: "88.90%", top: "37.37%" },
+    { left: "89.68%", top: "26.47%" },
+    { left: "35.24%", top: "11.77%" },
+    { left: "25.59%", top: "41.14%" },
+    { left: "90.99%", top: "21.48%" },
+    { left: "47.63%", top: "7.59%" },
+    { left: "10.88%", top: "99.61%" },
+    { left: "62.01%", top: "37.96%" },
+    { left: "52.90%", top: "75.34%" },
+    { left: "73.08%", top: "13.88%" },
+    { left: "15.67%", top: "51.51%" },
+    { left: "21.50%", top: "87.93%" },
+    { left: "50.91%", top: "54.16%" },
+    { left: "78.58%", top: "40.47%" },
+    { left: "50.23%", top: "0.18%" },
+    { left: "84.84%", top: "60.20%" },
+    { left: "84.51%", top: "60.74%" },
+    { left: "21.13%", top: "43.04%" },
+  ];
+
   const industries: Industry[] = [
     {
       id: 1,
@@ -59,6 +99,11 @@ const IndustriesSection = () => {
       description: "LMS platforms, student management systems, online learning solutions",
       color: "#6366F1",
       gradient: "from-[#6366F1] to-[#8B5CF6]",
+      bgPattern: "radial-gradient(circle at 20% 30%, rgba(99,102,241,0.08) 0%, transparent 60%)",
+      borderHighlight: "hover:border-t-[#6366F1]",
+      offsetX: "0px",
+      offsetY: "0px",
+      zIndex: 10,
     },
     {
       id: 2,
@@ -67,6 +112,11 @@ const IndustriesSection = () => {
       description: "Online stores, payment integration, inventory management",
       color: "#22C55E",
       gradient: "from-[#22C55E] to-[#86EFAC]",
+      bgPattern: "radial-gradient(circle at 80% 40%, rgba(34,197,94,0.08) 0%, transparent 60%)",
+      borderHighlight: "hover:border-r-[#22C55E]",
+      offsetX: "-8px",
+      offsetY: "12px",
+      zIndex: 9,
     },
     {
       id: 3,
@@ -75,6 +125,11 @@ const IndustriesSection = () => {
       description: "Project management, resource planning, site monitoring",
       color: "#F59E0B",
       gradient: "from-[#F59E0B] to-[#FBBF24]",
+      bgPattern: "radial-gradient(circle at 40% 70%, rgba(245,158,11,0.08) 0%, transparent 60%)",
+      borderHighlight: "hover:border-b-[#F59E0B]",
+      offsetX: "5px",
+      offsetY: "-8px",
+      zIndex: 8,
     },
     {
       id: 4,
@@ -83,6 +138,11 @@ const IndustriesSection = () => {
       description: "MVP development, scaling solutions, tech strategy",
       color: "#EF4444",
       gradient: "from-[#EF4444] to-[#F87171]",
+      bgPattern: "radial-gradient(circle at 60% 20%, rgba(239,68,68,0.08) 0%, transparent 60%)",
+      borderHighlight: "hover:border-l-[#EF4444]",
+      offsetX: "-5px",
+      offsetY: "8px",
+      zIndex: 11,
     },
     {
       id: 5,
@@ -91,6 +151,11 @@ const IndustriesSection = () => {
       description: "Secure transactions, compliance systems, analytics",
       color: "#3B82F6",
       gradient: "from-[#3B82F6] to-[#60A5FA]",
+      bgPattern: "radial-gradient(circle at 90% 80%, rgba(59,130,246,0.08) 0%, transparent 60%)",
+      borderHighlight: "hover:border-t-[#3B82F6]",
+      offsetX: "10px",
+      offsetY: "-5px",
+      zIndex: 7,
     },
     {
       id: 6,
@@ -99,38 +164,35 @@ const IndustriesSection = () => {
       description: "Healthcare apps, patient management, telemedicine",
       color: "#EC489A",
       gradient: "from-[#EC489A] to-[#F472B6]",
+      bgPattern: "radial-gradient(circle at 10% 90%, rgba(236,72,153,0.08) 0%, transparent 60%)",
+      borderHighlight: "hover:border-r-[#EC489A]",
+      offsetX: "-10px",
+      offsetY: "5px",
+      zIndex: 12,
     },
   ];
 
-  // Generate random starting positions and angles for each card
-  const getRandomTransform = (index: number) => {
-    // Different random seeds for each card
-    const seeds = [1, 2, 3, 4, 5, 6];
-    const seed = seeds[index];
-    
-    // Random starting X position (-300px to 300px)
-    const startX = (Math.sin(seed * 45) * 200) + (Math.random() * 100);
-    // Random starting Y position (-200px to 200px)
-    const startY = (Math.cos(seed * 30) * 150) + (Math.random() * 80);
-    // Random rotation (-45deg to 45deg)
-    const startRotate = (Math.sin(seed * 60) * 40) + (Math.random() * 20);
-    // Random scale (0.3 to 0.7)
-    const startScale = 0.3 + (Math.random() * 0.4);
-    
-    return { startX, startY, startRotate, startScale };
-  };
+  // Fixed stone positions - no random values
+  const stonePositions = [
+    { x: -600, y: -300, rotate: -35, scale: 0.2 },
+    { x: 650, y: -250, rotate: 40, scale: 0.25 },
+    { x: -500, y: 200, rotate: -25, scale: 0.3 },
+    { x: 550, y: 180, rotate: 30, scale: 0.28 },
+    { x: -400, y: -350, rotate: -45, scale: 0.22 },
+    { x: 450, y: -280, rotate: 35, scale: 0.26 },
+  ];
 
-  // Store random transforms for each card
+  // Store transforms for each card with fixed values - only when mounted
   const cardTransforms = industries.map((_, index) => {
-    const { startX, startY, startRotate, startScale } = getRandomTransform(index);
-    const start = 0.1 + (index * 0.04);
-    const end = 0.4 + (index * 0.04);
+    const stonePos = stonePositions[index];
+    const start = 0.08 + (Math.floor(index / 2) * 0.04);
+    const end = 0.35 + (Math.floor(index / 2) * 0.04);
     
     return {
-      x: useTransform(scrollYProgress, [start, end], [startX, 0]),
-      y: useTransform(scrollYProgress, [start, end], [startY, 0]),
-      rotate: useTransform(scrollYProgress, [start, end], [startRotate, 0]),
-      scale: useTransform(scrollYProgress, [start, end], [startScale, 1]),
+      x: useTransform(scrollYProgress, [start, end], [stonePos.x, 0]),
+      y: useTransform(scrollYProgress, [start, end], [stonePos.y, 0]),
+      rotate: useTransform(scrollYProgress, [start, end], [stonePos.rotate, 0]),
+      scale: useTransform(scrollYProgress, [start, end], [stonePos.scale, 1]),
       opacity: useTransform(scrollYProgress, [start, end], [0, 1]),
     };
   });
@@ -146,15 +208,11 @@ const IndustriesSection = () => {
 
   // Background parallax
   const bgY = useTransform(scrollYProgress, [0, 1], [0, -100]);
-  
-  // Floating particles with random movement
-  const particles = [...Array(30)].map((_, i) => ({
-    left: `${Math.random() * 100}%`,
-    top: `${Math.random() * 100}%`,
-    delay: i * 0.1,
-    xMove: useTransform(scrollYProgress, [0, 1], [0, (Math.random() - 0.5) * 200]),
-    yMove: useTransform(scrollYProgress, [0, 1], [0, (Math.random() - 0.5) * 150]),
-  }));
+
+  // Set mounted state
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -223,11 +281,16 @@ const IndustriesSection = () => {
     projectDescription: '',
   });
 
+  // Don't render until mounted to prevent hydration issues
+  if (!isMounted) {
+    return null;
+  }
+
   return (
     <>
       <section
         ref={sectionRef}
-        className="relative py-8 bg-[#020617] overflow-hidden"
+        className="relative py-12 bg-[#020617] overflow-hidden"
       >
         {/* Animated Background */}
         <motion.div 
@@ -239,24 +302,22 @@ const IndustriesSection = () => {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#06B6D4]/5 rounded-full blur-3xl" />
         </motion.div>
 
-        {/* Floating Particles */}
+        {/* Floating Particles - Fixed positions */}
         <div className="absolute inset-0 pointer-events-none">
           {particles.map((particle, i) => (
-            <motion.div
+            <div
               key={i}
               className="absolute w-1 h-1 bg-[#6366F1]/40 rounded-full"
               style={{
                 left: particle.left,
                 top: particle.top,
-                x: particle.xMove,
-                y: particle.yMove,
               }}
             />
           ))}
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Section Header - Fly in from top */}
+          {/* Section Header */}
           <motion.div
             className="text-center max-w-3xl mx-auto mb-12 lg:mb-16"
             style={{
@@ -284,42 +345,86 @@ const IndustriesSection = () => {
             </p>
           </motion.div>
 
-          {/* Desktop Grid View - Cards come from different random angles */}
-          <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
-            {industries.map((industry, index) => {
-              const Icon = industry.icon;
-              const transform = cardTransforms[index];
-              return (
-                <motion.div
-                  key={industry.id}
-                  className="group relative cursor-pointer"
-                  style={{
-                    x: transform.x,
-                    y: transform.y,
-                    rotate: transform.rotate,
-                    scale: transform.scale,
-                    opacity: transform.opacity,
-                  }}
-                >
-                  <div className={`absolute inset-0 bg-gradient-to-r ${industry.gradient} rounded-xl opacity-0 group-hover:opacity-10 transition-opacity duration-500 blur-sm`} />
-                  
-                  <div className="relative bg-[#0F172A] border border-[#1E293B] rounded-xl p-6 hover:border-[#6366F1]/30 transition-all duration-300 h-full hover:-translate-y-1 cursor-pointer">
-                    {/* Icon */}
-                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${industry.gradient} flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                      <Icon className="w-6 h-6 text-white" />
+          {/* Desktop Grid View - NO GAPS between cards - Stone pile effect */}
+          <div className="hidden sm:block">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              {industries.map((industry, index) => {
+                const Icon = industry.icon;
+                const transform = cardTransforms[index];
+                return (
+                  <motion.div
+                    key={industry.id}
+                    className="group relative cursor-pointer"
+                    style={{
+                      x: transform.x,
+                      y: transform.y,
+                      rotate: transform.rotate,
+                      scale: transform.scale,
+                      opacity: transform.opacity,
+                      zIndex: industry.zIndex,
+                    }}
+                  >
+                    {/* Stone pile effect - overlapping borders */}
+                    <div 
+                      className="relative bg-[#0F172A] border border-[#1E293B] transition-all duration-300 hover:z-20 hover:-translate-y-1 cursor-pointer overflow-hidden"
+                      style={{
+                        margin: '-1px',
+                        padding: '1.25rem',
+                        minHeight: '200px',
+                        backgroundImage: industry.bgPattern,
+                        backgroundRepeat: 'no-repeat',
+                      }}
+                    >
+                      {/* Stone-like rough edge effects */}
+                      <div className="absolute inset-0 pointer-events-none">
+                        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#1E293B] to-transparent" />
+                        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#1E293B] to-transparent" />
+                        <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-[#1E293B] to-transparent" />
+                        <div className="absolute right-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-[#1E293B] to-transparent" />
+                      </div>
+
+                      {/* Different border highlight on hover for each stone */}
+                      <div className={`absolute inset-0 border-2 rounded-none opacity-0 group-hover:opacity-100 transition-all duration-300 ${industry.borderHighlight}`} />
+                      
+                      {/* Unique corner accent for each stone */}
+                      <div 
+                        className="absolute -top-8 -right-8 w-16 h-16 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-500"
+                        style={{
+                          background: `radial-gradient(circle, ${industry.color}, transparent 70%)`
+                        }}
+                      />
+                      
+                      {/* Stone texture dots */}
+                      <div className="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-30 transition-opacity duration-500">
+                        <div className="w-1 h-1 rounded-full" style={{ backgroundColor: industry.color }} />
+                        <div className="w-1 h-1 rounded-full" style={{ backgroundColor: industry.color }} />
+                        <div className="w-1 h-1 rounded-full" style={{ backgroundColor: industry.color }} />
+                      </div>
+
+                      {/* Icon with stone-like animation */}
+                      <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${industry.gradient} flex items-center justify-center mb-3 shadow-lg group-hover:scale-110 group-hover:rotate-2 transition-all duration-300`}>
+                        <Icon className="w-5 h-5 text-white" />
+                      </div>
+
+                      {/* Title */}
+                      <h3 className="text-base font-semibold font-sans tracking-wide text-[#F8FAFC] mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[#6366F1] group-hover:to-[#8B5CF6] transition-all duration-300">
+                        {industry.name}
+                      </h3>
+
+                      {/* Description */}
+                      <p className="text-xs text-[#94A3B8] leading-relaxed font-light tracking-wide">
+                        {industry.description}
+                      </p>
+
+                      {/* Bottom line indicator per stone */}
+                      <div 
+                        className={`absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r ${industry.gradient} transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left`}
+                      />
                     </div>
-
-                    <h3 className="text-lg font-semibold font-sans tracking-wide text-[#F8FAFC] mb-2 group-hover:text-[#6366F1] transition-colors duration-300">
-                      {industry.name}
-                    </h3>
-
-                    <p className="text-sm text-[#94A3B8] leading-relaxed font-light tracking-wide">
-                      {industry.description}
-                    </p>
-                  </div>
-                </motion.div>
-              );
-            })}
+                  </motion.div>
+                );
+              })}
+            </div>
           </div>
 
           {/* Mobile Slider View */}
@@ -341,16 +446,16 @@ const IndustriesSection = () => {
                       <div className="group relative cursor-pointer">
                         <div className={`absolute inset-0 bg-gradient-to-r ${industry.gradient} rounded-xl opacity-0 group-hover:opacity-10 transition-opacity duration-500 blur-sm`} />
                         
-                        <div className="relative bg-[#0F172A] border border-[#1E293B] rounded-xl p-6 hover:border-[#6366F1]/30 transition-all duration-300 cursor-pointer">
-                          <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${industry.gradient} flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                            <Icon className="w-6 h-6 text-white" />
+                        <div className="relative bg-[#0F172A] border border-[#1E293B] rounded-xl p-5 hover:border-[#6366F1]/30 transition-all duration-300 cursor-pointer">
+                          <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${industry.gradient} flex items-center justify-center mb-3 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                            <Icon className="w-5 h-5 text-white" />
                           </div>
 
-                          <h3 className="text-lg font-semibold font-sans tracking-wide text-[#F8FAFC] mb-2 group-hover:text-[#6366F1] transition-colors duration-300">
+                          <h3 className="text-base font-semibold font-sans tracking-wide text-[#F8FAFC] mb-2 group-hover:text-[#6366F1] transition-colors duration-300">
                             {industry.name}
                           </h3>
 
-                          <p className="text-sm text-[#94A3B8] leading-relaxed font-light tracking-wide">
+                          <p className="text-xs text-[#94A3B8] leading-relaxed font-light tracking-wide">
                             {industry.description}
                           </p>
                         </div>

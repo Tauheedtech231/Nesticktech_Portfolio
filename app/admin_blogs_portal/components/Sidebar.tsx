@@ -4,7 +4,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { 
   LayoutDashboard, 
   FileText, 
@@ -15,8 +15,12 @@ import {
   Sparkles,
   Briefcase,
   ChevronRight,
+  ChevronDown,
   Settings,
-  HelpCircle
+  HelpCircle,
+  Star,
+  Layout,
+  Home
 } from 'lucide-react';
 import { useTheme } from '../providers';
 import { useState, useEffect } from 'react';
@@ -30,19 +34,36 @@ const menuItems = [
   { href: '/admin_blogs_portal/profile', label: 'Profile', icon: User, badge: false },
 ];
 
+// Home dropdown items
+const homeDropdownItems = [
+  { href: '/admin_blogs_portal/testimonials', label: 'Testimonials', icon: Star },
+  { href: '/admin_blogs_portal/faq', label: 'FAQ', icon: HelpCircle },
+  { href: '/admin_blogs_portal/footer', label: 'Footer', icon: Layout },
+];
+
 export default function Sidebar() {
   const pathname = usePathname();
   const { theme } = useTheme();
-  const router=useRouter();
+  const router = useRouter();
   const [pendingCount, setPendingCount] = useState(0);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [isHomeOpen, setIsHomeOpen] = useState(false);
 
   useEffect(() => {
     fetchPendingCount();
-    // Refresh pending count every 30 seconds
     const interval = setInterval(fetchPendingCount, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  // Check if any home dropdown item is active
+  useEffect(() => {
+    const isHomeActive = homeDropdownItems.some(item => 
+      pathname === item.href || pathname?.startsWith(item.href + '/')
+    );
+    if (isHomeActive) {
+      setIsHomeOpen(true);
+    }
+  }, [pathname]);
 
   const fetchPendingCount = async () => {
     try {
@@ -61,10 +82,34 @@ export default function Sidebar() {
     window.location.href = '/admin_blogs_portal/login';
   };
 
+  const toggleHomeDropdown = () => {
+    setIsHomeOpen(!isHomeOpen);
+  };
+
   const itemVariants = {
     initial: { opacity: 0, x: -10 },
     animate: { opacity: 1, x: 0 },
     exit: { opacity: 0, x: -10 }
+  };
+
+  const dropdownVariants:Variants = {
+    hidden: { opacity: 0, height: 0 },
+    visible: { 
+      opacity: 1, 
+      height: 'auto',
+      transition: {
+        duration: 0.2,
+        ease: 'easeInOut'
+      }
+    },
+    exit: { 
+      opacity: 0, 
+      height: 0,
+      transition: {
+        duration: 0.2,
+        ease: 'easeInOut'
+      }
+    }
   };
 
   return (
@@ -88,9 +133,7 @@ export default function Sidebar() {
         >
           <div className="relative">
             <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 blur-md opacity-50" />
-            <div onClick={(()=>{
-              router.push('/')
-            })} className="relative cursor-pointer w-9 h-9 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center shadow-lg">
+            <div onClick={() => router.push('/')} className="relative cursor-pointer w-9 h-9 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center shadow-lg">
               <Sparkles size={16} className="text-white" />
             </div>
           </div>
@@ -107,6 +150,101 @@ export default function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+        {/* Home Dropdown */}
+        <motion.div
+          initial="initial"
+          animate="animate"
+          variants={itemVariants}
+          transition={{ delay: 0.03 }}
+        >
+          <button
+            onClick={toggleHomeDropdown}
+            onMouseEnter={() => setHoveredItem('Home')}
+            onMouseLeave={() => setHoveredItem(null)}
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group cursor-pointer ${
+              homeDropdownItems.some(item => pathname === item.href || pathname?.startsWith(item.href + '/'))
+                ? 'bg-gradient-to-r from-blue-500/10 to-purple-500/10 text-blue-600 dark:text-blue-400'
+                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <Home 
+                size={18} 
+                className={`transition-all duration-200 ${
+                  homeDropdownItems.some(item => pathname === item.href || pathname?.startsWith(item.href + '/'))
+                    ? 'text-blue-500'
+                    : 'text-gray-400 group-hover:text-blue-500'
+                }`} 
+              />
+              <span className="tracking-wide">Home</span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              {hoveredItem === 'Home' && (
+                <motion.div
+                  initial={{ opacity: 0, x: -5 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -5 }}
+                >
+                  <ChevronRight size={14} className="text-blue-400" />
+                </motion.div>
+              )}
+              <motion.div
+                animate={{ rotate: isHomeOpen ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <ChevronDown size={14} className="text-gray-400" />
+              </motion.div>
+            </div>
+          </button>
+
+          {/* Dropdown Items */}
+          <AnimatePresence>
+            {isHomeOpen && (
+              <motion.div
+                variants={dropdownVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                className="ml-6 mt-1 space-y-1 overflow-hidden"
+              >
+                {homeDropdownItems.map((item, idx) => {
+                  const Icon = item.icon;
+                  const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
+                  return (
+                    <motion.div
+                      key={item.href}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                    >
+                      <Link
+                        href={item.href}
+                        className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 group cursor-pointer ${
+                          isActive
+                            ? 'bg-gradient-to-r from-blue-500/10 to-purple-500/10 text-blue-600 dark:text-blue-400'
+                            : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                        }`}
+                      >
+                        <Icon 
+                          size={16} 
+                          className={`transition-all duration-200 ${
+                            isActive 
+                              ? 'text-blue-500' 
+                              : 'text-gray-400 group-hover:text-blue-500'
+                          }`} 
+                        />
+                        <span className="tracking-wide">{item.label}</span>
+                      </Link>
+                    </motion.div>
+                  );
+                })}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+
+        {/* Other Menu Items */}
         {menuItems.map((item, index) => {
           const Icon = item.icon;
           const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
@@ -118,13 +256,13 @@ export default function Sidebar() {
               initial="initial"
               animate="animate"
               variants={itemVariants}
-              transition={{ delay: index * 0.03 }}
+              transition={{ delay: (index + 1) * 0.03 }}
             >
               <Link
                 href={item.href}
                 onMouseEnter={() => setHoveredItem(item.label)}
                 onMouseLeave={() => setHoveredItem(null)}
-                className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group ${
+                className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group cursor-pointer ${
                   isActive
                     ? 'bg-gradient-to-r from-blue-500/10 to-purple-500/10 text-blue-600 dark:text-blue-400'
                     : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
@@ -168,10 +306,8 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Bottom Section - Without Theme Toggle */}
+      {/* Bottom Section */}
       <div className="p-4 border-t mt-auto" style={{ borderColor: theme === 'dark' ? '#1E293B' : '#E5E7EB' }}>
-      
-        
         {/* Logout Button */}
         <motion.button
           whileHover={{ scale: 1.02 }}
