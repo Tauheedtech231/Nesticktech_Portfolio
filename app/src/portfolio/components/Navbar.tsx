@@ -43,7 +43,7 @@ const Navbar = () => {
     <>
       <div className="fixed top-4 left-0 right-0 z-50 flex justify-center px-4">
         <nav
-          className={`w-full max-w-6xl transition-all duration-300 rounded-2xl ${
+          className={`w-full max-w-6xl transition-all duration-300 rounded-[28px] ${
             hasScrolled 
               ? 'bg-[#020617]/90 backdrop-blur-lg shadow-lg shadow-[#6366F1]/10 border border-[#1E293B]' 
               : 'bg-[#020617] border border-[#1E293B]'
@@ -110,7 +110,7 @@ const Navbar = () => {
             : '-translate-y-full opacity-0 invisible'
         }`}
       >
-        <div className="w-full max-w-6xl bg-[#020617] border-t border-b border-[#1E293B] shadow-xl rounded-2xl overflow-hidden">
+        <div className="w-full max-w-6xl bg-[#020617] border-t border-b border-[#1E293B] shadow-xl rounded-[28px] overflow-hidden">
           <div className="px-5 sm:px-6 py-3">
             {/* Mobile Menu Header with White Logo */}
             <div className="px-3 py-2 mb-2 border-b border-[#1E293B]">

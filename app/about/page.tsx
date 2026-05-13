@@ -375,59 +375,143 @@ const AboutPage = () => {
           </p>
         </motion.div>
 
-        {/* Our Story and Mission Section - CENTERED with Increased Gap */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="mb-16 lg:mb-20"
-        >
-          <div className="grid lg:grid-cols-2 gap-8 sm:gap-10 lg:gap-16 max-w-4xl mx-auto">
-            {/* Story Card */}
-            <motion.div variants={itemVariants} className="bg-[#0F172A]/60 backdrop-blur-sm border border-[#1E293B] rounded-2xl p-6 sm:p-8 text-center group hover:border-[#6366F1] transition-all duration-300">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#6366F1]/10 mb-4 group-hover:scale-110 transition-transform">
-                <Sparkles className="w-6 h-6 text-[#6366F1]" />
-              </div>
-              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold font-serif tracking-tight text-[#F8FAFC] mb-4">
-                Our{' '}
-                <span className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">
-                  Story
-                </span>
-              </h2>
-              <p className="text-xs sm:text-sm lg:text-base text-[#94A3B8] leading-relaxed font-light tracking-wide">
-                Founded in 2022, Nestick Tech started with a simple mission: to help businesses leverage technology for growth and innovation. What began as a small team of passionate developers has grown into a full-service digital agency serving clients worldwide.
-              </p>
-              <p className="text-xs sm:text-sm lg:text-base text-[#94A3B8] leading-relaxed font-light tracking-wide mt-3">
-                Today, we&apos;re proud to have delivered 50+ successful projects across various industries, from e-commerce and education to healthcare and finance.
-              </p>
-            </motion.div>
+        {/* Our Story and Mission Section - CENTERED with Navbar-Style Background Effect */}
+       <motion.div
+  variants={containerVariants}
+  initial="hidden"
+  animate="visible"
+  className="mb-16 lg:mb-20 relative"
+>
+  {/* Navbar-Style Background Effects - Pinkish-White Glow */}
+  <div className="absolute inset-0 pointer-events-none overflow-hidden">
+    {/* Main Soft Background Glow - Pink/White/Purple */}
+    <div 
+      className="absolute top-[-80px] left-1/2 -translate-x-1/2 
+                 w-[600px] h-[350px] bg-gradient-to-r from-purple-500/40 via-pink-400/30 to-purple-600/40 blur-[120px] rounded-full"
+    />
+    
+    {/* Secondary Pinkish Glow */}
+    <div 
+      className="absolute top-[-60px] left-1/2 -translate-x-1/2 
+                 w-[450px] h-[280px] bg-pink-400/20 blur-[100px] rounded-full"
+    />
+    
+    {/* Purple Ring Glow Effect 1 - Outer Ring */}
+    <div className="absolute top-[-120px] left-1/2 -translate-x-1/2">
+      <div className="w-[380px] h-[380px] rounded-full border-[40px] border-purple-400/40 blur-md" />
+    </div>
+    
+    {/* Pink Ring Glow Effect 2 - Inner Pink Ring */}
+    <div className="absolute top-[-120px] left-1/2 -translate-x-1/2">
+      <div className="absolute inset-0 w-[380px] h-[380px] rounded-full border-[25px] border-pink-400/40 blur-xl" />
+    </div>
 
-            {/* Mission Card */}
-            <motion.div variants={itemVariants} className="bg-[#0F172A]/60 backdrop-blur-sm border border-[#1E293B] rounded-2xl p-6 sm:p-8 text-center group hover:border-[#6366F1] transition-all duration-300">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#8B5CF6]/10 mb-4 group-hover:scale-110 transition-transform">
-                <Target className="w-6 h-6 text-[#8B5CF6]" />
-              </div>
-              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold font-serif tracking-tight text-[#F8FAFC] mb-4">
-                Our{' '}
-                <span className="bg-gradient-to-r from-[#8B5CF6] to-[#6366F1] bg-clip-text text-transparent">
-                  Mission
-                </span>
-              </h2>
-              <p className="text-xs sm:text-sm lg:text-base text-[#94A3B8] leading-relaxed font-light tracking-wide">
-                To empower businesses with cutting-edge technology solutions that drive growth, efficiency, and innovation. We believe in building long-term partnerships with our clients, understanding their unique challenges, and delivering solutions that exceed expectations.
-              </p>
-              <div className="mt-6">
-                <Link
-                  href="/contact"
-                  className="inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-semibold font-sans tracking-wide rounded-lg hover:shadow-lg hover:shadow-[#6366F1]/25 transition-all duration-300 group cursor-pointer text-sm sm:text-base"
-                >
-                  Work With Us
-                  <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </div>
-            </motion.div>
-          </div>
-        </motion.div>
+    {/* Soft Pinkish-White Ring Glow */}
+    <div className="absolute top-[-100px] left-1/2 -translate-x-1/2">
+      <div className="w-[420px] h-[420px] rounded-full border-[15px] border-pink-300/25 blur-2xl" />
+    </div>
+
+    {/* Intense Pink Core Glow - Not too white */}
+    <div 
+      className="absolute top-[-40px] left-1/2 -translate-x-1/2 
+                 w-[200px] h-[150px] bg-pink-400/25 blur-[80px] rounded-full"
+    />
+
+    {/* Bottom Glow Line - Pinkish */}
+    <div className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-pink-400/60 via-purple-400/50 to-transparent" />
+  </div>
+
+  {/* Original Cards Container */}
+  <div className="grid lg:grid-cols-2 gap-8 sm:gap-10 lg:gap-16 max-w-4xl mx-auto relative z-10">
+    {/* Story Card */}
+    <motion.div
+      variants={itemVariants}
+      className="
+        relative
+        bg-[#0F172A]/60
+        backdrop-blur-sm
+        border border-[#1E293B]
+        rounded-2xl
+        p-6 sm:p-8
+        text-center
+        group
+        hover:border-[#6366F1]
+        transition-all
+        duration-300
+        overflow-hidden
+      "
+    >
+      {/* Card Glow - Pinkish */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-60 h-24 bg-gradient-to-r from-[#6366F1]/30 via-pink-400/20 to-[#8B5CF6]/30 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+      <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#6366F1]/10 mb-4 group-hover:scale-110 transition-transform">
+        <Sparkles className="w-6 h-6 text-[#6366F1]" />
+      </div>
+
+      <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold font-serif tracking-tight text-[#F8FAFC] mb-4">
+        Our{" "}
+        <span className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">
+          Story
+        </span>
+      </h2>
+
+      <p className="text-xs sm:text-sm lg:text-base text-[#94A3B8] leading-relaxed font-light tracking-wide">
+        Founded in 2022, Nestick Tech started with a simple mission: to help businesses leverage technology for growth and innovation. What began as a small team of passionate developers has grown into a full-service digital agency serving clients worldwide.
+      </p>
+
+      <p className="text-xs sm:text-sm lg:text-base text-[#94A3B8] leading-relaxed font-light tracking-wide mt-3">
+        Today, we&apos;re proud to have delivered 50+ successful projects across various industries, from e-commerce and education to healthcare and finance.
+      </p>
+    </motion.div>
+
+    {/* Mission Card */}
+    <motion.div
+      variants={itemVariants}
+      className="
+        relative
+        bg-[#0F172A]/60
+        backdrop-blur-sm
+        border border-[#1E293B]
+        rounded-2xl
+        p-6 sm:p-8
+        text-center
+        group
+        hover:border-[#6366F1]
+        transition-all
+        duration-300
+        overflow-hidden
+      "
+    >
+      {/* Card Glow - Pinkish */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-60 h-24 bg-gradient-to-r from-[#8B5CF6]/30 via-pink-400/20 to-[#6366F1]/30 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+      <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#8B5CF6]/10 mb-4 group-hover:scale-110 transition-transform">
+        <Target className="w-6 h-6 text-[#8B5CF6]" />
+      </div>
+
+      <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold font-serif tracking-tight text-[#F8FAFC] mb-4">
+        Our{" "}
+        <span className="bg-gradient-to-r from-[#8B5CF6] to-[#6366F1] bg-clip-text text-transparent">
+          Mission
+        </span>
+      </h2>
+
+      <p className="text-xs sm:text-sm lg:text-base text-[#94A3B8] leading-relaxed font-light tracking-wide">
+        To empower businesses with cutting-edge technology solutions that drive growth, efficiency, and innovation. We believe in building long-term partnerships with our clients, understanding their unique challenges, and delivering solutions that exceed expectations.
+      </p>
+
+      <div className="mt-6">
+        <Link
+          href="/contact"
+          className="inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-semibold font-sans tracking-wide rounded-lg hover:shadow-lg hover:shadow-[#6366F1]/25 transition-all duration-300 group cursor-pointer text-sm sm:text-base"
+        >
+          Work With Us
+          <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform" />
+        </Link>
+      </div>
+    </motion.div>
+  </div>
+</motion.div>
 
         {/* Team Structure */}
         <motion.div
