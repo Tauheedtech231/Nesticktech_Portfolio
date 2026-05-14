@@ -228,7 +228,7 @@ const SphereContent = ({ isMobile = false }) => {
     opacity={isHovering ? 1 : 0.9}
   />
 </points>
-
+pm2 restart nestick --update-env
       {/* 🌌 Particles */}
       <points geometry={particleGeometry}>
         <pointsMaterial

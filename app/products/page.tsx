@@ -1,713 +1,590 @@
-// app/products/page.tsx
-'use client';
+/* eslint-disable prefer-const */
+/* eslint-disable react-hooks/set-state-in-effect */
+"use client";
 
-import { AnimatePresence, motion, Variants } from 'framer-motion';
-import { useRef, useState, useMemo, useCallback, useEffect } from 'react';
-import { 
-  Building2, 
-  ShoppingCart, 
-  TrendingUp, 
-  Store,
-  Sparkles,
-  Search,
-  X,
-  Send,
-  CheckCircle,
-  User,
-  Building,
-  Briefcase,
-  Phone,
-  FileText,
-  Rocket,
-  ArrowRight,
-  LucideIcon
-} from 'lucide-react';
-import Link from 'next/link';
+import { Canvas, useFrame } from "@react-three/fiber";
+import { Float, Environment } from "@react-three/drei";
+import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useRef, useState, useCallback } from "react";
+import * as THREE from "three";
+import Image from "next/image";
 
-interface Product {
-  id: number;
-  name: string;
-  shortDescription: string;
-  fullDescription: string;
-  status: 'Live' | 'In Development' | 'Concept';
-  tags: string[];
-  gradient: string;
-  icon: LucideIcon;
-  color: string;
-}
+const products = [
+  {
+    id: 1,
+    title: "Neezamiya",
+    subtitle: "Complete Educational Management System",
+    price: "Custom Pricing",
+    description:
+      "All-in-one platform for schools, colleges, and universities. Manage students, teachers, attendance, grades, fees, examinations, and parent portals with real-time analytics.",
+    image:
+      "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=600&h=600&auto=format&fit=crop",
+    status: "Live",
+    tags: ["Education", "LMS", "Analytics"],
+  },
+  {
+    id: 2,
+    title: "Advance POS",
+    subtitle: "Smart Point of Sale System",
+    price: "Custom Pricing",
+    description:
+      "Complete retail management solution with inventory tracking, sales analytics, customer management, employee management, and seamless payment integration.",
+    image:
+      "https://images.unsplash.com/photo-1586864030223-a918b07d357d?q=80&w=1025&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    status: "Live",
+    tags: ["Retail", "POS", "Inventory"],
+  },
+  {
+    id: 3,
+    title: "MarX",
+    subtitle: "Digital Marketing Suite",
+    price: "Custom Pricing",
+    description:
+      "Powerful marketing automation platform for businesses to manage campaigns, track leads, optimize conversions, and analyze performance across all channels.",
+    image:
+      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=600&h=600&auto=format&fit=crop",
+    status: "In Development",
+    tags: ["Marketing", "Automation", "CRM"],
+  },
+  {
+    id: 4,
+    title: "Build N",
+    subtitle: "Construction Project Management",
+    price: "Custom Pricing",
+    description:
+      "Comprehensive solution for construction companies to manage projects, resources, budgets, timelines, teams, and client communications efficiently.",
+    image:
+      "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?q=80&w=600&h=600&auto=format&fit=crop",
+    status: "Concept",
+    tags: ["Construction", "Project Management"],
+  },
+];
 
-interface FormData {
-  name: string;
-  companyName: string;
-  productInterest: string;
-  useCase: string;
-  contactNumber: string;
-}
+function RotatingSphere() {
+  const meshRef = useRef<THREE.Mesh>(null!);
 
-const ProductsPage = () => {
-  const sectionRef = useRef(null);
-  const [hoveredId, setHoveredId] = useState<number | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const modalRef = useRef<HTMLDivElement>(null);
-
-  const [formData, setFormData] = useState<FormData>({
-    name: '',
-    companyName: '',
-    productInterest: '',
-    useCase: '',
-    contactNumber: '',
+  useFrame(() => {
+    if (meshRef.current) {
+      meshRef.current.rotation.y += 0.002;
+      meshRef.current.rotation.x += 0.001;
+    }
   });
 
-  const products: Product[] = useMemo(() => [
-    {
-      id: 1,
-      name: 'Neezamiya',
-      shortDescription: 'Complete educational management system for schools and universities',
-      fullDescription: 'All-in-one platform for schools, colleges, and universities. Manage students, teachers, attendance, grades, fees, examinations, and parent portals with real-time analytics and reporting.',
-      status: 'Live',
-      tags: ['Education', 'LMS', 'School Management', 'Analytics'],
-      gradient: 'from-[#6366F1] to-[#8B5CF6]',
-      icon: Building2,
-      color: '#6366F1',
-    },
-    {
-      id: 2,
-      name: 'Advance POS',
-      shortDescription: 'Smart point of sale system for retail businesses',
-      fullDescription: 'Complete retail management solution with inventory tracking, sales analytics, customer management, employee management, and seamless payment integration for multiple payment methods.',
-      status: 'Live',
-      tags: ['Retail', 'POS', 'Inventory', 'Analytics'],
-      gradient: 'from-[#22C55E] to-[#86EFAC]',
-      icon: ShoppingCart,
-      color: '#22C55E',
-    },
-    {
-      id: 3,
-      name: 'MarX',
-      shortDescription: 'Digital marketing suite for modern businesses',
-      fullDescription: 'Powerful marketing automation platform for businesses to manage campaigns, track leads, optimize conversions, and analyze performance across all channels.',
-      status: 'In Development',
-      tags: ['Marketing', 'Automation', 'Analytics', 'CRM'],
-      gradient: 'from-[#F59E0B] to-[#FBBF24]',
-      icon: TrendingUp,
-      color: '#F59E0B',
-    },
-    {
-      id: 4,
-      name: 'Build N',
-      shortDescription: 'Construction project management software',
-      fullDescription: 'Comprehensive solution for construction companies to manage projects, resources, budgets, timelines, teams, and client communications efficiently.',
-      status: 'Concept',
-      tags: ['Construction', 'Project Management', 'Budgeting', 'Team Collaboration'],
-      gradient: 'from-[#EF4444] to-[#F87171]',
-      icon: Store,
-      color: '#EF4444',
-    },
-  ], []);
+  return (
+    <Float speed={2} rotationIntensity={1} floatIntensity={1.5}>
+      <mesh ref={meshRef}>
+        <icosahedronGeometry args={[2.5, 1]} />
+        <meshStandardMaterial
+          color="#ffffff"
+          wireframe
+          transparent
+          opacity={0.06}
+        />
+      </mesh>
+    </Float>
+  );
+}
 
-  // Filter products based on search
-  const filteredProducts = useMemo(() => {
-    if (searchQuery.trim() === '') {
-      return products;
-    }
-    const query = searchQuery.toLowerCase();
-    return products.filter(product => 
-      product.name.toLowerCase().includes(query) ||
-      product.shortDescription.toLowerCase().includes(query) ||
-      product.fullDescription.toLowerCase().includes(query) ||
-      product.tags.some(tag => tag.toLowerCase().includes(query))
-    );
-  }, [searchQuery, products]);
+// Circular Ring Component - Shows all product images in a ring
+function CircularRing({ currentIndex, onImageClick }: { currentIndex: number; onImageClick: (index: number) => void }) {
+  const [rotation, setRotation] = useState(0);
+  const ringRef = useRef<HTMLDivElement>(null);
+  const animationRef = useRef<number>(null);
 
-  const handleRequestDemo = (productName: string) => {
-    setSelectedProduct(productName);
-    setFormData(prev => ({ ...prev, productInterest: productName }));
-    setIsModalOpen(true);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    
-    // Reset form after 3 seconds
-    setTimeout(() => {
-      setIsModalOpen(false);
-      setIsSubmitted(false);
-      setFormData({
-        name: '',
-        companyName: '',
-        productInterest: '',
-        useCase: '',
-        contactNumber: '',
-      });
-      setSelectedProduct('');
-    }, 3000);
-  };
-
-  // Close modal on escape key
   useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsModalOpen(false);
+    let startTime = Date.now();
+    
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      // Continuous rotation - one full rotation every 15 seconds
+      const newRotation = (elapsed * 0.024) % 360;
+      setRotation(newRotation);
+      animationRef.current = requestAnimationFrame(animate);
     };
-    window.addEventListener('keydown', handleEsc);
-    return () => window.removeEventListener('keydown', handleEsc);
-  }, []);
-
-  // Close modal on outside click
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-        setIsModalOpen(false);
+    
+    animationRef.current = requestAnimationFrame(animate);
+    
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
       }
     };
-    if (isModalOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.body.style.overflow = 'hidden';
+  }, []);
+
+  const radius = 200; // Radius of the ring
+  const angleStep = 360 / products.length;
+
+  return (
+    <div 
+      ref={ringRef}
+      className="absolute inset-0"
+      style={{
+        transform: `rotate(${rotation}deg)`,
+        transition: 'transform 0.016s linear'
+      }}
+    >
+      {products.map((product, idx) => {
+        const angle = (idx * angleStep) * (Math.PI / 180);
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle) * radius;
+        
+        const isCurrent = idx === currentIndex;
+        
+        return (
+          <motion.button
+            key={idx}
+            className="absolute cursor-pointer group"
+            style={{
+              left: '50%',
+              top: '50%',
+              transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
+              zIndex: isCurrent ? 15 : 5,
+            }}
+            whileHover={{ scale: 1.1 }}
+            onClick={() => onImageClick(idx)}
+          >
+            <div className={`relative w-14 h-14 md:w-16 md:h-16 rounded-full overflow-hidden border-2 transition-all duration-300 ${
+              isCurrent 
+                ? 'border-[#6366F1] shadow-lg shadow-[#6366F1]/50' 
+                : 'border-white/30 hover:border-white/60'
+            }`}>
+              <Image
+                src={product.image}
+                alt={product.title}
+                fill
+                className="object-cover"
+              />
+              {isCurrent && (
+                <div className="absolute inset-0 ring-2 ring-[#6366F1] rounded-full animate-ping opacity-50" />
+              )}
+            </div>
+          </motion.button>
+        );
+      })}
+    </div>
+  );
+}
+
+export default function ProductShowcase3D() {
+  const [index, setIndex] = useState(0);
+  const [showForm, setShowForm] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const autoRotateInterval = useRef<NodeJS.Timeout | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    message: "",
+  });
+
+  // Auto-rotate products every 4 seconds
+  const startAutoRotate = useCallback(() => {
+    if (autoRotateInterval.current) {
+      clearInterval(autoRotateInterval.current);
     }
+    
+    if (isPlaying) {
+      autoRotateInterval.current = setInterval(() => {
+        if (!isTransitioning && !showForm) {
+          setIndex((prev) => (prev + 1) % products.length);
+        }
+      }, 4000);
+    }
+  }, [isPlaying, isTransitioning, showForm]);
+
+  // Stop auto-rotation
+  const stopAutoRotate = useCallback(() => {
+    if (autoRotateInterval.current) {
+      clearInterval(autoRotateInterval.current);
+      autoRotateInterval.current = null;
+    }
+  }, []);
+
+  // Handle play/pause
+  const togglePlayPause = () => {
+    setIsPlaying(!isPlaying);
+  };
+
+  // Handle manual image click from ring
+  const handleImageClick = (clickedIndex: number) => {
+    if (clickedIndex !== index && !isTransitioning) {
+      setIndex(clickedIndex);
+    }
+  };
+
+  // Start/stop auto-rotation based on isPlaying state
+  useEffect(() => {
+    if (isPlaying && !showForm) {
+      startAutoRotate();
+    } else {
+      stopAutoRotate();
+    }
+    
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.body.style.overflow = 'unset';
+      stopAutoRotate();
     };
-  }, [isModalOpen]);
+  }, [isPlaying, showForm, startAutoRotate, stopAutoRotate]);
 
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  }, []);
+  // Set transitioning state when index changes
+  useEffect(() => {
+    setIsTransitioning(true);
+    const timer = setTimeout(() => {
+      setIsTransitioning(false);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [index]);
 
-  const clearSearch = useCallback(() => {
-    setSearchQuery('');
-  }, []);
+  const product = products[index];
 
-  // Animation variants
-  const containerVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.08,
-        delayChildren: 0.15,
-      },
-    },
+  const handleRequestDemo = () => {
+    setShowForm(true);
+    stopAutoRotate();
   };
 
-  const itemVariants: Variants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: 'spring',
-        stiffness: 70,
-        damping: 12,
-        mass: 0.5,
-      },
-    },
-  };
-
-  const introContainerVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.15,
-        delayChildren: 0.1,
-      },
-    },
-  };
-
-  const fromTopVariants: Variants = {
-    hidden: { y: -30, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 50,
-        damping: 12,
-      },
-    },
-  };
-
-  const fromBottomVariants: Variants = {
-    hidden: { y: 30, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 50,
-        damping: 12,
-      },
-    },
-  };
-
-  const getStatusColor = (status: string) => {
-    switch(status) {
-      case 'Live': return 'text-green-500 bg-green-500/10 border-green-500/30';
-      case 'In Development': return 'text-yellow-500 bg-yellow-500/10 border-yellow-500/30';
-      case 'Concept': return 'text-blue-500 bg-blue-500/10 border-blue-500/30';
-      default: return 'text-gray-500 bg-gray-500/10 border-gray-500/30';
+  const handleCloseForm = () => {
+    setShowForm(false);
+    if (isPlaying) {
+      startAutoRotate();
     }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Form submitted:", formData);
+    alert("Thank you! Our team will contact you shortly.");
+    setFormData({ name: "", email: "", phone: "", message: "" });
+    handleCloseForm();
   };
 
   return (
-    <>
-      <main className="min-h-screen bg-[#020617] pt-20 lg:pt-24">
-        <section
-          ref={sectionRef}
-          className="relative py-12 lg:py-16 bg-[#020617] overflow-hidden"
-        >
-          {/* Background decorative elements */}
-          <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute top-20 left-10 w-72 h-72 bg-[#6366F1]/5 rounded-full blur-3xl" />
-            <div className="absolute bottom-20 right-10 w-72 h-72 bg-[#8B5CF6]/5 rounded-full blur-3xl" />
-          </div>
+    <main className="h-screen overflow-hidden bg-black text-white relative">
+      {/* Background Image */}
+      <div 
+        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: `url('https://plus.unsplash.com/premium_photo-1669839137069-4166d6ea11f4?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')`,
+        }}
+      >
+        {/* Dark Overlay for better text readability */}
+        <div className="absolute inset-0 bg-black/60"></div>
+      </div>
 
-          {/* Grid pattern overlay */}
-          <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-5" />
+      {/* 3D Background - Very Subtle */}
+      <div className="absolute inset-0 z-0 opacity-20">
+        <Canvas camera={{ position: [0, 0, 8] }}>
+          <ambientLight intensity={1.5} />
+          <directionalLight position={[5, 5, 5]} intensity={2} />
+          <RotatingSphere />
+          <Environment preset="city" />
+        </Canvas>
+      </div>
 
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Company Intro Section - Reduced Padding like Blogs */}
-            <motion.div
-              variants={introContainerVariants}
-              initial="hidden"
-              animate="visible"
-              className="text-center max-w-3xl mx-auto mb-8 lg:mb-10"
-            >
-              {/* Badge */}
-              <motion.div 
-                variants={fromTopVariants}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0F172A] border border-[#1E293B] mb-4 cursor-pointer hover:border-[#6366F1] hover:bg-[#6366F1]/10 transition-all duration-300"
-              >
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#6366F1] opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#6366F1]"></span>
-                </span>
-                <span className="text-sm font-medium font-sans tracking-wide bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent italic">
-                  Our Products
-                </span>
-              </motion.div>
+      {/* Content */}
+      <div className="relative z-10 h-screen flex items-center justify-center px-4">
+        <div className="w-full max-w-7xl">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            
+            {/* Left Side - Product Info with Left Margin */}
+            <div className="flex items-center ml-8 md:ml-12 lg:ml-16">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={product.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -30 }}
+                  transition={{ duration: 0.6, ease: "easeInOut" }}
+                  className="max-w-xl"
+                >
+                  {/* Status Badge */}
+                  <div className="inline-flex items-center gap-2 mb-3">
+                    <span className={`text-xs px-3 py-1 rounded-full border ${
+                      product.status === 'Live' ? 'text-green-500 bg-green-500/10 border-green-500/30' :
+                      product.status === 'In Development' ? 'text-yellow-500 bg-yellow-500/10 border-yellow-500/30' :
+                      'text-blue-500 bg-blue-500/10 border-blue-500/30'
+                    }`}>
+                      {product.status}
+                    </span>
+                  </div>
 
-              {/* Heading - Smaller like Blogs */}
-              <motion.h2 
-                variants={fromTopVariants}
-                className="text-3xl md:text-4xl font-bold font-serif tracking-tight text-[#F8FAFC] mb-3"
-              >
-                Owned{' '}
-                <span className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">
-                  Solutions
-                </span>
-              </motion.h2>
+                  <h1 className="text-2xl md:text-4xl font-black leading-tight tracking-tight">
+                    {product.title}
+                  </h1>
 
-              {/* Description */}
-              <motion.p 
-                variants={fromTopVariants}
-                className="text-base text-[#94A3B8] leading-relaxed max-w-2xl mx-auto font-light tracking-wide"
-              >
-                Powerful, scalable, and ready-to-deploy products built by our expert team to solve real-world business challenges.
-              </motion.p>
+                  <h2 className="text-lg md:text-xl text-gray-300 mt-1 font-semibold">
+                    {product.subtitle}
+                  </h2>
 
-              {/* Stats */}
-              <motion.div 
-                variants={fromBottomVariants}
-                className="flex flex-wrap justify-center gap-6 pt-4"
-              >
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#6366F1]" />
-                  <span className="text-sm text-[#94A3B8] font-light tracking-wide">4 Products</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#22C55E]" />
-                  <span className="text-sm text-[#94A3B8] font-light tracking-wide">2 Live Products</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#F59E0B]" />
-                  <span className="text-sm text-[#94A3B8] font-light tracking-wide">In Development</span>
-                </div>
-              </motion.div>
-            </motion.div>
+                  <p className="mt-3 text-gray-300 text-sm md:text-base leading-relaxed">
+                    {product.description}
+                  </p>
 
-            {/* Search Input */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.5 }}
-              className="max-w-2xl mx-auto mb-8 lg:mb-10"
-            >
-              <div className="relative">
-                <div className={`absolute inset-0 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] rounded-xl opacity-0 transition-opacity duration-300 ${isSearchFocused ? 'opacity-20' : ''}`} />
-                <div className="relative flex items-center">
-                  <Search className="absolute left-4 w-5 h-5 text-[#94A3B8]" />
-                  <input
-                    type="text"
-                    placeholder="Search products by name, category, or technology..."
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                    onFocus={() => setIsSearchFocused(true)}
-                    onBlur={() => setIsSearchFocused(false)}
-                    className="w-full bg-[#0F172A] border border-[#1E293B] rounded-xl py-3 pl-12 pr-12 text-[#F8FAFC] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#6366F1] transition-colors duration-300 font-light tracking-wide"
-                  />
-                  {searchQuery && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {product.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="text-xs px-3 py-1 bg-white/5 backdrop-blur-md text-gray-300 rounded-full border border-white/10"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="mt-3 text-base md:text-lg font-bold text-gray-300">
+                    {product.price}
+                  </div>
+
+                  <div className="flex gap-4 mt-5">
                     <button
-                      onClick={clearSearch}
-                      className="absolute right-4 p-1 rounded-full hover:bg-[#1E293B] transition-colors cursor-pointer"
+                      onClick={togglePlayPause}
+                      className="px-5 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white font-semibold text-sm hover:bg-white/20 transition duration-300 cursor-pointer flex items-center gap-2"
                     >
-                      <X className="w-4 h-4 text-[#94A3B8]" />
+                      {isPlaying ? (
+                        <>
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+                          </svg>
+                          Pause
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z"/>
+                          </svg>
+                          Play
+                        </>
+                      )}
                     </button>
-                  )}
-                </div>
-              </div>
+                    
+                    <button
+                      onClick={handleRequestDemo}
+                      className="px-5 py-2 rounded-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-semibold text-sm hover:scale-105 transition duration-300 cursor-pointer"
+                    >
+                      Request Demo
+                    </button>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            </div>
 
-              {/* Search Results Count */}
-              <div className="flex justify-end mt-2">
-                <span className="text-xs text-[#94A3B8] font-light tracking-wide">
-                  {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'} found
-                </span>
-              </div>
-            </motion.div>
-
-            {/* Products Grid */}
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8"
-            >
-              {filteredProducts.map((product) => {
-                const Icon = product.icon;
-                return (
+            {/* Right Side - Main Product Image with Walking Animation and Circular Ring */}
+            <div className="relative mt-[5rem] flex items-center justify-center md:justify-start md:ml-8 lg:ml-12">
+              {/* Container for animation */}
+              <div className="relative w-[550px] h-[550px] flex items-center justify-center">
+                
+                {/* Circular Ring with all product images */}
+                <CircularRing currentIndex={index} onImageClick={handleImageClick} />
+                
+                {/* Background gradient ring for wheel effect */}
+                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#6366F1]/20 via-[#8B5CF6]/20 to-transparent blur-2xl" />
+                
+                {/* Current image walks slowly to bottom-left */}
+                <AnimatePresence mode="wait">
                   <motion.div
                     key={product.id}
-                    variants={itemVariants}
-                    onHoverStart={() => setHoveredId(product.id)}
-                    onHoverEnd={() => setHoveredId(null)}
-                    className="group relative cursor-pointer"
+                    initial={{ 
+                      opacity: 1,
+                      scale: 1,
+                      rotate: 0,
+                      x: 0,
+                      y: 0,
+                    }}
+                    animate={{ 
+                      opacity: 1,
+                      scale: 1,
+                      rotate: 0,
+                      x: 0,
+                      y: 0,
+                    }}
+                    exit={{ 
+                      opacity: 0,
+                      scale: 0.3,
+                      rotate: -15,
+                      x: -250,
+                      y: 180,
+                      transition: { 
+                        duration: 0.9,
+                        ease: [0.4, 0, 0.2, 1],
+                        delay: 0.1
+                      }
+                    }}
+                    transition={{ 
+                      duration: 0.9,
+                      ease: [0.4, 0, 0.2, 1],
+                      type: "tween"
+                    }}
+                    className="absolute inset-0 flex items-center justify-center z-20"
+                    style={{ 
+                      transformStyle: "preserve-3d",
+                      perspective: "1000px"
+                    }}
                   >
-                    {/* Card Border Glow Effect */}
-                    <div className={`absolute inset-0 bg-gradient-to-r ${product.gradient} rounded-xl opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur-lg`} />
-                    
-                    {/* Main Card */}
-                    <div className="relative bg-[#0F172A] border border-[#1E293B] rounded-xl overflow-hidden hover:border-transparent transition-all duration-300 hover:-translate-y-1 h-full flex flex-col cursor-pointer">
-                      
-                      {/* Content */}
-                      <div className="p-6 flex-1 flex flex-col">
-                        {/* Icon and Status */}
-                        <div className="flex items-start justify-between mb-4">
-                          <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${product.gradient} flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300`}>
-                            <Icon className="w-6 h-6 text-white" />
-                          </div>
-                          <span className={`text-xs px-2 py-1 rounded-full border ${getStatusColor(product.status)} font-light tracking-wide`}>
-                            {product.status}
-                          </span>
-                        </div>
-
-                        {/* Product Name */}
-                        <h3 className="text-xl font-semibold font-sans tracking-wide text-[#F8FAFC] mb-2 group-hover:text-[#6366F1] transition-colors duration-300">
-                          {product.name}
-                        </h3>
-                        
-                        {/* Short Description */}
-                        <p className="text-sm text-[#94A3B8] mb-4 leading-relaxed line-clamp-2 font-light tracking-wide">
-                          {product.shortDescription}
-                        </p>
-
-                        {/* Tags */}
-                        <div className="flex flex-wrap gap-2 mb-4">
-                          {product.tags.slice(0, 3).map((tag) => (
-                            <span
-                              key={tag}
-                              className="text-xs px-2.5 py-1 bg-[#1E293B] text-[#94A3B8] rounded-full border border-transparent hover:border-[#6366F1] hover:text-[#6366F1] transition-colors duration-300 font-light tracking-wide cursor-pointer"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-
-                        {/* Request Demo Button */}
-                        <button
-                          onClick={() => handleRequestDemo(product.name)}
-                          className="mt-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white text-sm font-semibold font-sans tracking-wide rounded-lg hover:shadow-lg hover:shadow-[#6366F1]/25 transition-all duration-300 group/btn cursor-pointer"
-                        >
-                          <Rocket className="w-4 h-4" />
-                          <span>Request Demo</span>
-                          <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                        </button>
-                      </div>
-
-                      {/* Bottom Gradient Line */}
-                      <div className={`absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r ${product.gradient} transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left`} />
+                    <div className="relative w-[280px] h-[280px] md:w-[320px] md:h-[320px] rounded-full overflow-hidden bg-transparent">
+                      <Image
+                        src={product.image}
+                        alt={product.title}
+                        width={700}
+                        height={400}
+                        priority
+                        className="w-full h-full object-cover drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)]"
+                      />
                     </div>
                   </motion.div>
-                );
-              })}
-            </motion.div>
+                </AnimatePresence>
 
-            {/* No Results Message */}
-            {filteredProducts.length === 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center py-12"
-              >
-                <div className="w-20 h-20 mx-auto mb-4 bg-[#0F172A] rounded-full flex items-center justify-center border border-[#1E293B]">
-                  <Search className="w-8 h-8 text-[#94A3B8]" />
-                </div>
-                <h3 className="text-xl font-semibold font-sans tracking-wide text-[#F8FAFC] mb-2">No products found</h3>
-                <p className="text-[#94A3B8] mb-6 font-light tracking-wide">
-                  Try adjusting your search to find what you&apos;re looking for.
-                </p>
-                <button
-                  onClick={clearSearch}
-                  className="px-6 py-3 bg-[#6366F1] text-white font-semibold font-sans tracking-wide rounded-xl hover:bg-[#8B5CF6] transition-all duration-300 hover:shadow-lg hover:shadow-[#6366F1]/25 hover:-translate-y-0.5 cursor-pointer"
-                >
-                  Clear Search
-                </button>
-              </motion.div>
-            )}
-
-            {/* CTA Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.6 }}
-              className="mt-12 pt-6 border-t border-[#1E293B] text-center"
-            >
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6, duration: 0.5 }}
-              >
-                <h3 className="text-xl font-semibold font-sans tracking-wide text-white mb-3">
-                  Need a Custom Solution?
-                </h3>
-                <p className="text-[#94A3B8] mb-6 font-light tracking-wide">
-                  Don&apos;t see what you&apos;re looking for? Let&apos;s build something unique for your business.
-                </p>
-                <Link
-                  href="/contact"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-[#0F172A] border border-[#1E293B] text-[#F8FAFC] font-medium font-sans tracking-wide rounded-xl hover:border-[#6366F1] hover:text-[#6366F1] transition-all duration-300 group cursor-pointer"
-                >
-                  <span>Contact Us</span>
-                  <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
-                </Link>
-              </motion.div>
-            </motion.div>
+                {/* Next image comes in from top-right with slow walk */}
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={`next-${product.id}`}
+                    initial={{ 
+                      opacity: 0,
+                      scale: 0.3,
+                      rotate: 15,
+                      x: 200,
+                      y: -150,
+                    }}
+                    animate={{ 
+                      opacity: 1,
+                      scale: 1,
+                      rotate: 0,
+                      x: 0,
+                      y: 0,
+                      transition: { 
+                        duration: 0.9,
+                        delay: 0.2,
+                        ease: [0.4, 0, 0.2, 1]
+                      }
+                    }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 flex items-center justify-center z-20"
+                    style={{ 
+                      transformStyle: "preserve-3d",
+                      perspective: "1000px"
+                    }}
+                  >
+                    <div className="relative w-[280px] h-[280px] md:w-[320px] md:h-[320px] rounded-full overflow-hidden bg-transparent">
+                      <Image
+                        src={product.image}
+                        alt={product.title}
+                        width={400}
+                        height={400}
+                        priority
+                        className="w-full h-full object-cover drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)]"
+                      />
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            </div>
           </div>
-        </section>
-      </main>
+        </div>
+      </div>
 
-      {/* Request Demo Modal - (keep the same modal code as before) */}
+      {/* Request Demo Form Modal */}
       <AnimatePresence>
-        {isModalOpen && (
+        {showForm && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md"
+            onClick={handleCloseForm}
           >
             <motion.div
-              ref={modalRef}
-              initial={{ scale: 0.95, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              transition={{ type: "spring", damping: 20, stiffness: 200 }}
-              className="relative w-full max-w-2xl bg-[#0F172A] border border-[#1E293B] rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-gradient-to-br from-gray-900 to-black border border-white/20 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl"
             >
-              {/* Modal Header */}
-              <div className="sticky top-0 bg-[#0F172A] border-b border-[#1E293B] px-4 sm:px-6 py-4 flex items-center justify-between z-10">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center">
-                    <Rocket className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg sm:text-xl font-semibold font-sans tracking-wide text-white">
-                      Request Demo
-                    </h3>
-                    <p className="text-xs text-[#94A3B8] font-light tracking-wide">
-                      {selectedProduct} - Get a personalized demo
-                    </p>
-                  </div>
-                </div>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-white">Request Demo</h2>
                 <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="p-1 text-[#94A3B8] hover:text-white transition-colors cursor-pointer"
+                  onClick={handleCloseForm}
+                  className="text-gray-400 hover:text-white transition text-2xl"
                 >
-                  <X className="w-5 h-5" />
+                  ✕
                 </button>
               </div>
-
-              {/* Form */}
-              {!isSubmitted ? (
-                <motion.form 
-                  onSubmit={handleSubmit} 
-                  className="p-4 sm:p-6 space-y-4"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.1 }}
+              
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Name *
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    required
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition"
+                    placeholder="Your name"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Email *
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    required
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition"
+                    placeholder="your@email.com"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Phone *
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    required
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition"
+                    placeholder="Your phone number"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Message
+                  </label>
+                  <textarea
+                    name="message"
+                    rows={3}
+                    value={formData.message}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition resize-none"
+                    placeholder="Tell us about your requirements..."
+                  />
+                </div>
+                
+                <button
+                  type="submit"
+                  className="w-full py-2.5 rounded-lg bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-semibold hover:scale-105 transition duration-300"
                 >
-                  {/* Name */}
-                  <div>
-                    <label className="block text-sm font-medium font-sans tracking-wide text-[#94A3B8] mb-2">
-                      Full Name *
-                    </label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
-                      <input
-                        type="text"
-                        name="name"
-                        required
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        className="w-full pl-10 pr-4 py-3 bg-[#020617] border border-[#1E293B] rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition-colors font-light tracking-wide"
-                        placeholder="Enter your full name"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Company Name */}
-                  <div>
-                    <label className="block text-sm font-medium font-sans tracking-wide text-[#94A3B8] mb-2">
-                      Company Name *
-                    </label>
-                    <div className="relative">
-                      <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
-                      <input
-                        type="text"
-                        name="companyName"
-                        required
-                        value={formData.companyName}
-                        onChange={handleInputChange}
-                        className="w-full pl-10 pr-4 py-3 bg-[#020617] border border-[#1E293B] rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition-colors font-light tracking-wide"
-                        placeholder="Enter your company name"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Product Interest */}
-                  <div>
-                    <label className="block text-sm font-medium font-sans tracking-wide text-[#94A3B8] mb-2">
-                      Product Interest *
-                    </label>
-                    <div className="relative">
-                      <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
-                      <select
-                        name="productInterest"
-                        required
-                        value={formData.productInterest}
-                        onChange={handleInputChange}
-                        className="w-full pl-10 pr-4 py-3 bg-[#020617] border border-[#1E293B] rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition-colors appearance-none font-light tracking-wide cursor-pointer"
-                      >
-                        <option value="">Select a product</option>
-                        {products.map((product) => (
-                          <option key={product.id} value={product.name}>
-                            {product.name} ({product.status})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Contact Number */}
-                  <div>
-                    <label className="block text-sm font-medium font-sans tracking-wide text-[#94A3B8] mb-2">
-                      Contact Number *
-                    </label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
-                      <input
-                        type="tel"
-                        name="contactNumber"
-                        required
-                        value={formData.contactNumber}
-                        onChange={handleInputChange}
-                        className="w-full pl-10 pr-4 py-3 bg-[#020617] border border-[#1E293B] rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition-colors font-light tracking-wide"
-                        placeholder="Enter your phone number"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Use Case / Requirement */}
-                  <div>
-                    <label className="block text-sm font-medium font-sans tracking-wide text-[#94A3B8] mb-2">
-                      Use Case / Requirement *
-                    </label>
-                    <div className="relative">
-                      <FileText className="absolute left-3 top-3 w-4 h-4 text-[#94A3B8]" />
-                      <textarea
-                        name="useCase"
-                        required
-                        rows={4}
-                        value={formData.useCase}
-                        onChange={handleInputChange}
-                        className="w-full pl-10 pr-4 py-3 bg-[#020617] border border-[#1E293B] rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition-colors resize-none font-light tracking-wide"
-                        placeholder="Tell us about your business needs and how this product can help..."
-                      />
-                    </div>
-                  </div>
-
-                  {/* Submit Button */}
-                  <motion.button
-                    type="submit"
-                    disabled={isSubmitting}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full py-3 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-semibold font-sans tracking-wide rounded-lg hover:shadow-lg hover:shadow-[#6366F1]/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Submitting...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-4 h-4" />
-                        Request Demo
-                      </>
-                    )}
-                  </motion.button>
-                </motion.form>
-              ) : (
-                // Success Message
-                <motion.div 
-                  className="p-6 text-center"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ type: "spring", damping: 15 }}
-                >
-                  <div className="w-16 h-16 mx-auto mb-4 bg-green-500/10 rounded-full flex items-center justify-center">
-                    <CheckCircle className="w-8 h-8 text-green-500" />
-                  </div>
-                  <h4 className="text-xl font-semibold font-sans tracking-wide text-white mb-2">Request Submitted!</h4>
-                  <p className="text-[#94A3B8] font-light tracking-wide mb-4">
-                    Thank you for your interest in {selectedProduct}! Our team will contact you within 24 hours to schedule a demo.
-                  </p>
-                  <p className="text-xs text-[#6366F1] font-medium tracking-wide">
-                    A confirmation email has been sent
-                  </p>
-                </motion.div>
-              )}
+                  Submit Request
+                </button>
+              </form>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </main>
   );
-};
-
-export default ProductsPage;
+}

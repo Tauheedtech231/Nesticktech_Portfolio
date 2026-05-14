@@ -58,21 +58,20 @@ const partnersData: Partner[] = [
 
 const PartnersSlider = () => {
   const sectionRef = useRef<HTMLElement>(null);
-  const [isHovered, setIsHovered] = useState(false);
   const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Duplicate partners multiple times for seamless infinite scroll
-  const duplicatedPartners = [...partnersData, ...partnersData, ...partnersData, ...partnersData, ...partnersData];
+  // Duplicate partners for seamless infinite scroll
+  const duplicatedPartners = [...partnersData, ...partnersData, ...partnersData, ...partnersData, ...partnersData, ...partnersData, ...partnersData];
 
-  // Scroll parallax effect for the slider - moves left to right as user scrolls
+  // Scroll parallax effect for the slider
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start end", "end start"]
   });
 
-  // Slider moves from -200px to 0 as user scrolls
-  const sliderX = useTransform(scrollYProgress, [0, 1], [-200, 0]);
+  // Slider moves based on scroll - but keeping it subtle
+  const sliderX = useTransform(scrollYProgress, [0, 0.5, 1], [-100, 0, 100]);
   
   // Background parallax
   const bgY = useTransform(scrollYProgress, [0, 1], [0, -50]);
@@ -122,7 +121,7 @@ const PartnersSlider = () => {
     <>
       <section
         ref={sectionRef}
-        className="relative py-8 sm:py-10 bg-gradient-to-b from-[#0A0F1E] to-[#020617] overflow-hidden"
+        className="relative py-8 sm:py-10 bg-gradient-to-b from-[#0A0F1E] to-[#020617] overflow-visible"
       >
         {/* Parallax Background Effect */}
         <motion.div 
@@ -137,7 +136,7 @@ const PartnersSlider = () => {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#06B6D4]/5 rounded-full blur-3xl animate-pulse delay-500" />
         </motion.div>
 
-        <div className="relative max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative max-w-full mx-auto px-4 sm:px-6 lg:px-8 overflow-visible">
           {/* Section Header */}
           <motion.div
             initial="hidden"
@@ -154,25 +153,20 @@ const PartnersSlider = () => {
             </motion.h2>
           </motion.div>
 
-          {/* Container with parallax slider - moves right to left on scroll */}
+          {/* Container with scroll-based slider */}
           <motion.div 
             variants={fromBottomVariants}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, amount: 0.1 }}
-            className="relative overflow-hidden"
+            className="relative overflow-visible"
             style={{
               x: sliderX,
             }}
           >
-            {/* Slider - Infinite scroll Left to Right - pause on hover */}
+            {/* Slider - with proper padding for both sides */}
             <div
-              className="flex gap-8 md:gap-12 lg:gap-16 items-center py-4 slider-track"
-              onMouseEnter={() => setIsHovered(true)}
-              onMouseLeave={() => setIsHovered(false)}
-              style={{
-                animationPlayState: isHovered ? 'paused' : 'running',
-              }}
+              className="flex gap-8 md:gap-12 lg:gap-16 items-center py-4 px-4 md:px-8"
             >
               {duplicatedPartners.map((partner, index) => (
                 <div
@@ -210,20 +204,6 @@ const PartnersSlider = () => {
         </div>
 
         <style jsx>{`
-          .slider-track {
-            animation: scrollRightToLeft 20s linear infinite;
-            width: fit-content;
-          }
-          
-          @keyframes scrollRightToLeft {
-            0% {
-              transform: translateX(-20%);
-            }
-            100% {
-              transform: translateX(0);
-            }
-          }
-          
           @keyframes shift {
             0% {
               background-position: 0 0;

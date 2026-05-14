@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { MessageCircle } from "lucide-react";
+import { FaWhatsapp } from "react-icons/fa";
 
 const WhatsappButton = () => {
   const phoneNumber = "923193236529";
@@ -19,13 +19,13 @@ const WhatsappButton = () => {
     <div className="fixed bottom-6 right-6 z-50">
       {/* Pulse Animation Ring */}
       <div className="absolute inset-0 rounded-full bg-green-500/40 animate-ping" />
-      
+
       {/* Main Button */}
       <button
         onClick={handleClick}
         className="relative bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white p-4 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110"
       >
-        <MessageCircle className="w-6 h-6 sm:w-7 sm:h-7" />
+        <FaWhatsapp className="w-6 h-6 sm:w-7 sm:h-7" />
       </button>
     </div>
   );

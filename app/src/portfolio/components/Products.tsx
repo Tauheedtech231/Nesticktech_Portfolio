@@ -54,16 +54,17 @@ interface FormData {
 
 const ProductsPage = () => {
   const sectionRef = useRef<HTMLElement>(null);
-  const [hoveredId, setHoveredId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [activeProductIndex, setActiveProductIndex] = useState(0);
+  const [lastSwitchTime, setLastSwitchTime] = useState(0);
+  const [isAtEnd, setIsAtEnd] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
   const showcaseRef = useRef<HTMLDivElement>(null);
 
-  // Scroll progress for product showcase - much slower transition
+  // Scroll progress for product showcase
   const { scrollYProgress } = useScroll({
     target: showcaseRef,
     offset: ["start start", "end end"]
@@ -132,27 +133,43 @@ const ProductsPage = () => {
     },
   ], []);
 
-  // Parallax scroll effects for background
-  const bgY = useTransform(scrollYProgress, [0, 1], [0, -100]);
-  const bgOpacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0.3, 0.5, 0.4, 0.2]);
-  
-  // Card scale animation
-  const cardScale = useTransform(scrollYProgress, [0, 0.1, 0.9, 1], [0.95, 1, 1, 0.95]);
+  // Calculate which product should be visible based on scroll
+  const rawProductIndex = useTransform(scrollYProgress, 
+    [0, 0.2, 0.4, 0.6, 0.8, 1], 
+    [0, 0, 1, 2, 3, 3]
+  );
 
-  // Current active product based on scroll - MUCH slower change
+  // Update active product index with 1 second pause and 2 second end pause
   useEffect(() => {
-    const unsubscribe = scrollYProgress.onChange((value) => {
-      const newIndex = Math.min(
-        Math.floor(value * products.length * 0.6),
-        products.length - 1
-      );
-      if (newIndex !== activeProductIndex && newIndex >= 0) {
-        setActiveProductIndex(newIndex);
+    const unsubscribe = rawProductIndex.onChange((value) => {
+      const index = Math.round(value);
+      const now = Date.now();
+      const timeSinceLastSwitch = now - lastSwitchTime;
+      
+      // If 1 second hasn't passed, prevent scroll (cursor stuck)
+      if (timeSinceLastSwitch < 1000 && index !== activeProductIndex) {
+        // Do nothing - scroll is blocked
+        return;
+      }
+      
+      if (index >= 0 && index < products.length && index !== activeProductIndex) {
+        setActiveProductIndex(index);
+        setLastSwitchTime(now);
+        
+        // Check if we've reached the last product
+        if (index === products.length - 1) {
+          setIsAtEnd(true);
+          // 2 second pause at the end
+          setTimeout(() => {
+            setIsAtEnd(false);
+          }, 2000);
+        }
       }
     });
     return () => unsubscribe();
-  }, [scrollYProgress, products.length, activeProductIndex]);
+  }, [rawProductIndex, products.length, activeProductIndex, lastSwitchTime]);
 
+  // Handle request demo
   const handleRequestDemo = (productName: string) => {
     setSelectedProduct(productName);
     setFormData(prev => ({ ...prev, productInterest: productName }));
@@ -209,17 +226,33 @@ const ProductsPage = () => {
   }, [isModalOpen]);
 
   // Animation variants
-  const fromLeftVariants: Variants = {
-    hidden: { x: -30, opacity: 0 },
-    visible: {
-      x: 0,
+  const slideInFromRight:Variants = {
+    hidden: { 
+      x: 300, 
+      opacity: 0,
+      scale: 0.9
+    },
+    visible: { 
+      x: 0, 
       opacity: 1,
+      scale: 1,
       transition: {
         type: "spring",
-        stiffness: 50,
-        damping: 12,
-      },
+        stiffness: 200,
+        damping: 25,
+        mass: 0.3
+      }
     },
+    exit: { 
+      x: -300, 
+      opacity: 0,
+      scale: 0.9,
+      transition: {
+        type: "spring",
+        stiffness: 150,
+        damping: 25
+      }
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -237,48 +270,16 @@ const ProductsPage = () => {
     <>
       <main className="min-h-screen bg-[#020617]">
         {/* Hero Section */}
-        <section className="relative  bg-[#020617] overflow-hidden">
-          {/* Parallax Background */}
-          <motion.div 
-            className="absolute inset-0 overflow-hidden"
-            style={{ y: bgY }}
-          >
-            <motion.div 
-              className="absolute top-20 left-10 w-72 h-72 bg-[#6366F1]/5 rounded-full blur-3xl"
-              style={{ opacity: bgOpacity }}
-            />
-            <motion.div 
-              className="absolute bottom-20 right-10 w-72 h-72 bg-[#8B5CF6]/5 rounded-full blur-3xl"
-              style={{ opacity: bgOpacity }}
-            />
-            <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-5" />
-          </motion.div>
-
-          {/* Floating Particles */}
-          <div className="absolute inset-0 pointer-events-none">
-            {[...Array(20)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute w-1 h-1 bg-[#6366F1]/30 rounded-full"
-                style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                  y: useTransform(scrollYProgress, [0, 1], [0, (Math.random() - 0.5) * 100]),
-                  x: useTransform(scrollYProgress, [0, 1], [0, (Math.random() - 0.5) * 50]),
-                }}
-              />
-            ))}
-          </div>
-
+        <section className="relative bg-[#020617] overflow-hidden pt-8 pb-4">
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
-              initial="hidden"
-              animate="visible"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
               className="max-w-3xl text-left"
             >
               <motion.div 
-                variants={fromLeftVariants}
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0F172A] border border-[#1E293B] mb-3 cursor-pointer"
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0F172A] border border-[#1E293B] mb-3"
               >
                 <span className="relative flex h-1.5 w-1.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#6366F1] opacity-75"></span>
@@ -290,7 +291,6 @@ const ProductsPage = () => {
               </motion.div>
 
               <motion.h1 
-                variants={fromLeftVariants}
                 className="text-2xl md:text-3xl lg:text-4xl font-bold font-serif tracking-tight text-[#F8FAFC] mb-2"
               >
                 Owned{' '}
@@ -300,14 +300,12 @@ const ProductsPage = () => {
               </motion.h1>
 
               <motion.p 
-                variants={fromLeftVariants}
                 className="text-sm md:text-base text-[#94A3B8] leading-relaxed max-w-2xl font-light tracking-wide"
               >
                 Powerful, scalable, and ready-to-deploy products built by our expert team to solve real-world business challenges.
               </motion.p>
 
               <motion.div 
-                variants={fromLeftVariants}
                 className="mt-3"
               >
                 <div className="w-12 h-0.5 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] rounded-full" />
@@ -316,175 +314,159 @@ const ProductsPage = () => {
           </div>
         </section>
 
-        {/* Product Showcase Section - Single Card with Image and Description */}
-        <section ref={showcaseRef} className="relative py-8 bg-[#020617] min-h-[200vh]">
-          <div className="sticky top-20 lg:top-24 z-10">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex justify-center">
-                <motion.div 
-                  className="w-full max-w-5xl"
-                  style={{
-                    scale: cardScale,
-                  }}
-                >
+        {/* Product Showcase Section */}
+        <section 
+          ref={showcaseRef} 
+          className="relative bg-[#020617]"
+          style={{
+            height: `${products.length * 70}vh` // Height reduced
+          }}
+        >
+          {/* Sticky Container */}
+          <div className="sticky top-20 lg:top-24 h-[75vh] lg:[80vh] flex items-center justify-center overflow-hidden"> {/* Height reduced */}
+            <div className="w-full h-full flex items-center justify-center">
+              
+              {/* Full Width Card Container */}
+              <div className="w-full h-[70vh] lg:h-[75vh] relative px-0"> {/* Height reduced */}
+                
+                <AnimatePresence mode="wait">
                   <motion.div
                     key={currentProduct?.id}
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, ease: "easeOut" }}
-                    className="relative bg-[#0F172A] border border-[#1E293B] rounded-2xl overflow-hidden shadow-2xl shadow-[#6366F1]/10 hover:shadow-[#6366F1]/20 transition-all duration-500"
+                    variants={slideInFromRight}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    className="absolute inset-0 w-full h-full"
                   >
-                    {/* Card Gradient Border Effect */}
-                    <div className={`absolute inset-0 bg-gradient-to-r ${currentProduct?.gradient} opacity-0 hover:opacity-10 transition-opacity duration-500`} />
-                    
-                    <div className="relative flex flex-col lg:flex-row gap-6 p-6 lg:p-8">
-                      {/* Left Side - Content Section */}
-                      <div className="lg:w-1/2 space-y-4">
-                        <div className="inline-flex items-center gap-2">
-                          <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${currentProduct?.gradient} flex items-center justify-center shadow-lg cursor-pointer`}>
-                            {currentProduct && <currentProduct.icon className="w-5 h-5 text-white" />}
+                    <div className="w-full h-full bg-[#0F172A] border-x-0 lg:border-x border-[#1E293B] lg:rounded-2xl overflow-hidden shadow-2xl shadow-[#6366F1]/10">
+                      
+                      {/* Gradient Border Effect */}
+                      <div className={`absolute inset-0 bg-gradient-to-r ${currentProduct?.gradient} opacity-10`} />
+                      
+                      {/* Content */}
+                      <div className="relative w-full h-full flex flex-col lg:flex-row">
+                        
+                        {/* Left Side - Content */}
+                        <div className="lg:w-[60%] p-6 lg:p-8 flex flex-col justify-center space-y-3"> {/* Padding reduced */}
+                          <div className="inline-flex items-center gap-2">
+                            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${currentProduct?.gradient} flex items-center justify-center shadow-lg`}>
+                              {currentProduct && <currentProduct.icon className="w-5 h-5 text-white" />}
+                            </div>
+                            <span className={`text-xs px-2.5 py-1 rounded-full border ${getStatusColor(currentProduct?.status || 'Live')}`}>
+                              {currentProduct?.status}
+                            </span>
                           </div>
-                          <span className={`text-xs px-2.5 py-1 rounded-full border ${getStatusColor(currentProduct?.status || 'Live')} cursor-pointer`}>
-                            {currentProduct?.status}
-                          </span>
+
+                          <h2 className="text-2xl md:text-3xl font-bold font-serif tracking-tight text-white">
+                            {currentProduct?.name}
+                          </h2>
+
+                          <p className="text-sm md:text-base text-[#94A3B8] leading-relaxed font-light tracking-wide">
+                            {currentProduct?.fullDescription}
+                          </p>
+
+                          {/* Features Grid */}
+                          <div className="grid grid-cols-2 gap-2 pt-1">
+                            {currentProduct?.features.slice(0, 6).map((feature, idx) => (
+                              <div key={idx} className="flex items-center gap-1.5">
+                                <CheckCircle className="w-3.5 h-3.5 text-[#22C55E]" />
+                                <span className="text-xs text-[#94A3B8] font-light">{feature}</span>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Tags */}
+                          <div className="flex flex-wrap gap-1.5 pt-1">
+                            {currentProduct?.tags.map((tag, idx) => (
+                              <span
+                                key={tag}
+                                className="text-[11px] px-2.5 py-1 bg-[#1E293B] text-[#94A3B8] rounded-full border border-transparent"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+
+                          {/* CTA Button - Width Reduced */}
+                          <motion.button
+                            onClick={() => handleRequestDemo(currentProduct?.name || '')}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-semibold font-sans tracking-wide rounded-lg hover:shadow-lg hover:shadow-[#6366F1]/25 transition-all duration-300 cursor-pointer text-sm w-fit"
+                          >
+                            <Rocket className="w-3 h-3" />
+                            <span>Request Demo</span>
+                            <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                          </motion.button>
                         </div>
 
-                        <h2 className="text-2xl md:text-3xl font-bold font-serif tracking-tight text-white cursor-pointer hover:text-[#6366F1] transition-colors duration-300">
-                          {currentProduct?.name}
-                        </h2>
+                        {/* Right Side - Image */}
+                        <div className="lg:w-[40%] p-4 lg:p-6 relative"> {/* Padding reduced */}
+                          <div className="relative w-full h-full rounded-2xl overflow-hidden group/image cursor-pointer"> {/* Cursor pointer added */}
+                            <div className={`absolute inset-0 bg-gradient-to-br ${currentProduct?.gradient} opacity-20 rounded-2xl`} />
+                            <Image
+                              src={currentProduct?.image || ''}
+                              alt={currentProduct?.name || ''}
+                              width={800}
+                              height={600}
+                              className="w-full h-full object-cover rounded-2xl transition-transform duration-500 group-hover/image:scale-105 cursor-pointer" // Hover animation + cursor pointer
+                              priority
+                            />
+                            
+                            {/* Floating badges */}
+                            <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md rounded-full px-2.5 py-1 cursor-pointer">
+                              <div className="flex items-center gap-1">
+                                <Star className="w-2.5 h-2.5 text-yellow-400 fill-yellow-400" />
+                                <span className="text-[10px] text-white font-medium">4.9/5</span>
+                              </div>
+                            </div>
 
-                        <p className="text-sm md:text-base text-[#94A3B8] leading-relaxed font-light tracking-wide">
-                          {currentProduct?.fullDescription}
-                        </p>
+                            <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-md rounded-full px-2.5 py-1 cursor-pointer">
+                              <div className="flex items-center gap-1">
+                                <Users className="w-2.5 h-2.5 text-[#6366F1]" />
+                                <span className="text-[10px] text-white font-medium">100+</span>
+                              </div>
+                            </div>
 
-                        {/* Features Grid */}
-                        <div className="grid grid-cols-2 gap-2 pt-2">
-                          {currentProduct?.features.slice(0, 6).map((feature, idx) => (
-                            <motion.div 
-                              key={idx} 
-                              className="flex items-center gap-1.5 cursor-pointer"
-                              initial={{ opacity: 0, x: -10 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: idx * 0.05 }}
-                            >
-                              <CheckCircle className="w-3.5 h-3.5 text-[#22C55E]" />
-                              <span className="text-xs text-[#94A3B8] font-light">{feature}</span>
-                            </motion.div>
-                          ))}
+                            <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md rounded-full px-2.5 py-1 cursor-pointer">
+                              <div className="flex items-center gap-1">
+                                <Shield className="w-2.5 h-2.5 text-[#22C55E]" />
+                                <span className="text-[10px] text-white font-medium">Enterprise</span>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-
-                        {/* Tags */}
-                        <div className="flex flex-wrap gap-1.5 pt-2">
-                          {currentProduct?.tags.map((tag, idx) => (
-                            <motion.span
-                              key={tag}
-                              initial={{ opacity: 0, scale: 0.8 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ delay: idx * 0.05 }}
-                              className="text-[11px] px-2.5 py-1 bg-[#1E293B] text-[#94A3B8] rounded-full border border-transparent hover:border-[#6366F1] hover:text-[#6366F1] transition-all duration-300 cursor-pointer"
-                            >
-                              {tag}
-                            </motion.span>
-                          ))}
-                        </div>
-
-                        {/* CTA Button */}
-                        <motion.button
-                          onClick={() => handleRequestDemo(currentProduct?.name || '')}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-semibold font-sans tracking-wide rounded-lg hover:shadow-lg hover:shadow-[#6366F1]/25 transition-all duration-300 group cursor-pointer text-sm mt-2"
-                        >
-                          <Rocket className="w-3.5 h-3.5" />
-                          <span>Request Demo</span>
-                          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                        </motion.button>
                       </div>
-
-                      {/* Right Side - Image Section */}
-                      <motion.div 
-                        className="relative lg:w-1/2 cursor-pointer group/image"
-                        whileHover={{ scale: 1.02 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <div className="relative rounded-2xl overflow-hidden">
-                          <div className={`absolute inset-0 bg-gradient-to-br ${currentProduct?.gradient} opacity-20 rounded-2xl z-10`} />
-                          <Image
-                            src={currentProduct?.image || ''}
-                            alt={currentProduct?.name || ''}
-                            width={800}
-                            height={600}
-                            className="w-full h-auto object-cover rounded-2xl transition-transform duration-700 group-hover/image:scale-110 cursor-pointer"
-                            priority
-                          />
-                          
-                          {/* Floating badges */}
-                          <motion.div 
-                            className="absolute top-3 right-3 bg-black/60 backdrop-blur-md rounded-full px-2.5 py-1 z-20 cursor-pointer"
-                            animate={{ y: [0, -5, 0] }}
-                            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                          >
-                            <div className="flex items-center gap-1">
-                              <Star className="w-2.5 h-2.5 text-yellow-400 fill-yellow-400" />
-                              <span className="text-[10px] text-white font-medium">4.9/5 Rating</span>
-                            </div>
-                          </motion.div>
-
-                          <motion.div 
-                            className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-md rounded-full px-2.5 py-1 z-20 cursor-pointer"
-                            animate={{ y: [0, 5, 0] }}
-                            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                          >
-                            <div className="flex items-center gap-1">
-                              <Users className="w-2.5 h-2.5 text-[#6366F1]" />
-                              <span className="text-[10px] text-white font-medium">100+ Businesses</span>
-                            </div>
-                          </motion.div>
-
-                          <motion.div 
-                            className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md rounded-full px-2.5 py-1 z-20 cursor-pointer"
-                            animate={{ y: [0, -3, 0] }}
-                            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                          >
-                            <div className="flex items-center gap-1">
-                              <Shield className="w-2.5 h-2.5 text-[#22C55E]" />
-                              <span className="text-[10px] text-white font-medium">Enterprise Grade</span>
-                            </div>
-                          </motion.div>
-                        </div>
-                      </motion.div>
-                    </div>
-
-                    {/* Bottom Progress Indicator */}
-                    <div className="absolute bottom-0 left-0 right-0 flex justify-center gap-2 py-3 bg-gradient-to-t from-[#0F172A] to-transparent">
-                      {products.map((_, idx) => (
-                        <motion.div
-                          key={idx}
-                          className={`h-1 rounded-full transition-all duration-500 cursor-pointer ${
-                            idx === activeProductIndex
-                              ? 'w-6 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6]'
-                              : 'w-1 bg-[#1E293B] hover:bg-[#6366F1]/50'
-                          }`}
-                          whileHover={{ scale: 1.2 }}
-                          onClick={() => {
-                            const targetProgress = idx / products.length;
-                            window.scrollTo({
-                              top: (showcaseRef.current?.offsetTop || 0) + (targetProgress * window.innerHeight * 2),
-                              behavior: 'smooth'
-                            });
-                          }}
-                        />
-                      ))}
                     </div>
                   </motion.div>
-                </motion.div>
+                </AnimatePresence>
+
+                {/* Progress Indicators */}
+                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-3">
+                  {products.map((_, idx) => (
+                    <div
+                      key={idx}
+                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                        idx === activeProductIndex
+                          ? 'w-10 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6]'
+                          : 'w-2.5 bg-[#1E293B]'
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                {/* Product Counter */}
+                <div className="absolute bottom-4 right-6 text-sm text-[#94A3B8] font-light">
+                  {activeProductIndex + 1} / {products.length}
+                </div>
+
               </div>
             </div>
           </div>
         </section>
       </main>
 
-      {/* Request Demo Modal - Keep as is */}
+      {/* Request Demo Modal */}
       <AnimatePresence>
         {isModalOpen && (
           <motion.div
