@@ -174,7 +174,7 @@ const Hero = () => {
 
             {/* Heading - About page style (font-serif, font-bold, tracking-tight) */}
             <motion.div variants={textVariants} className="w-full">
-              <h1 className="text-4xl sm:text-4xl lg:text-5xl font-bold font-serif text-[#F8FAFC] leading-[1.2] tracking-tight">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold font-serif text-[#F8FAFC] leading-[1.2] tracking-tight">
                 <span className="block lg:inline lg:whitespace-nowrap">Your</span>{' '}
                 <span className="block lg:inline">
                   <span className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent relative">

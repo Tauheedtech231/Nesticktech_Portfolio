@@ -21,6 +21,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import TechStackPage from '../tech-stack/page';
+import Hero from './BlackHole';
 import { useEffect, useState } from 'react';
 
 const AboutPage = () => {
@@ -115,6 +116,7 @@ const AboutPage = () => {
   // State for mobile expanded sections
   const [expandedNodes, setExpandedNodes] = useState<number[]>([1, 2, 3]);
   const [isMobile, setIsMobile] = useState(false);
+  const [flippedCards, setFlippedCards] = useState<number[]>([]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -134,40 +136,53 @@ const AboutPage = () => {
     }
   };
 
+  // Toggle flip animation on contact cards
+  const toggleFlip = (index: number) => {
+    setFlippedCards(prev => 
+      prev.includes(index) 
+        ? prev.filter(i => i !== index)
+        : [...prev, index]
+    );
+  };
+
   // Get children of a node
   const getChildren = (parentId: number) => {
     return teamMembers.filter(member => member.parentId === parentId);
   };
 
-  // Contact info
+  // Contact info - Front shows icons only, back shows real info
   const contactInfo = [
     {
       icon: Mail,
       label: 'Email Us',
       value: 'nesticktech@gmail.com',
       href: 'mailto:nesticktech@gmail.com',
-      color: 'from-[#6366F1] to-[#8B5CF6]',
+      backContent: 'nesticktech@gmail.com',
+      subText: 'We reply within 24 hours',
     },
     {
       icon: Phone,
       label: 'Call Us',
       value: '+92 320 8423427',
       href: 'tel:+923208423427',
-      color: 'from-[#22C55E] to-[#86EFAC]',
+      backContent: '+92 320 8423427',
+      subText: 'Mon-Fri: 9AM - 6PM',
     },
     {
       icon: MapPin,
       label: 'Visit Us',
       value: 'Johar Town, Lahore',
       href: 'https://maps.google.com/?q=Johar+Town+Lahore',
-      color: 'from-[#F59E0B] to-[#FBBF24]',
+      backContent: 'Johar Town, Lahore',
+      subText: 'Get directions on Google Maps',
     },
     {
       icon: MessageSquare,
       label: 'Live Chat',
       value: 'Mon-Fri: 9AM - 6PM',
       href: '/contact',
-      color: 'from-[#EF4444] to-[#F87171]',
+      backContent: 'Live Chat Available',
+      subText: 'Click to start chatting',
     },
   ];
 
@@ -337,182 +352,21 @@ const AboutPage = () => {
   const rootNode = teamMembers.find(member => member.parentId === null);
 
   return (
-    <main className="min-h-screen bg-[#020617] pt-20 lg:pt-24 overflow-hidden relative">
-      {/* Background Elements - Removed Video */}
+    <main className="min-h-screen bg-[#020617] overflow-hidden relative">
+      {/* Remove pt-20 lg:pt-24 to make Hero margin 0 */}
+      
+      {/* Background Elements */}
       <div className="fixed inset-0 overflow-hidden z-0 pointer-events-none">
         <div className="absolute top-20 left-10 w-96 h-96 bg-[#6366F1]/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '8s' }} />
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#8B5CF6]/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '10s', animationDelay: '1s' }} />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#06B6D4]/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '12s', animationDelay: '2s' }} />
       </div>
 
+      {/* Hero Component - No margin on top */}
+      <Hero />
+
       {/* Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-        {/* Header with Shorter Description */}
-        <motion.div
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.6 }}
-          className="text-center max-w-3xl mx-auto mb-12 lg:mb-16"
-        >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4 bg-[#0F172A]/60 backdrop-blur-sm border border-[#1E293B] cursor-pointer hover:border-[#6366F1] hover:bg-[#6366F1]/10 transition-all duration-300">
-            <Users className="w-4 h-4 text-[#6366F1]" />
-            <span className="text-xs lg:text-sm font-medium font-sans tracking-wide bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent italic">
-              About Us
-            </span>
-          </div>
-          
-          <h1 className="text-2xl lg:text-4xl font-bold font-serif tracking-tight text-[#F8FAFC] mb-4">
-            The{' '}
-            <span className="bg-gradient-to-r from-[#6366F1] via-[#8B5CF6] to-[#A855F7] bg-clip-text text-transparent">
-              Masterminds
-            </span>
-            <span className="text-[#F8FAFC]"> Behind Innovation</span>
-          </h1>
-          
-          {/* Shorter Description */}
-          <p className="text-sm sm:text-base text-[#E2E8F0] max-w-2xl mx-auto font-light tracking-wide leading-relaxed bg-[#0F172A]/40 backdrop-blur-sm px-6 py-3 rounded-xl">
-            Expert developers and creative designers crafting innovative digital solutions.
-          </p>
-        </motion.div>
-
-        {/* Our Story and Mission Section - CENTERED with Navbar-Style Background Effect */}
-       <motion.div
-  variants={containerVariants}
-  initial="hidden"
-  animate="visible"
-  className="mb-16 lg:mb-20 relative"
->
-  {/* Navbar-Style Background Effects - Pinkish-White Glow */}
-  <div className="absolute inset-0 pointer-events-none overflow-hidden">
-    {/* Main Soft Background Glow - Pink/White/Purple */}
-    <div 
-      className="absolute top-[-80px] left-1/2 -translate-x-1/2 
-                 w-[600px] h-[350px] bg-gradient-to-r from-purple-500/40 via-pink-400/30 to-purple-600/40 blur-[120px] rounded-full"
-    />
-    
-    {/* Secondary Pinkish Glow */}
-    <div 
-      className="absolute top-[-60px] left-1/2 -translate-x-1/2 
-                 w-[450px] h-[280px] bg-pink-400/20 blur-[100px] rounded-full"
-    />
-    
-    {/* Purple Ring Glow Effect 1 - Outer Ring */}
-    <div className="absolute top-[-120px] left-1/2 -translate-x-1/2">
-      <div className="w-[380px] h-[380px] rounded-full border-[40px] border-purple-400/40 blur-md" />
-    </div>
-    
-    {/* Pink Ring Glow Effect 2 - Inner Pink Ring */}
-    <div className="absolute top-[-120px] left-1/2 -translate-x-1/2">
-      <div className="absolute inset-0 w-[380px] h-[380px] rounded-full border-[25px] border-pink-400/40 blur-xl" />
-    </div>
-
-    {/* Soft Pinkish-White Ring Glow */}
-    <div className="absolute top-[-100px] left-1/2 -translate-x-1/2">
-      <div className="w-[420px] h-[420px] rounded-full border-[15px] border-pink-300/25 blur-2xl" />
-    </div>
-
-    {/* Intense Pink Core Glow - Not too white */}
-    <div 
-      className="absolute top-[-40px] left-1/2 -translate-x-1/2 
-                 w-[200px] h-[150px] bg-pink-400/25 blur-[80px] rounded-full"
-    />
-
-    {/* Bottom Glow Line - Pinkish */}
-    <div className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-pink-400/60 via-purple-400/50 to-transparent" />
-  </div>
-
-  {/* Original Cards Container */}
-  <div className="grid lg:grid-cols-2 gap-8 sm:gap-10 lg:gap-16 max-w-4xl mx-auto relative z-10">
-    {/* Story Card */}
-    <motion.div
-      variants={itemVariants}
-      className="
-        relative
-        bg-[#0F172A]/60
-        backdrop-blur-sm
-        border border-[#1E293B]
-        rounded-2xl
-        p-6 sm:p-8
-        text-center
-        group
-        hover:border-[#6366F1]
-        transition-all
-        duration-300
-        overflow-hidden
-      "
-    >
-      {/* Card Glow - Pinkish */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-60 h-24 bg-gradient-to-r from-[#6366F1]/30 via-pink-400/20 to-[#8B5CF6]/30 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-      <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#6366F1]/10 mb-4 group-hover:scale-110 transition-transform">
-        <Sparkles className="w-6 h-6 text-[#6366F1]" />
-      </div>
-
-      <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold font-serif tracking-tight text-[#F8FAFC] mb-4">
-        Our{" "}
-        <span className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">
-          Story
-        </span>
-      </h2>
-
-      <p className="text-xs sm:text-sm lg:text-base text-[#94A3B8] leading-relaxed font-light tracking-wide">
-        Founded in 2022, Nestick Tech started with a simple mission: to help businesses leverage technology for growth and innovation. What began as a small team of passionate developers has grown into a full-service digital agency serving clients worldwide.
-      </p>
-
-      <p className="text-xs sm:text-sm lg:text-base text-[#94A3B8] leading-relaxed font-light tracking-wide mt-3">
-        Today, we&apos;re proud to have delivered 50+ successful projects across various industries, from e-commerce and education to healthcare and finance.
-      </p>
-    </motion.div>
-
-    {/* Mission Card */}
-    <motion.div
-      variants={itemVariants}
-      className="
-        relative
-        bg-[#0F172A]/60
-        backdrop-blur-sm
-        border border-[#1E293B]
-        rounded-2xl
-        p-6 sm:p-8
-        text-center
-        group
-        hover:border-[#6366F1]
-        transition-all
-        duration-300
-        overflow-hidden
-      "
-    >
-      {/* Card Glow - Pinkish */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-60 h-24 bg-gradient-to-r from-[#8B5CF6]/30 via-pink-400/20 to-[#6366F1]/30 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-      <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#8B5CF6]/10 mb-4 group-hover:scale-110 transition-transform">
-        <Target className="w-6 h-6 text-[#8B5CF6]" />
-      </div>
-
-      <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold font-serif tracking-tight text-[#F8FAFC] mb-4">
-        Our{" "}
-        <span className="bg-gradient-to-r from-[#8B5CF6] to-[#6366F1] bg-clip-text text-transparent">
-          Mission
-        </span>
-      </h2>
-
-      <p className="text-xs sm:text-sm lg:text-base text-[#94A3B8] leading-relaxed font-light tracking-wide">
-        To empower businesses with cutting-edge technology solutions that drive growth, efficiency, and innovation. We believe in building long-term partnerships with our clients, understanding their unique challenges, and delivering solutions that exceed expectations.
-      </p>
-
-      <div className="mt-6">
-        <Link
-          href="/contact"
-          className="inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-semibold font-sans tracking-wide rounded-lg hover:shadow-lg hover:shadow-[#6366F1]/25 transition-all duration-300 group cursor-pointer text-sm sm:text-base"
-        >
-          Work With Us
-          <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform" />
-        </Link>
-      </div>
-    </motion.div>
-  </div>
-</motion.div>
-
         {/* Team Structure */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -542,7 +396,7 @@ const AboutPage = () => {
         
         <TechStackPage />
 
-        {/* Get in Touch Section */}
+        {/* Get in Touch Section with Flip Cards - Same background for all */}
         <motion.div
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -571,6 +425,8 @@ const AboutPage = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 max-w-5xl mx-auto">
               {contactInfo.map((info, index) => {
                 const Icon = info.icon;
+                const isFlipped = flippedCards.includes(index);
+                
                 return (
                   <motion.div
                     key={index}
@@ -578,20 +434,36 @@ const AboutPage = () => {
                     initial="hidden"
                     animate="visible"
                     transition={{ delay: 0.6 + index * 0.1 }}
-                    whileHover={{ y: -4 }}
-                    className="group relative cursor-pointer"
+                    className="group relative cursor-pointer h-[160px] sm:h-[170px]"
+                    onHoverStart={() => toggleFlip(index)}
+                    onHoverEnd={() => toggleFlip(index)}
                   >
-                    <div className={`absolute inset-0 bg-gradient-to-r ${info.color} rounded-xl opacity-0 group-hover:opacity-15 transition-opacity duration-300 blur-sm`} />
-                    <Link
-                      href={info.href}
-                      className="relative block bg-[#0F172A]/60 backdrop-blur-sm border border-[#1E293B] rounded-xl p-3 sm:p-5 hover:border-[#6366F1]/50 transition-all duration-300 cursor-pointer"
+                    <div className="relative w-full h-full preserve-3d transition-all duration-600 cursor-pointer"
+                      style={{ transformStyle: 'preserve-3d', transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }}
                     >
-                      <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br ${info.color} p-1.5 sm:p-2.5 mb-2 sm:mb-3`}>
-                        <Icon className="w-full h-full text-white" />
+                      {/* Front of card - Shows only icon */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-blue-400/20 backdrop-blur-md border border-blue-500/30 rounded-xl flex flex-col items-center justify-center backface-hidden"
+                        style={{ backfaceVisibility: 'hidden' }}
+                      >
+                        <Icon className="w-12 h-12 sm:w-14 sm:h-14 text-blue-400 mb-3" />
+                        <p className="text-xs sm:text-sm text-blue-300 font-medium">Hover to Reveal</p>
                       </div>
-                      <h3 className="text-[10px] sm:text-xs font-medium font-sans tracking-wide text-[#94A3B8] mb-0.5 sm:mb-1">{info.label}</h3>
-                      <p className="text-[11px] sm:text-xs lg:text-sm text-[#F8FAFC] font-semibold font-sans tracking-wide break-words">{info.value}</p>
-                    </Link>
+
+                      {/* Back of card - Shows real info */}
+                      <Link
+                        href={info.href}
+                        className="absolute inset-0 block bg-gradient-to-br from-blue-600/30 to-blue-400/30 backdrop-blur-md border border-blue-500/40 rounded-xl p-4 sm:p-5 hover:border-blue-400/60 transition-all duration-300 cursor-pointer backface-hidden"
+                        style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+                      >
+                        <div className="flex flex-col items-center justify-center text-center h-full">
+                          <Icon className="w-8 h-8 sm:w-10 sm:h-10 text-blue-300 mb-2" />
+                          <h3 className="text-xs sm:text-sm font-semibold text-white mb-1">{info.label}</h3>
+                          <p className="text-[11px] sm:text-xs text-blue-200 font-medium break-words">{info.backContent}</p>
+                          <p className="text-[9px] sm:text-[10px] text-blue-300/70 mt-2">{info.subText}</p>
+                          <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 text-blue-400 mt-2" />
+                        </div>
+                      </Link>
+                    </div>
                   </motion.div>
                 );
               })}
@@ -615,6 +487,18 @@ const AboutPage = () => {
           </div>
         </motion.div>
       </div>
+
+      <style jsx>{`
+        .preserve-3d {
+          transform-style: preserve-3d;
+        }
+        .backface-hidden {
+          backface-visibility: hidden;
+        }
+        .transition-all-duration-600 {
+          transition-duration: 600ms;
+        }
+      `}</style>
     </main>
   );
 };

@@ -111,7 +111,17 @@ function CircularRing({ currentIndex, onImageClick }: { currentIndex: number; on
     };
   }, []);
 
-  const radius = 200; // Radius of the ring
+  // Responsive radius based on screen size
+  const getRadius = () => {
+    if (typeof window !== 'undefined') {
+      if (window.innerWidth < 640) return 120;
+      if (window.innerWidth < 768) return 150;
+      if (window.innerWidth < 1024) return 180;
+    }
+    return 200;
+  };
+
+  const radius = getRadius();
   const angleStep = 360 / products.length;
 
   return (
@@ -141,9 +151,10 @@ function CircularRing({ currentIndex, onImageClick }: { currentIndex: number; on
               zIndex: isCurrent ? 15 : 5,
             }}
             whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => onImageClick(idx)}
           >
-            <div className={`relative w-14 h-14 md:w-16 md:h-16 rounded-full overflow-hidden border-2 transition-all duration-300 ${
+            <div className={`relative w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-full overflow-hidden border-2 transition-all duration-300 ${
               isCurrent 
                 ? 'border-[#6366F1] shadow-lg shadow-[#6366F1]/50' 
                 : 'border-white/30 hover:border-white/60'
@@ -166,10 +177,9 @@ function CircularRing({ currentIndex, onImageClick }: { currentIndex: number; on
 }
 
 export default function ProductShowcase3D() {
+  const sectionRef = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
   const [showForm, setShowForm] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(true);
-  const autoRotateInterval = useRef<NodeJS.Timeout | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -178,33 +188,29 @@ export default function ProductShowcase3D() {
     message: "",
   });
 
-  // Auto-rotate products every 4 seconds
-  const startAutoRotate = useCallback(() => {
-    if (autoRotateInterval.current) {
-      clearInterval(autoRotateInterval.current);
-    }
-    
-    if (isPlaying) {
-      autoRotateInterval.current = setInterval(() => {
-        if (!isTransitioning && !showForm) {
-          setIndex((prev) => (prev + 1) % products.length);
-        }
-      }, 4000);
-    }
-  }, [isPlaying, isTransitioning, showForm]);
+  // SCROLL-BASED ANIMATION - Same as your original code
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!sectionRef.current) return;
 
-  // Stop auto-rotation
-  const stopAutoRotate = useCallback(() => {
-    if (autoRotateInterval.current) {
-      clearInterval(autoRotateInterval.current);
-      autoRotateInterval.current = null;
-    }
-  }, []);
+      const top = sectionRef.current.offsetTop;
+      const height = sectionRef.current.offsetHeight;
+      const scroll = window.scrollY + window.innerHeight;
 
-  // Handle play/pause
-  const togglePlayPause = () => {
-    setIsPlaying(!isPlaying);
-  };
+      const progress = (scroll - top) / height;
+
+      let step = Math.floor(progress * products.length);
+      if (step < 0) step = 0;
+      if (step >= products.length) step = products.length - 1;
+
+      if (step !== index && !isTransitioning) {
+        setIndex(step);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [index, isTransitioning]);
 
   // Handle manual image click from ring
   const handleImageClick = (clickedIndex: number) => {
@@ -212,19 +218,6 @@ export default function ProductShowcase3D() {
       setIndex(clickedIndex);
     }
   };
-
-  // Start/stop auto-rotation based on isPlaying state
-  useEffect(() => {
-    if (isPlaying && !showForm) {
-      startAutoRotate();
-    } else {
-      stopAutoRotate();
-    }
-    
-    return () => {
-      stopAutoRotate();
-    };
-  }, [isPlaying, showForm, startAutoRotate, stopAutoRotate]);
 
   // Set transitioning state when index changes
   useEffect(() => {
@@ -239,14 +232,10 @@ export default function ProductShowcase3D() {
 
   const handleRequestDemo = () => {
     setShowForm(true);
-    stopAutoRotate();
   };
 
   const handleCloseForm = () => {
     setShowForm(false);
-    if (isPlaying) {
-      startAutoRotate();
-    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -265,326 +254,303 @@ export default function ProductShowcase3D() {
   };
 
   return (
-    <main className="h-screen overflow-hidden bg-black text-white relative">
-      {/* Background Image */}
-      <div 
-        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: `url('https://plus.unsplash.com/premium_photo-1669839137069-4166d6ea11f4?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')`,
-        }}
-      >
-        {/* Dark Overlay for better text readability */}
-        <div className="absolute inset-0 bg-black/60"></div>
-      </div>
+    <div ref={sectionRef} className="h-[400vh] bg-black">
+      <main className="sticky top-0 h-screen overflow-hidden bg-black text-white relative">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: `url('https://plus.unsplash.com/premium_photo-1669839137069-4166d6ea11f4?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')`,
+          }}
+        >
+          {/* Dark Overlay for better text readability */}
+          <div className="absolute inset-0 bg-black/60"></div>
+        </div>
 
-      {/* 3D Background - Very Subtle */}
-      <div className="absolute inset-0 z-0 opacity-20">
-        <Canvas camera={{ position: [0, 0, 8] }}>
-          <ambientLight intensity={1.5} />
-          <directionalLight position={[5, 5, 5]} intensity={2} />
-          <RotatingSphere />
-          <Environment preset="city" />
-        </Canvas>
-      </div>
+        {/* 3D Background - Very Subtle */}
+        <div className="absolute inset-0 z-0 opacity-20">
+          <Canvas camera={{ position: [0, 0, 8] }}>
+            <ambientLight intensity={1.5} />
+            <directionalLight position={[5, 5, 5]} intensity={2} />
+            <RotatingSphere />
+            <Environment preset="city" />
+          </Canvas>
+        </div>
 
-      {/* Content */}
-      <div className="relative z-10 h-screen flex items-center justify-center px-4">
-        <div className="w-full max-w-7xl">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            
-            {/* Left Side - Product Info with Left Margin */}
-            <div className="flex items-center ml-8 md:ml-12 lg:ml-16">
+        {/* Content */}
+        <div className="relative z-10 h-screen flex flex-col items-center justify-between py-4 sm:py-6 md:py-8 px-3 sm:px-4">
+          
+          {/* IMAGE SECTION - TOP for mobile, RIGHT for desktop */}
+          <div className="flex items-center justify-center w-full mt-2 sm:mt-4 md:mt-0 lg:justify-end">
+            {/* Container for animation */}
+            <div className="relative w-[280px] h-[280px] sm:w-[350px] sm:h-[350px] md:w-[450px] md:h-[450px] lg:w-[550px] lg:h-[550px] flex items-center justify-center">
+              
+              {/* Circular Ring with all product images */}
+              <CircularRing currentIndex={index} onImageClick={handleImageClick} />
+              
+              {/* Background gradient ring for wheel effect */}
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#6366F1]/20 via-[#8B5CF6]/20 to-transparent blur-2xl" />
+              
+              {/* Current image with animation */}
               <AnimatePresence mode="wait">
                 <motion.div
                   key={product.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -30 }}
-                  transition={{ duration: 0.6, ease: "easeInOut" }}
-                  className="max-w-xl"
+                  initial={{ 
+                    opacity: 1,
+                    scale: 1,
+                    rotate: 0,
+                    x: 0,
+                    y: 0,
+                  }}
+                  animate={{ 
+                    opacity: 1,
+                    scale: 1,
+                    rotate: 0,
+                    x: 0,
+                    y: 0,
+                  }}
+                  exit={{ 
+                    opacity: 0,
+                    scale: 0.3,
+                    rotate: -15,
+                     x: (typeof window !== 'undefined' && window.innerWidth < 768) ? -80 : -250,
+                     y: (typeof window !== 'undefined' && window.innerWidth < 768) ? 100 : 180,
+                    transition: { 
+                      duration: 0.9,
+                      ease: [0.4, 0, 0.2, 1],
+                      delay: 0.1
+                    }
+                  }}
+                  transition={{ 
+                    duration: 0.9,
+                    ease: [0.4, 0, 0.2, 1],
+                    type: "tween"
+                  }}
+                  className="absolute inset-0 flex items-center justify-center z-20"
+                  style={{ 
+                    transformStyle: "preserve-3d",
+                    perspective: "1000px"
+                  }}
                 >
-                  {/* Status Badge */}
-                  <div className="inline-flex items-center gap-2 mb-3">
-                    <span className={`text-xs px-3 py-1 rounded-full border ${
-                      product.status === 'Live' ? 'text-green-500 bg-green-500/10 border-green-500/30' :
-                      product.status === 'In Development' ? 'text-yellow-500 bg-yellow-500/10 border-yellow-500/30' :
-                      'text-blue-500 bg-blue-500/10 border-blue-500/30'
-                    }`}>
-                      {product.status}
-                    </span>
+                  <div className="relative w-[180px] h-[180px] sm:w-[220px] sm:h-[220px] md:w-[280px] md:h-[280px] lg:w-[320px] lg:h-[320px] rounded-full overflow-hidden bg-transparent">
+                    <Image
+                      src={product.image}
+                      alt={product.title}
+                      width={700}
+                      height={400}
+                      priority
+                      className="w-full h-full object-cover drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)]"
+                    />
                   </div>
+                </motion.div>
+              </AnimatePresence>
 
-                  <h1 className="text-2xl md:text-4xl font-black leading-tight tracking-tight">
-                    {product.title}
-                  </h1>
-
-                  <h2 className="text-lg md:text-xl text-gray-300 mt-1 font-semibold">
-                    {product.subtitle}
-                  </h2>
-
-                  <p className="mt-3 text-gray-300 text-sm md:text-base leading-relaxed">
-                    {product.description}
-                  </p>
-
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    {product.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="text-xs px-3 py-1 bg-white/5 backdrop-blur-md text-gray-300 rounded-full border border-white/10"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="mt-3 text-base md:text-lg font-bold text-gray-300">
-                    {product.price}
-                  </div>
-
-                  <div className="flex gap-4 mt-5">
-                    <button
-                      onClick={togglePlayPause}
-                      className="px-5 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white font-semibold text-sm hover:bg-white/20 transition duration-300 cursor-pointer flex items-center gap-2"
-                    >
-                      {isPlaying ? (
-                        <>
-                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
-                          </svg>
-                          Pause
-                        </>
-                      ) : (
-                        <>
-                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M8 5v14l11-7z"/>
-                          </svg>
-                          Play
-                        </>
-                      )}
-                    </button>
-                    
-                    <button
-                      onClick={handleRequestDemo}
-                      className="px-5 py-2 rounded-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-semibold text-sm hover:scale-105 transition duration-300 cursor-pointer"
-                    >
-                      Request Demo
-                    </button>
+              {/* Next image animation */}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={`next-${product.id}`}
+                  initial={{ 
+                    opacity: 0,
+                    scale: 0.3,
+                    rotate: 15,
+                       x: (typeof window !== 'undefined' && window.innerWidth < 768) ? 80 : 200,
+                       y: (typeof window !== 'undefined' && window.innerWidth < 768) ? -80 : -150,
+                  }}
+                  animate={{ 
+                    opacity: 1,
+                    scale: 1,
+                    rotate: 0,
+                    x: 0,
+                    y: 0,
+                    transition: { 
+                      duration: 0.9,
+                      delay: 0.2,
+                      ease: [0.4, 0, 0.2, 1]
+                    }
+                  }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 flex items-center justify-center z-20"
+                  style={{ 
+                    transformStyle: "preserve-3d",
+                    perspective: "1000px"
+                  }}
+                >
+                  <div className="relative w-[180px] h-[180px] sm:w-[220px] sm:h-[220px] md:w-[280px] md:h-[280px] lg:w-[320px] lg:h-[320px] rounded-full overflow-hidden bg-transparent">
+                    <Image
+                      src={product.image}
+                      alt={product.title}
+                      width={400}
+                      height={400}
+                      priority
+                      className="w-full h-full object-cover drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)]"
+                    />
                   </div>
                 </motion.div>
               </AnimatePresence>
             </div>
+          </div>
 
-            {/* Right Side - Main Product Image with Walking Animation and Circular Ring */}
-            <div className="relative mt-[5rem] flex items-center justify-center md:justify-start md:ml-8 lg:ml-12">
-              {/* Container for animation */}
-              <div className="relative w-[550px] h-[550px] flex items-center justify-center">
-                
-                {/* Circular Ring with all product images */}
-                <CircularRing currentIndex={index} onImageClick={handleImageClick} />
-                
-                {/* Background gradient ring for wheel effect */}
-                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#6366F1]/20 via-[#8B5CF6]/20 to-transparent blur-2xl" />
-                
-                {/* Current image walks slowly to bottom-left */}
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={product.id}
-                    initial={{ 
-                      opacity: 1,
-                      scale: 1,
-                      rotate: 0,
-                      x: 0,
-                      y: 0,
-                    }}
-                    animate={{ 
-                      opacity: 1,
-                      scale: 1,
-                      rotate: 0,
-                      x: 0,
-                      y: 0,
-                    }}
-                    exit={{ 
-                      opacity: 0,
-                      scale: 0.3,
-                      rotate: -15,
-                      x: -250,
-                      y: 180,
-                      transition: { 
-                        duration: 0.9,
-                        ease: [0.4, 0, 0.2, 1],
-                        delay: 0.1
-                      }
-                    }}
-                    transition={{ 
-                      duration: 0.9,
-                      ease: [0.4, 0, 0.2, 1],
-                      type: "tween"
-                    }}
-                    className="absolute inset-0 flex items-center justify-center z-20"
-                    style={{ 
-                      transformStyle: "preserve-3d",
-                      perspective: "1000px"
-                    }}
-                  >
-                    <div className="relative w-[280px] h-[280px] md:w-[320px] md:h-[320px] rounded-full overflow-hidden bg-transparent">
-                      <Image
-                        src={product.image}
-                        alt={product.title}
-                        width={700}
-                        height={400}
-                        priority
-                        className="w-full h-full object-cover drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)]"
-                      />
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
+          {/* DESCRIPTION SECTION - BOTTOM for mobile, LEFT for desktop */}
+          <div className="w-full max-w-2xl lg:max-w-xl mx-auto lg:mx-0 lg:absolute lg:left-8 lg:top-1/2 lg:-translate-y-1/2">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={product.id}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -30 }}
+                transition={{ duration: 0.6, ease: "easeInOut" }}
+                className="text-center lg:text-left"
+              >
+                {/* Status Badge */}
+                <div className="inline-flex items-center gap-2 mb-2 sm:mb-3">
+                  <span className={`text-[10px] sm:text-xs px-2 sm:px-3 py-1 rounded-full border ${
+                    product.status === 'Live' ? 'text-green-500 bg-green-500/10 border-green-500/30' :
+                    product.status === 'In Development' ? 'text-yellow-500 bg-yellow-500/10 border-yellow-500/30' :
+                    'text-blue-500 bg-blue-500/10 border-blue-500/30'
+                  }`}>
+                    {product.status}
+                  </span>
+                </div>
 
-                {/* Next image comes in from top-right with slow walk */}
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={`next-${product.id}`}
-                    initial={{ 
-                      opacity: 0,
-                      scale: 0.3,
-                      rotate: 15,
-                      x: 200,
-                      y: -150,
-                    }}
-                    animate={{ 
-                      opacity: 1,
-                      scale: 1,
-                      rotate: 0,
-                      x: 0,
-                      y: 0,
-                      transition: { 
-                        duration: 0.9,
-                        delay: 0.2,
-                        ease: [0.4, 0, 0.2, 1]
-                      }
-                    }}
-                    exit={{ opacity: 0 }}
-                    className="absolute inset-0 flex items-center justify-center z-20"
-                    style={{ 
-                      transformStyle: "preserve-3d",
-                      perspective: "1000px"
-                    }}
+                <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black leading-tight tracking-tight">
+                  {product.title}
+                </h1>
+
+                <h2 className="text-base sm:text-lg md:text-xl text-gray-300 mt-1 font-semibold">
+                  {product.subtitle}
+                </h2>
+
+                <p className="mt-2 sm:mt-3 text-gray-300 text-xs sm:text-sm md:text-base leading-relaxed line-clamp-3 sm:line-clamp-none">
+                  {product.description}
+                </p>
+
+                <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-2 sm:mt-3 justify-center lg:justify-start">
+                  {product.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="text-[10px] sm:text-xs px-2 sm:px-3 py-0.5 sm:py-1 bg-white/5 backdrop-blur-md text-gray-300 rounded-full border border-white/10"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="mt-2 sm:mt-3 text-sm sm:text-base md:text-lg font-bold text-gray-300">
+                  {product.price}
+                </div>
+
+                <div className="flex gap-3 sm:gap-4 mt-3 sm:mt-5 justify-center lg:justify-start">
+                  <button
+                    onClick={handleRequestDemo}
+                    className="px-4 sm:px-5 py-1.5 sm:py-2 rounded-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-semibold text-xs sm:text-sm hover:scale-105 transition duration-300 cursor-pointer"
                   >
-                    <div className="relative w-[280px] h-[280px] md:w-[320px] md:h-[320px] rounded-full overflow-hidden bg-transparent">
-                      <Image
-                        src={product.image}
-                        alt={product.title}
-                        width={400}
-                        height={400}
-                        priority
-                        className="w-full h-full object-cover drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)]"
-                      />
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-            </div>
+                    Request Demo
+                  </button>
+                </div>
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
-      </div>
 
-      {/* Request Demo Form Modal */}
-      <AnimatePresence>
-        {showForm && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md"
-            onClick={handleCloseForm}
-          >
+        {/* Request Demo Form Modal */}
+        <AnimatePresence>
+          {showForm && (
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-gradient-to-br from-gray-900 to-black border border-white/20 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4"
+              onClick={handleCloseForm}
             >
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-white">Request Demo</h2>
-                <button
-                  onClick={handleCloseForm}
-                  className="text-gray-400 hover:text-white transition text-2xl"
-                >
-                  ✕
-                </button>
-              </div>
-              
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    required
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition"
-                    placeholder="Your name"
-                  />
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-gradient-to-br from-gray-900 to-black border border-white/20 rounded-2xl p-5 sm:p-8 max-w-md w-full mx-4 shadow-2xl"
+              >
+                <div className="flex justify-between items-center mb-4 sm:mb-6">
+                  <h2 className="text-xl sm:text-2xl font-bold text-white">Request Demo</h2>
+                  <button
+                    onClick={handleCloseForm}
+                    className="text-gray-400 hover:text-white transition text-xl sm:text-2xl"
+                  >
+                    ✕
+                  </button>
                 </div>
                 
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Email *
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    required
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition"
-                    placeholder="your@email.com"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Phone *
-                  </label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    required
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition"
-                    placeholder="Your phone number"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Message
-                  </label>
-                  <textarea
-                    name="message"
-                    rows={3}
-                    value={formData.message}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition resize-none"
-                    placeholder="Tell us about your requirements..."
-                  />
-                </div>
-                
-                <button
-                  type="submit"
-                  className="w-full py-2.5 rounded-lg bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-semibold hover:scale-105 transition duration-300"
-                >
-                  Submit Request
-                </button>
-              </form>
+                <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                      Name *
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      required
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      className="w-full px-3 sm:px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition text-sm sm:text-base"
+                      placeholder="Your name"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                      Email *
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      required
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className="w-full px-3 sm:px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition text-sm sm:text-base"
+                      placeholder="your@email.com"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                      Phone *
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      required
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      className="w-full px-3 sm:px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition text-sm sm:text-base"
+                      placeholder="Your phone number"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                      Message
+                    </label>
+                    <textarea
+                      name="message"
+                      rows={3}
+                      value={formData.message}
+                      onChange={handleInputChange}
+                      className="w-full px-3 sm:px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition resize-none text-sm sm:text-base"
+                      placeholder="Tell us about your requirements..."
+                    />
+                  </div>
+                  
+                  <button
+                    type="submit"
+                    className="w-full py-2 sm:py-2.5 rounded-lg bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-semibold hover:scale-105 transition duration-300 text-sm sm:text-base"
+                  >
+                    Submit Request
+                  </button>
+                </form>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </main>
+          )}
+        </AnimatePresence>
+      </main>
+    </div>
   );
 }

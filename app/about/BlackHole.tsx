@@ -1,185 +1,177 @@
-// app/hero/page.tsx
+// app/page.tsx
 'use client';
 
-import { motion, useScroll, useTransform } from 'framer-motion';
-import Image from 'next/image';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
-const HeroPage = () => {
-  const sectionRef = useRef<HTMLElement>(null);
-  const statsRef = useRef<HTMLElement>(null);
-  
-  // Scroll animations
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start end", "end start"]
-  });
+export default function Hero() {
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Text animations - left/right entry
-  const titleX = useTransform(scrollYProgress, [0, 0.3], [-100, 0]);
-  const titleOpacity = useTransform(scrollYProgress, [0, 0.3], [0, 1]);
-  
-  const subtitleX = useTransform(scrollYProgress, [0.1, 0.4], [100, 0]);
-  const subtitleOpacity = useTransform(scrollYProgress, [0.1, 0.4], [0, 1]);
-  
-  const storyX = useTransform(scrollYProgress, [0.2, 0.5], [-80, 0]);
-  const storyOpacity = useTransform(scrollYProgress, [0.2, 0.5], [0, 1]);
-  
-  const missionX = useTransform(scrollYProgress, [0.3, 0.6], [80, 0]);
-  const missionOpacity = useTransform(scrollYProgress, [0.3, 0.6], [0, 1]);
+  useEffect(() => {
+    // Dynamic import for Three.js to avoid SSR issues
+    const initThree = async () => {
+      const THREE = await import('three');
+      
+      if (!containerRef.current) return;
 
-  // Stats data - dynamic
-  const stats = [
-    { label: 'PROJECTS', value: '50+', icon: '🚀' },
-    { label: 'CLIENTS', value: '100+', icon: '🤝' },
-    { label: 'TEAM', value: '7 Experts', icon: '👨‍💻' },
-    { label: 'SINCE', value: '2022', icon: '📅' },
-  ];
+      // Setup Scene
+      const scene = new THREE.Scene();
+      scene.background = null;
+      scene.fog = new THREE.FogExp2(0x05070d, 0.005);
+
+      const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.set(0, 0.5, 7);
+      camera.lookAt(0, -0.8, 0);
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setClearColor(0x000000, 0);
+      renderer.domElement.style.position = 'absolute';
+      renderer.domElement.style.top = '0';
+      renderer.domElement.style.left = '0';
+      renderer.domElement.style.zIndex = '1';
+      renderer.domElement.style.pointerEvents = 'none';
+      containerRef.current.appendChild(renderer.domElement);
+
+      // Star Particles Background
+      const starCount = 3000;
+      const starGeometry = new THREE.BufferGeometry();
+      const starPositions = new Float32Array(starCount * 3);
+      const starColors = new Float32Array(starCount * 3);
+      
+      for (let i = 0; i < starCount; i++) {
+        starPositions[i*3] = (Math.random() - 0.5) * 200;
+        starPositions[i*3+1] = (Math.random() - 0.5) * 100;
+        starPositions[i*3+2] = (Math.random() - 0.5) * 80 - 40;
+        
+        const colorChoice = Math.random();
+        if (colorChoice > 0.8) {
+          starColors[i*3] = 0.8 + Math.random() * 0.2;
+          starColors[i*3+1] = 0.6 + Math.random() * 0.4;
+          starColors[i*3+2] = 0.3 + Math.random() * 0.3;
+        } else if (colorChoice > 0.6) {
+          starColors[i*3] = 0.4 + Math.random() * 0.3;
+          starColors[i*3+1] = 0.6 + Math.random() * 0.4;
+          starColors[i*3+2] = 1.0;
+        } else {
+          starColors[i*3] = 0.8 + Math.random() * 0.2;
+          starColors[i*3+1] = 0.8 + Math.random() * 0.2;
+          starColors[i*3+2] = 0.8 + Math.random() * 0.2;
+        }
+      }
+      starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+      starGeometry.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
+      
+      const starMat = new THREE.PointsMaterial({ size: 0.15, vertexColors: true, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending });
+      const stars = new THREE.Points(starGeometry, starMat);
+      scene.add(stars);
+
+      // Lighting
+      const ambientLight = new THREE.AmbientLight(0x111122);
+      scene.add(ambientLight);
+      const mainLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      mainLight.position.set(2, 5, 3);
+      scene.add(mainLight);
+      const fillLight = new THREE.PointLight(0x2266aa, 0.6);
+      fillLight.position.set(0, 1, 2);
+      scene.add(fillLight);
+      const rimLight = new THREE.PointLight(0x3b82f6, 0.8);
+      rimLight.position.set(1, 1.5, -2);
+      scene.add(rimLight);
+
+      function animateStars() {
+        stars.rotation.y += 0.0005;
+        stars.rotation.x += 0.0003;
+        requestAnimationFrame(animateStars);
+      }
+      animateStars();
+
+      function renderLoop() {
+        renderer.render(scene, camera);
+        requestAnimationFrame(renderLoop);
+      }
+      renderLoop();
+
+      const handleResize = () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      };
+      
+      window.addEventListener('resize', handleResize);
+      
+      return () => {
+        window.removeEventListener('resize', handleResize);
+        renderer.dispose();
+      };
+    };
+
+    initThree();
+  }, []);
 
   return (
-    <main className="min-h-screen bg-[#020617] overflow-hidden">
-      {/* Cinematic Hero Section */}
-      <section ref={sectionRef} className="relative h-screen w-full flex items-center justify-center overflow-hidden">
-        {/* Background Image */}
-        <div className="absolute inset-0 z-0">
-          <div className="relative w-full h-full">
-            <Image
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4ukB-oFFQCQlS_--KiDPWKYlAkbEdRxojFAz3V1B07KZQlt3kaV2rFrt4gZ5TBF8QAkhuW-YR7Udl2Y77MYszRcAEmd_apEOcDFTCgaTcrg2oabjeajzmk2FC5xcAwBBzD1Y5Zg59R9UsbjcOShDyfSVUdKrOsSpYZ8uY7MJdIdiu1tZpaFw3w8QNT1euQBVJsQe21qYW6Kl1jtU02DpWZRi7AjGc9c1-6sz8BOyAqLC4WWPQFiMEF2kFvrus5chpMaaJVwbQQVBo"
-              alt="Black Hole Singularity"
-              fill
-              className="object-cover"
-              priority
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black" />
+    <div className="relative w-full min-h-screen bg-[#05070d] text-white overflow-x-hidden">
+      {/* Background overlays */}
+      <div className="fixed inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.08),transparent_70%)] pointer-events-none z-0" />
+      <div className="fixed inset-0 opacity-10 pointer-events-none z-0"
+        style={{
+          backgroundImage: "linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
+        }}
+      />
+
+      {/* 3D Container */}
+      <div ref={containerRef} className="fixed inset-0 z-10" />
+
+      {/* Top Mihrab Arch - Responsive with Heading Inside Curve */}
+      <div className="absolute top-4 sm:top-6 left-1/2 -translate-x-1/2 z-20 pointer-events-none w-[90%] max-w-[600px]">
+        <div className="relative w-full h-[200px] sm:h-[300px]">
+          {/* Professional Heading inside the curve */}
+          <div className="absolute top-24 sm:top-32 md:top-36 left-1/2 -translate-x-1/2 text-center whitespace-nowrap z-30">
+            <h2 className="text-[11px] sm:text-xs md:text-sm font-light tracking-[0.4em] sm:tracking-[0.5em] text-blue-300/70 uppercase">
+              The Vision Behind
+            </h2>
+            <h1 className="text-sm sm:text-lg md:text-xl font-bold tracking-[0.15em] sm:tracking-[0.2em] text-white/90 mt-2 sm:mt-3 uppercase">
+              ARCHITECTS OF TOMORROW
+            </h1>
+            <div className="w-12 sm:w-16 h-[1px] bg-gradient-to-r from-transparent via-blue-400 to-transparent mx-auto mt-3 sm:mt-4" />
           </div>
+          
+          {/* Outer glow arch - Blue */}
+          <div className="absolute inset-0 border-t-[2px] sm:border-t-[3px] border-l-[2px] sm:border-l-[3px] border-r-[2px] sm:border-r-[3px] border-blue-400/60 rounded-t-full shadow-[0_0_40px_#3b82f6] sm:shadow-[0_0_80px_#3b82f6]" />
+          {/* Inner glow arch - Blue */}
+          <div className="absolute inset-4 sm:inset-6 border-t border-l border-r border-blue-200/20 rounded-t-full" />
         </div>
+      </div>
 
-        {/* Content */}
-        <div className="relative z-10 text-center px-4 md:px-0 max-w-4xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="flex justify-center mb-6"
-          >
-            <div className="flex gap-1">
-              {[...Array(6)].map((_, i) => (
-                <div
-                  key={i}
-                  className={`w-1 h-2.5 rounded-full transition-all duration-300 ${
-                    i < 4 ? 'bg-[#6366F1] shadow-[0_0_8px_#6366F1]' : 'bg-[#1A1A1A]'
-                  }`}
-                />
-              ))}
-            </div>
-          </motion.div>
-
-          <motion.h1
-            style={{ x: titleX, opacity: titleOpacity }}
-            className="text-2xl md:text-4xl  font-bold font-serif tracking-tight text-[#F8FAFC] mb-4"
-          >
-            The{' '}
-            <span className="bg-gradient-to-r from-[#6366F1] via-[#8B5CF6] to-[#A855F7] bg-clip-text text-transparent">
-              Masterminds
-            </span>
-            <span className="text-[#F8FAFC]"> Behind Innovation</span>
-          </motion.h1>
-
-          <motion.p
-            style={{ x: subtitleX, opacity: subtitleOpacity }}
-            className="text-sm md:text-base text-[#94A3B8] max-w-2xl mx-auto border-l border-[#6366F1]/40 pl-4 text-left"
-          >
-            Expert developers and creative designers crafting innovative digital solutions.
-          </motion.p>
-        </div>
-
-        {/* Coordinates - Bottom Left */}
-        <div className="absolute bottom-12 left-4 md:left-12 hidden md:block">
-          <div className="flex flex-col gap-2">
-            <span className="text-[10px] uppercase tracking-widest text-[#6366F1]">Founded</span>
-            <span className="text-xs text-[#e2e2e2]">2022</span>
+      {/* Story Card - Bottom Left of Curve, Blue theme */}
+      <div className="absolute left-1/2 transform -translate-x-[calc(100%+20px)] sm:-translate-x-[calc(100%+80px)] bottom-8 sm:bottom-16 md:bottom-20 z-30 w-[280px] sm:w-[300px] md:w-[320px] cursor-pointer">
+        <div className="relative p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl bg-black/40 backdrop-blur-xl border border-blue-400/20 shadow-[0_0_20px_rgba(59,130,246,0.1)] hover:shadow-[0_0_30px_rgba(59,130,246,0.2)] hover:border-blue-400/40 transition-all duration-300">
+          <div className="text-blue-300 text-base sm:text-lg tracking-[0.3em] sm:tracking-[0.4em] mb-2 sm:mb-3 font-medium">
+            STORY
           </div>
+          <p className="text-[11px] sm:text-xs text-gray-300 leading-relaxed">
+            Our story is built on a vision to blend creativity, technology, and purpose.
+            We believe in creating digital experiences that not only look beautiful
+            but also leave a lasting impact.
+          </p>
+          <div className="mt-4 sm:mt-6 w-8 sm:w-10 h-[2px] bg-blue-400" />
         </div>
-      </section>
+      </div>
 
-      {/* Stats Section - Dynamic */}
-      <section ref={statsRef} className="py-10 bg-[#0e0e0e] border-y border-[#1A1A1A]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap gap-4 justify-between items-center">
-          {stats.map((stat, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1, duration: 0.5 }}
-              className="flex items-center gap-3"
-            >
-              <span className="text-[10px] text-[#6366F1] border border-[#6366F1]/40 px-2 py-0.5">{stat.label}</span>
-              <span className="text-xs text-[#e2e2e2]">{stat.value}</span>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* Vision Section - Story & Mission with Scroll Animation */}
-      <section className="py-16 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-1/2 h-full opacity-20 pointer-events-none">
-          <div className="relative w-full h-full">
-            <Image
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqYHBMweDx_aZd__rPFqMq7giBMRS8BGLkLXEkAWYGSVg4SnaWlrRcMoB_yKRDePrkL93hQZ8FUdxoAALnZY8Zr_3IR2Zjl5KjNuajT1xnX0dqPszuvYYDIOk14Xg7lrJkbZ4VdtYLciVt5WKAHMRQqltzc4Nsl3OVyNSCVZlvrQFXh5nEvIBNfA6qzqpxeosANyMxKYFUUDKmtaicY8tQ7lF2hanHS4chwrzMaTVhDwvLGY-yMs9yv1mNmEM8KCULgTYi334G5GOn"
-              alt="Galaxy"
-              fill
-              className="object-cover"
-            />
+      {/* Mission Card - Bottom Right of Curve, Blue theme */}
+      <div className="absolute left-1/2 transform translate-x-[20px] sm:translate-x-[80px] bottom-8 sm:bottom-16 md:bottom-20 z-30 w-[280px] sm:w-[300px] md:w-[320px] cursor-pointer">
+        <div className="relative p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl bg-black/40 backdrop-blur-xl border border-blue-400/20 shadow-[0_0_20px_rgba(59,130,246,0.1)] hover:shadow-[0_0_30px_rgba(59,130,246,0.2)] hover:border-blue-400/40 transition-all duration-300 text-right">
+          <div className="text-blue-300 text-base sm:text-lg tracking-[0.3em] sm:tracking-[0.4em] mb-2 sm:mb-3 font-medium">
+            MISSION
           </div>
+          <p className="text-[11px] sm:text-xs text-gray-300 leading-relaxed">
+            Our mission is to empower brands and ideas through innovative digital solutions.
+            We aim to inspire, grow, and create meaningful connections in the digital world.
+          </p>
+          <div className="mt-4 sm:mt-6 w-8 sm:w-10 h-[2px] bg-blue-400 ml-auto" />
         </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="max-w-3xl">
-            <motion.span
-              style={{ x: storyX, opacity: storyOpacity }}
-              className="text-[10px] uppercase tracking-[0.2em] text-[#6366F1] mb-3 block"
-            >
-              Our Journey
-            </motion.span>
-            
-            <motion.h2
-              style={{ x: storyX, opacity: storyOpacity }}
-              className="text-2xl md:text-4xl  font-bold font-serif text-[#F8FAFC] mb-8"
-            >
-              FROM VISION TO REALITY
-            </motion.h2>
-            
-            <div className="space-y-10 border-l border-[#6366F1]/50 pl-8">
-              <motion.div
-                style={{ x: storyX, opacity: storyOpacity }}
-                className="relative"
-              >
-                <div className="absolute -left-[41px] top-1 w-1.5 h-1.5 bg-[#6366F1] rounded-full shadow-[0_0_6px_#6366F1]" />
-                <h4 className="text-base font-semibold text-[#6366F1] mb-1">Our Story</h4>
-                <p className="text-sm text-[#94A3B8]">
-                  Founded in 2022, Nestick Tech started with a simple mission: to help businesses leverage technology for growth and innovation. What began as a small team of passionate developers has grown into a full-service digital agency serving clients worldwide.
-                </p>
-                <p className="text-sm text-[#94A3B8] mt-2">
-                  Today, we&apos;re proud to have delivered 50+ successful projects across various industries, from e-commerce and education to healthcare and finance.
-                </p>
-              </motion.div>
-              
-              <motion.div
-                style={{ x: missionX, opacity: missionOpacity }}
-                className="relative"
-              >
-                <div className="absolute -left-[41px] top-1 w-1.5 h-1.5 bg-[#5c4037] rounded-full" />
-                <h4 className="text-base font-semibold text-[#F8FAFC] mb-1">Our Mission</h4>
-                <p className="text-sm text-[#94A3B8]">
-                  To empower businesses with cutting-edge technology solutions that drive growth, efficiency, and innovation. We believe in building long-term partnerships with our clients, understanding their unique challenges, and delivering solutions that exceed expectations.
-                </p>
-              </motion.div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
+      </div>
+    </div>
   );
-};
-
-export default HeroPage;
+}
