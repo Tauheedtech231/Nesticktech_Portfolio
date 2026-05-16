@@ -19,24 +19,13 @@ const Navbar = () => {
   ];
 
   useEffect(() => {
-    const handleScroll = () => {
-      setHasScrolled(window.scrollY > 20);
-    };
-
+    const handleScroll = () => setHasScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Prevent body scroll when mobile menu is open
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
+    document.body.style.overflow = isOpen ? 'hidden' : 'unset';
   }, [isOpen]);
 
   return (
@@ -44,126 +33,95 @@ const Navbar = () => {
       <div className="fixed top-4 left-0 right-0 z-50 flex justify-center px-4">
         <nav
           className={`w-full max-w-6xl transition-all duration-300 rounded-[28px] ${
-            hasScrolled 
-              ? 'bg-[#020617]/90 backdrop-blur-lg shadow-lg shadow-[#6366F1]/10 border border-[#1E293B]' 
-              : 'bg-[#020617] border border-[#1E293B]'
+            hasScrolled
+              ? 'bg-black/40 backdrop-blur-xl border border-white/15 shadow-lg shadow-black/30'
+              : 'bg-black/25 backdrop-blur-md border border-white/10'
           }`}
         >
           <div className="px-5 sm:px-6 lg:px-7">
             <div className="flex items-center justify-between h-12 lg:h-14">
-              {/* Company Logo - White */}
-              <Link href="/" className="flex-shrink-0 group cursor-pointer">
-                <span className="text-lg sm:text-xl lg:text-xl font-bold font-serif tracking-tight text-white group-hover:scale-105 transition-transform duration-300">
+
+              {/* Logo */}
+              <Link href="/" className="flex-shrink-0 group">
+                <span className="text-lg sm:text-xl font-bold font-serif tracking-tight text-white group-hover:scale-105 transition-transform">
                   Nestick Tech
                 </span>
               </Link>
 
-              {/* Desktop Navigation - Centered */}
-              <div className="hidden lg:flex lg:items-center lg:justify-center lg:flex-1 lg:gap-1">
+              {/* Desktop Navigation */}
+              <div className="hidden lg:flex lg:flex-1 lg:justify-center lg:gap-2">
                 {navigation.map((item) => (
                   <Link
                     key={item.name}
                     href={item.href}
-                    className="px-3.5 py-1.5 text-[#94A3B8] hover:text-white text-sm lg:text-base font-medium font-sans tracking-wide rounded-lg transition-all duration-300 hover:bg-[#6366F1]/10 cursor-pointer"
+                    className="px-4 py-1.5 text-white/80 hover:text-white text-sm font-medium rounded-lg transition-all duration-300 hover:bg-white/10"
                   >
                     {item.name}
                   </Link>
                 ))}
               </div>
 
-              {/* Desktop Login Button Only */}
-              <div className="hidden lg:flex lg:items-center">
+              {/* Login */}
+              <div className="hidden lg:flex">
                 <Link
                   href="/login"
-                  className="relative px-5 py-1.5 bg-transparent border border-[#6366F1] text-[#6366F1] hover:text-white text-sm lg:text-base font-semibold font-sans tracking-wide rounded-xl overflow-hidden group transition-all duration-300 hover:shadow-lg hover:shadow-[#6366F1]/25 hover:scale-105 active:scale-95 cursor-pointer"
+                  className="px-5 py-1.5 border border-indigo-400 text-indigo-300 hover:text-white rounded-xl transition-all hover:bg-indigo-500/20"
                 >
-                  <span className="relative z-10 flex items-center gap-2">
+                  <span className="flex items-center gap-2">
                     <LogIn size={16} />
                     Login
                   </span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </Link>
               </div>
 
-              {/* Mobile menu button */}
+              {/* Mobile button */}
               <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="lg:hidden p-1.5 rounded-xl text-[#94A3B8] hover:text-[#6366F1] hover:bg-[#6366F1]/10 transition-all duration-300 focus:outline-none z-50 cursor-pointer"
-                aria-label="Toggle menu"
+                className="lg:hidden p-2 text-white hover:bg-white/10 rounded-xl"
               >
-                {isOpen ? (
-                  <X className="h-5 w-5" />
-                ) : (
-                  <Menu className="h-5 w-5" />
-                )}
+                {isOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
             </div>
           </div>
         </nav>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile Menu */}
       <div
-        className={`lg:hidden fixed inset-x-0 top-[68px] z-40 transition-all duration-500 ease-in-out transform flex justify-center px-4 ${
-          isOpen 
-            ? 'translate-y-0 opacity-100 visible' 
-            : '-translate-y-full opacity-0 invisible'
+        className={`lg:hidden fixed inset-x-0 top-[68px] z-40 transition-all duration-500 ${
+          isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-6 pointer-events-none'
         }`}
       >
-        <div className="w-full max-w-6xl bg-[#020617] border-t border-b border-[#1E293B] shadow-xl rounded-[28px] overflow-hidden">
-          <div className="px-5 sm:px-6 py-3">
-            {/* Mobile Menu Header with White Logo */}
-            <div className="px-3 py-2 mb-2 border-b border-[#1E293B]">
-              <span className="text-lg font-bold font-serif tracking-tight text-white">
-                Nestick Tech
-              </span>
-            </div>
-            
-            <div className="flex flex-col space-y-0.5">
-              {navigation.map((item, index) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  onClick={() => setIsOpen(false)}
-                  className={`block px-3 py-2.5 text-[#94A3B8] hover:text-white text-base font-medium font-sans tracking-wide rounded-xl transition-all duration-300 hover:bg-[#6366F1]/10 cursor-pointer ${
-                    isOpen ? 'translate-x-0 opacity-100' : '-translate-x-4 opacity-0'
-                  }`}
-                  style={{ 
-                    transitionDelay: isOpen ? `${index * 50}ms` : '0ms',
-                  }}
-                >
-                  {item.name}
-                </Link>
-              ))}
-            </div>
-            
-            {/* Mobile Login Button Only */}
-            <div
-              className={`mt-3 px-3 transition-all duration-500 ${
-                isOpen ? 'translate-x-0 opacity-100' : '-translate-x-4 opacity-0'
-              }`}
-              style={{ transitionDelay: isOpen ? '300ms' : '0ms' }}
-            >
+        <div className="mx-auto max-w-6xl bg-black/60 backdrop-blur-xl border border-white/10 rounded-[28px] overflow-hidden">
+
+          <div className="px-6 py-4 space-y-2">
+            {navigation.map((item) => (
               <Link
-                href="/login"
+                key={item.name}
+                href={item.href}
                 onClick={() => setIsOpen(false)}
-                className="flex items-center justify-center gap-2 w-full px-5 py-2.5 bg-transparent border border-[#6366F1] text-[#6366F1] hover:text-white text-center text-base font-semibold font-sans tracking-wide rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-[#6366F1]/25 group overflow-hidden relative cursor-pointer"
+                className="block px-4 py-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition"
               >
-                <span className="relative z-10 flex items-center gap-2">
-                  <LogIn size={16} />
-                  Login
-                </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                {item.name}
               </Link>
-            </div>
+            ))}
+
+            <Link
+              href="/login"
+              onClick={() => setIsOpen(false)}
+              className="block mt-3 px-4 py-2 text-center border border-indigo-400 text-indigo-300 rounded-xl hover:bg-indigo-500/20 hover:text-white"
+            >
+              Login
+            </Link>
           </div>
+
         </div>
       </div>
 
-      {/* Overlay for mobile menu */}
+      {/* Overlay */}
       {isOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-30 transition-opacity duration-300 cursor-pointer"
+          className="fixed inset-0 bg-black/50 z-30"
           onClick={() => setIsOpen(false)}
         />
       )}

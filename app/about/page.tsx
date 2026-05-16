@@ -233,7 +233,7 @@ const AboutPage = () => {
           whileHover={{ y: -4 }}
         >
           <div className={`bg-gradient-to-r ${node.avatarColor} p-[2px] rounded-xl transition-all duration-300 group-hover:shadow-lg`}>
-            <div className="bg-[#0F172A] rounded-xl p-3 md:p-4 min-w-[160px] md:min-w-[200px]">
+            <div className="bg-black/80 backdrop-blur-sm rounded-xl p-3 md:p-4 min-w-[160px] md:min-w-[200px]">
               <div className="flex items-center gap-3">
                 <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br ${node.avatarColor} flex items-center justify-center border-2 flex-shrink-0`} style={{ borderColor: node.color }}>
                   <span className="text-base md:text-lg font-bold text-white">{node.avatar}</span>
@@ -317,7 +317,7 @@ const AboutPage = () => {
             className={`bg-gradient-to-r ${node.avatarColor} p-[2px] rounded-xl transition-all duration-300 group-hover:shadow-lg w-full`}
             onClick={() => hasChildren && toggleNode(node.id)}
           >
-            <div className="bg-[#0F172A] rounded-xl p-3 w-full">
+            <div className="bg-black/80 backdrop-blur-sm rounded-xl p-3 w-full">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${node.avatarColor} flex items-center justify-center border-2 flex-shrink-0`} style={{ borderColor: node.color }}>
@@ -352,51 +352,60 @@ const AboutPage = () => {
   const rootNode = teamMembers.find(member => member.parentId === null);
 
   return (
-    <main className="min-h-screen bg-[#020617] overflow-hidden relative">
-      {/* Remove pt-20 lg:pt-24 to make Hero margin 0 */}
-      
-      {/* Background Elements */}
-      <div className="fixed inset-0 overflow-hidden z-0 pointer-events-none">
-        <div className="absolute top-20 left-10 w-96 h-96 bg-[#6366F1]/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '8s' }} />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#8B5CF6]/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '10s', animationDelay: '1s' }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#06B6D4]/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '12s', animationDelay: '2s' }} />
-      </div>
-
+    <main className="min-h-screen bg-black overflow-hidden relative">
       {/* Hero Component - No margin on top */}
       <Hero />
 
       {/* Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-        {/* Team Structure */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="mb-16 lg:mb-20"
-        >
-          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold font-serif tracking-tight text-[#F8FAFC] text-center mb-6 sm:mb-8 lg:mb-12">
-            Our{' '}
-            <span className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">
-              Team Structure
-            </span>
-          </h2>
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 lg:pb-16 pt-0">
+        {/* Team Structure with Background Video */}
+        <div className="relative rounded-2xl overflow-hidden mb-16 lg:mb-20">
+          {/* Background Video */}
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+          >
+            <source src="/encryption-bg.webm" type="video/webm" />
+          </video>
+          
+          {/* Minimal dark overlay for text readability only - not blocking video */}
+          <div className="absolute inset-0 bg-black/50" />
+          
+          {/* Team Structure Content */}
+          <div className="relative z-10 py-8 sm:py-12 lg:py-16 px-4 sm:px-6">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold font-serif tracking-tight text-[#F8FAFC] text-center mb-6 sm:mb-8 lg:mb-12">
+                Our{' '}
+                <span className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">
+                  Team Structure
+                </span>
+              </h2>
 
-          {/* Desktop View - Horizontal Tree */}
-          <div className="hidden md:block overflow-x-auto pb-4">
-            <div className="min-w-[800px] flex justify-center">
-              {rootNode && renderDesktopTreeNode(rootNode)}
-            </div>
-          </div>
+              {/* Desktop View - Horizontal Tree */}
+              <div className="hidden md:block overflow-x-auto pb-4">
+                <div className="min-w-[800px] flex justify-center">
+                  {rootNode && renderDesktopTreeNode(rootNode)}
+                </div>
+              </div>
 
-          {/* Mobile View - Vertical Collapsible List with Nodes */}
-          <div className="md:hidden space-y-2">
-            {rootNode && renderMobileTreeNode(rootNode)}
+              {/* Mobile View - Vertical Collapsible List with Nodes */}
+              <div className="md:hidden space-y-2">
+                {rootNode && renderMobileTreeNode(rootNode)}
+              </div>
+            </motion.div>
           </div>
-        </motion.div>
+        </div>
         
         <TechStackPage />
 
-        {/* Get in Touch Section with Flip Cards - Same background for all */}
+        {/* Get in Touch Section with Flip Cards */}
         <motion.div
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -410,8 +419,8 @@ const AboutPage = () => {
               fill
               className="object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-br from-[#020617]/80 via-[#020617]/80 to-[#0F172A]/80" />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#6366F1]/20 via-transparent to-[#8B5CF6]/20" />
+            <div className="absolute inset-0 bg-black/80" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#6366F1]/10 via-transparent to-[#8B5CF6]/10" />
           </div>
 
           <div className="relative z-10 py-8 sm:py-12 lg:py-16 px-4 sm:px-6 lg:px-8">

@@ -1,174 +1,471 @@
+// app/src/portfolio/components/IndustriesSection.tsx
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
-import {
-  GraduationCap,
-  ShoppingBag,
-  Building2,
-  Rocket,
-  Landmark,
-  Heart,
-} from "lucide-react";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
+import { GraduationCap, ShoppingBag, Building2, Rocket, Landmark, Heart } from "lucide-react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-const industriesData = [
-  { id: 1, name: "Education", icon: GraduationCap, desc: "LMS & e-learning solutions" },
-  { id: 2, name: "E-commerce", icon: ShoppingBag, desc: "Online stores & payments" },
-  { id: 3, name: "Construction", icon: Building2, desc: "Project & site management" },
-  { id: 4, name: "Startups", icon: Rocket, desc: "MVP & scaling solutions" },
-  { id: 5, name: "Finance", icon: Landmark, desc: "Secure transactions & compliance" },
-  { id: 6, name: "Medical", icon: Heart, desc: "Healthcare & telemedicine" },
+// Register GSAP plugin
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
+
+// Industries data
+const tiles = [
+  {
+    id: 1,
+    name: "EDUCATION",
+    desc: "LMS & e-learning solutions",
+    icon: GraduationCap,
+    clipPath: "polygon(0% 5%, 5% 0%, 95% 0%, 100% 5%, 100% 95%, 95% 100%, 5% 100%, 0% 95%)",
+    angle: { x: -200, y: -150, rotate: -15 },
+  },
+  {
+    id: 2,
+    name: "E-COMMERCE",
+    desc: "Online stores & payments",
+    icon: ShoppingBag,
+    clipPath: "polygon(8% 0%, 92% 0%, 100% 10%, 88% 100%, 12% 100%, 0% 10%)",
+    angle: { x: 0, y: -200, rotate: 10 },
+  },
+  {
+    id: 3,
+    name: "CONSTRUCTION",
+    desc: "Project & site management",
+    icon: Building2,
+    clipPath: "polygon(0% 5%, 5% 0%, 95% 0%, 100% 5%, 100% 95%, 95% 100%, 5% 100%, 0% 95%)",
+    angle: { x: 200, y: -150, rotate: 15 },
+  },
+  {
+    id: 4,
+    name: "STARTUPS",
+    desc: "MVP & scaling solutions",
+    icon: Rocket,
+    clipPath: "polygon(0% 0%, 88% 0%, 100% 12%, 100% 100%, 12% 100%, 0% 88%)",
+    angle: { x: -200, y: 150, rotate: 12 },
+  },
+  {
+    id: 5,
+    name: "FINANCE",
+    desc: "Secure transactions & compliance",
+    icon: Landmark,
+    clipPath: "polygon(12% 0%, 88% 0%, 100% 12%, 100% 88%, 88% 100%, 12% 100%, 0% 88%, 0% 12%)",
+    angle: { x: 0, y: 200, rotate: -10 },
+  },
+  {
+    id: 6,
+    name: "MEDICAL",
+    desc: "Healthcare & telemedicine",
+    icon: Heart,
+    clipPath: "polygon(0% 5%, 5% 0%, 95% 0%, 100% 5%, 100% 95%, 95% 100%, 5% 100%, 0% 95%)",
+    angle: { x: 200, y: 150, rotate: -12 },
+  },
 ];
 
 export default function Home() {
-  const ref = useRef(null);
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const mobileTilesRef = useRef<(HTMLDivElement | null)[]>([]);
+  const desktopTilesRef = useRef<(HTMLDivElement | null)[]>([]);
 
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "center center"],
-  });
+  useEffect(() => {
+    // Animate mobile tiles - reduced x-axis movement to prevent overflow
+    mobileTilesRef.current.forEach((tile, index) => {
+      if (tile) {
+        const tileData = tiles[index];
+        gsap.fromTo(tile,
+          {
+            opacity: 0,
+            x: index % 2 === 0 ? -80 : 80, // Reduced from 150 to 80
+            y: 0,
+            rotation: tileData.angle.rotate,
+            scale: 0.85,
+          },
+          {
+            opacity: 1,
+            x: 0,
+            y: 0,
+            rotation: 0,
+            scale: 1,
+            duration: 0.8,
+            delay: index * 0.1,
+            ease: "back.out(1.1)",
+            scrollTrigger: {
+              trigger: tile,
+              start: "top 85%",
+              end: "bottom 65%",
+              toggleActions: "play none none reverse",
+            },
+          }
+        );
+      }
+    });
 
-  const opacity = useTransform(scrollYProgress, [0, 0.3, 1], [0, 1, 1]);
+    // Animate desktop tiles - contained within viewport
+    desktopTilesRef.current.forEach((tile, index) => {
+      if (tile) {
+        const tileData = tiles[index];
+        // Scale down x-axis movement to stay within bounds
+        const boundedX = Math.min(Math.max(tileData.angle.x, -120), 120);
+        const boundedY = Math.min(Math.max(tileData.angle.y, -120), 120);
+        
+        gsap.fromTo(tile,
+          {
+            opacity: 0,
+            x: boundedX,
+            y: boundedY,
+            rotation: tileData.angle.rotate,
+            scale: 0.85,
+          },
+          {
+            opacity: 1,
+            x: 0,
+            y: 0,
+            rotation: 0,
+            scale: 1,
+            duration: 0.8,
+            delay: index * 0.1,
+            ease: "back.out(1.1)",
+            scrollTrigger: {
+              trigger: tile,
+              start: "top 85%",
+              end: "bottom 65%",
+              toggleActions: "play none none reverse",
+            },
+          }
+        );
+      }
+    });
 
-  const transforms = [
-    { x: useTransform(scrollYProgress, [0, 1], [-250, 0]), y: useTransform(scrollYProgress, [0, 1], [-80, 0]), rotate: useTransform(scrollYProgress, [0, 1], [-15, 0]) },
-    { x: useTransform(scrollYProgress, [0, 1], [0, 0]), y: useTransform(scrollYProgress, [0, 1], [-150, 0]), rotate: useTransform(scrollYProgress, [0, 1], [10, 0]) },
-    { x: useTransform(scrollYProgress, [0, 1], [250, 0]), y: useTransform(scrollYProgress, [0, 1], [-60, 0]), rotate: useTransform(scrollYProgress, [0, 1], [15, 0]) },
-
-    { x: useTransform(scrollYProgress, [0, 1], [-200, 0]), y: useTransform(scrollYProgress, [0, 1], [150, 0]), rotate: useTransform(scrollYProgress, [0, 1], [-12, 0]) },
-    { x: useTransform(scrollYProgress, [0, 1], [0, 0]), y: useTransform(scrollYProgress, [0, 1], [180, 0]), rotate: useTransform(scrollYProgress, [0, 1], [8, 0]) },
-    { x: useTransform(scrollYProgress, [0, 1], [220, 0]), y: useTransform(scrollYProgress, [0, 1], [140, 0]), rotate: useTransform(scrollYProgress, [0, 1], [12, 0]) },
-  ];
+    // Cleanup ScrollTrigger
+    return () => {
+      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+    };
+  }, []);
 
   return (
-    <div className="min-h-screen bg-[#020617] flex flex-col items-center justify-center gap-6 font-[Poppins] overflow-hidden">
-      {/* Background decorative elements - matching services section */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-[#6366F1]/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-72 h-72 bg-[#8B5CF6]/5 rounded-full blur-3xl" />
-      </div>
+    <div
+      className="min-h-screen bg-[#020617] flex flex-col items-center justify-center py-12 px-4 md:py-16 md:px-8"
+      style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}
+      ref={sectionRef}
+    >
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Montserrat:wght@200;300;400;500;600;700;800&display=swap');
 
-      {/* Grid pattern overlay - matching services section */}
-      <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-5 pointer-events-none" />
+        /* Main container overflow control */
+        .industries-section {
+          overflow-x: clip;
+          position: relative;
+          isolation: isolate;
+        }
+        
+        .tile-wrap {
+          position: relative;
+          transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+          cursor: pointer;
+          will-change: transform, opacity;
+          width: 100%;
+          margin: 0 auto;
+          /* Contain transforms within bounds */
+          transform: translateZ(0);
+          backface-visibility: hidden;
+        }
+        
+        /* Isolated hover transform with contain */
+        .tile-wrap:hover {
+          transform: scale(1.03) translateY(-4px) !important;
+          z-index: 10;
+        }
+        .tile-wrap:active {
+          transform: scale(0.97) !important;
+        }
+        
+        .tile-inner {
+          width: 100%;
+          height: 100%;
+          position: relative;
+          overflow: hidden;
+          border-radius: 14px;
+          /* Prevent clip-path overflow */
+          contain: layout paint;
+        }
+        
+        .tile-stone {
+          position: absolute;
+          inset: 0;
+          background:
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.25'/%3E%3C/svg%3E"),
+            linear-gradient(135deg, #1e1b4b 0%, #1e1a4a 50%, #172554 100%);
+          background-size: 300px 300px, 100% 100%;
+          border-radius: 14px;
+          transition: filter 0.4s ease;
+        }
+        
+        .tile-wrap:hover .tile-stone {
+          filter: brightness(1.25) contrast(1.1);
+        }
+        
+        .tile-glow {
+          position: absolute;
+          inset: -1px;
+          border-radius: 15px;
+          border: 1.5px solid transparent;
+          background: linear-gradient(135deg, rgba(255,255,255,0.35), rgba(255,255,255,0.05)) border-box;
+          -webkit-mask:
+            linear-gradient(#fff 0 0) padding-box,
+            linear-gradient(#fff 0 0);
+          -webkit-mask-composite: destination-out;
+          mask-composite: exclude;
+          pointer-events: none;
+          transition: opacity 0.4s ease;
+          opacity: 0.7;
+        }
+        
+        .tile-wrap:hover .tile-glow {
+          opacity: 1;
+        }
+        
+        /* Default state - show name only - CENTERED */
+        .tile-name {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          font-family: 'Montserrat', sans-serif;
+          font-weight: 700;
+          font-size: 14px;
+          letter-spacing: 4px;
+          color: #fff;
+          text-transform: uppercase;
+          transition: all 0.3s ease;
+          z-index: 2;
+          text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+          text-align: center;
+          width: 100%;
+          padding: 0 16px;
+        }
+        
+        @media (max-width: 768px) {
+          .tile-name {
+            font-size: 12px;
+            letter-spacing: 3px;
+          }
+        }
+        
+        @media (min-width: 768px) {
+          .tile-name {
+            font-size: 16px;
+            letter-spacing: 5px;
+          }
+        }
+        
+        /* Description - hidden by default, shows on hover - CENTERED */
+        .tile-desc {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          font-family: 'Cormorant Garamond', serif;
+          font-weight: 300;
+          font-size: 12px;
+          letter-spacing: 2px;
+          color: rgba(255,255,255,0.95);
+          text-transform: uppercase;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+          z-index: 2;
+          text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+          text-align: center;
+          width: 100%;
+          padding: 0 16px;
+        }
+        
+        @media (max-width: 768px) {
+          .tile-desc {
+            font-size: 10px;
+            letter-spacing: 1.5px;
+            padding: 0 20px;
+          }
+        }
+        
+        @media (min-width: 768px) {
+          .tile-desc {
+            font-size: 13px;
+            letter-spacing: 2.5px;
+          }
+        }
+        
+        .tile-wrap:hover .tile-name {
+          opacity: 0;
+        }
+        
+        .tile-wrap:hover .tile-desc {
+          opacity: 1;
+        }
+        
+        .tile-icon {
+          position: absolute;
+          top: 20px;
+          left: 20px;
+          opacity: 0.5;
+          transition: opacity 0.3s ease, transform 0.3s ease;
+          color: rgba(255,255,255,0.8);
+          z-index: 2;
+        }
+        
+        .tile-wrap:hover .tile-icon {
+          opacity: 1;
+          transform: scale(1.05);
+        }
+        
+        .tile-icon svg {
+          width: 22px;
+          height: 22px;
+        }
+        
+        @media (min-width: 768px) {
+          .tile-icon svg {
+            width: 28px;
+            height: 28px;
+          }
+          .tile-icon {
+            top: 25px;
+            left: 25px;
+          }
+        }
+        
+        .tile-content-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 40%);
+          border-radius: 14px;
+          pointer-events: none;
+        }
+        
+        /* Mobile grid - stacked layout */
+        .mobile-stack {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          width: 100%;
+          max-width: 320px;
+          margin: 0 auto;
+        }
+        
+        .mobile-tile {
+          width: 100%;
+          height: 190px;
+          opacity: 0;
+        }
+        
+        /* Desktop grid - full width control */
+        .desktop-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 8px;
+          width: 100%;
+          max-width: 1400px;
+          margin: 0 auto;
+        }
+        
+        @media (min-width: 1200px) {
+          .desktop-grid {
+            gap: 10px;
+          }
+        }
+        
+        .desktop-tile {
+          opacity: 0;
+          min-width: 0; /* Prevent grid overflow */
+        }
+        
+        /* Heading gradient color */
+        .heading-gradient {
+          background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+        }
+      `}</style>
 
-      <div className="relative z-10">
-        <h1 className="text-3xl md:text-4xl font-bold font-serif tracking-tight text-center mb-2">
-          <span className="text-[#F8FAFC]">Industries </span>
-          <span className="bg-gradient-to-r from-[#6366F1] via-[#8B5CF6] to-[#A855F7] bg-clip-text text-transparent animate-gradient">
+      {/* Heading Section - unchanged */}
+      <div className="text-center mb-10 md:mb-14">
+        <h1 className="text-3xl sm:text-4xl  font-bold tracking-tight font-serif">
+          Industries{' '}
+          <span className="heading-gradient">
             We Serve
           </span>
         </h1>
-        
-        {/* Decorative line under heading - matching services section */}
-        <div className="flex justify-center mt-3 mb-6">
-          <div className="w-16 h-0.5 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] rounded-full" />
+        <div className="w-24 h-px bg-gradient-to-r from-transparent via-[#6366F1] to-transparent mx-auto mt-6 mb-4" />
+        <p className="text-white/40 text-xs sm:text-sm tracking-[4px] sm:tracking-[6px] uppercase font-montserrat font-light">
+          Industries We Serve
+        </p>
+      </div>
+
+      {/* Mobile Layout - Always visible on mobile */}
+      <div className="md:hidden w-full industries-section">
+        <div className="mobile-stack">
+          {tiles.map((tile, index) => {
+            const IconComponent = tile.icon;
+            return (
+              <div
+                key={tile.id}
+                ref={(el) => {
+                  mobileTilesRef.current[index] = el;
+                }}
+                className="mobile-tile"
+              >
+                <div className="tile-wrap" style={{ width: "100%", height: "100%" }}>
+                  <div className="tile-inner" style={{ clipPath: tile.clipPath }}>
+                    <div className="tile-stone" />
+                    <div className="tile-content-overlay" />
+                    <div className="tile-icon">
+                      <IconComponent size={22} strokeWidth={1.3} />
+                    </div>
+                    <div className="tile-name">{tile.name}</div>
+                    <div className="tile-desc">{tile.desc}</div>
+                  </div>
+                  <div className="tile-glow" style={{ clipPath: tile.clipPath }} />
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      <div ref={ref} className="w-[900px] relative z-10">
-
-        <svg viewBox="0 0 900 360" className="w-full h-auto">
-
-          <defs>
-            {/* Updated texture pattern to match card backgrounds */}
-            <pattern id="texture" width="100" height="100" patternUnits="userSpaceOnUse">
-              <rect width="100" height="100" fill="#0F172A"/>
-              <circle cx="20" cy="20" r="1" fill="#1E293B"/>
-              <circle cx="60" cy="40" r="1" fill="#1E293B"/>
-              <circle cx="80" cy="70" r="1" fill="#1E293B"/>
-            </pattern>
-            
-            {/* Gradient for card borders on hover */}
-            <linearGradient id="cardGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#6366F1" stopOpacity="0.3"/>
-              <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.3"/>
-            </linearGradient>
-          </defs>
-
-          {[
-            { path: "M0 0 L260 0 A20 20 0 0 1 280 20 L260 180 L0 180 Z", x: 120, y: 70 },
-            { path: "M300 0 A20 20 0 0 1 320 0 L580 0 A20 20 0 0 1 600 20 L640 180 L260 180 Z", x: 450, y: 70 },
-            { path: "M620 0 L900 0 L900 180 L640 180 Z", x: 760, y: 70 },
-            { path: "M0 180 L260 180 L280 340 A20 20 0 0 1 260 360 L20 360 A20 20 0 0 1 0 340 Z", x: 120, y: 250 },
-            { path: "M260 180 Q450 140 640 180 L620 340 A20 20 0 0 1 600 360 L320 360 L290 330 Q270 300 260 180 Z", x: 450, y: 250 },
-            { path: "M640 180 L900 180 L900 340 A20 20 0 0 1 880 360 L660 360 A20 20 0 0 1 640 340 Z", x: 760, y: 250 },
-          ].map((shape, index) => {
-            const item = industriesData[index];
-            const Icon = item.icon;
-            const t = transforms[index];
-
+      {/* Desktop Layout - Hidden on mobile */}
+      <div className="hidden md:block w-full industries-section">
+        <div className="desktop-grid">
+          {tiles.map((tile, index) => {
+            const IconComponent = tile.icon;
             return (
-              <motion.g
-                key={item.id}
-                style={{
-                  x: t.x,
-                  y: t.y,
-                  rotate: t.rotate,
-                  opacity: opacity,
+              <div
+                key={tile.id}
+                ref={(el) => {
+                  desktopTilesRef.current[index] = el;
                 }}
-                whileHover={{ scale: 1.02 }}
-                transition={{ type: "spring", stiffness: 180 }}
-                className="cursor-pointer"
+                className="desktop-tile"
+                style={{
+                  height: tile.id === 2 ? "220px" : tile.id === 5 ? "240px" : "230px",
+                }}
               >
-                {/* Card shadow/glow on hover */}
-                <path
-                  d={shape.path}
-                  fill="url(#texture)"
-                  stroke="#1E293B"
-                  strokeWidth="2"
-                  className="transition-all duration-300"
-                />
-                
-                {/* Hover border glow effect */}
-                <path
-                  d={shape.path}
-                  fill="none"
-                  stroke="url(#cardGradient)"
-                  strokeWidth="2"
-                  opacity="0"
-                  className="transition-opacity duration-300 group-hover:opacity-100"
-                />
-
-                <foreignObject x={shape.x - 20} y={shape.y - 40} width="40" height="40">
-                  <div className="flex items-center justify-center">
-                    <Icon size={26} className="text-[#6366F1]" />
+                <div className="tile-wrap" style={{ width: "100%", height: "100%" }}>
+                  <div className="tile-inner" style={{ clipPath: tile.clipPath }}>
+                    <div className="tile-stone" />
+                    <div className="tile-content-overlay" />
+                    <div className="tile-icon">
+                      <IconComponent size={26} strokeWidth={1.3} />
+                    </div>
+                    <div className="tile-name">{tile.name}</div>
+                    <div className="tile-desc">{tile.desc}</div>
                   </div>
-                </foreignObject>
-
-                <text x={shape.x} y={shape.y + 10} fill="#F8FAFC" fontSize="15" fontWeight="600" textAnchor="middle" className="font-sans tracking-wide">
-                  {item.name}
-                </text>
-
-                <text x={shape.x} y={shape.y + 28} fill="#94A3B8" fontSize="11" textAnchor="middle" className="font-light tracking-wide">
-                  {item.desc}
-                </text>
-              </motion.g>
+                  <div className="tile-glow" style={{ clipPath: tile.clipPath }} />
+                </div>
+              </div>
             );
           })}
-
-        </svg>
-
+        </div>
       </div>
-
-      {/* Add gradient animation styles */}
-      <style jsx global>{`
-        @keyframes gradient {
-          0% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
-          100% {
-            background-position: 0% 50%;
-          }
-        }
-        
-        .animate-gradient {
-          background-size: 200% auto;
-          animation: gradient 3s ease infinite;
-        }
-      `}</style>
     </div>
   );
 }

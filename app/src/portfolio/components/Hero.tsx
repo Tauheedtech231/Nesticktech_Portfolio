@@ -149,7 +149,8 @@ const Hero = () => {
       {/* Grid overlay - reduced opacity */}
       <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-10" />
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+      {/* Updated container with reduced margins on big screens */}
+      <div className="relative max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 2xl:px-6 h-full">
         <div className="flex flex-col lg:grid lg:grid-cols-2 gap-8 lg:gap-12 items-center min-h-[calc(100vh-120px)] lg:min-h-[calc(100vh-140px)]">
           
           {/* Left side - Content */}

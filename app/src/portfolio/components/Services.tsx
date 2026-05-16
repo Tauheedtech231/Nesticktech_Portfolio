@@ -158,7 +158,8 @@ const Services = () => {
       {/* Grid pattern overlay */}
       <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-5" />
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Updated container with minimal margins on big screens */}
+      <div className="relative max-w-7xl mx-auto px-3 sm:px-4 lg:px-3 xl:px-3 2xl:px-3">
         {/* Section Header - Hero Section Font Styles */}
         <motion.div
           variants={introContainerVariants}

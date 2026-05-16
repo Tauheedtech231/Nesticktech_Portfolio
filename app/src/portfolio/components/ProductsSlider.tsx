@@ -71,11 +71,12 @@ const PartnersSlider = () => {
     offset: ["start end", "end start"]
   });
 
-  // Slider moves based on scroll - Reduced range to prevent overflow
-  const sliderX = useTransform(scrollYProgress, [0, 0.5, 1], [-30, 0, 30]);
+  // Slider moves based on scroll - FASTER movement (3-4 partners feel)
+  // Increased range from -120 to -200 and 120 to 200 for faster movement
+  const sliderX = useTransform(scrollYProgress, [0, 0.5, 1], [-200, 0, 200]);
   
-  // Background parallax
-  const bgY = useTransform(scrollYProgress, [0, 1], [0, -50]);
+  // Background parallax - slightly faster
+  const bgY = useTransform(scrollYProgress, [0, 1], [0, -120]);
   const sectionOpacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.7, 1, 1, 0.7]);
 
   const handlePartnerClick = (partner: Partner) => {

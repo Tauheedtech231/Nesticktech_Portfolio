@@ -203,7 +203,7 @@ export default function TestimonialSection() {
   // Show message if no testimonials
   if (testimonials.length === 0) {
     return (
-      <section className="w-full py-10 lg:py-12 bg-[#020617] overflow-hidden">
+      <section className="w-full lg:py-12 bg-[#020617] overflow-hidden">
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-3 bg-[#0F172A] border border-[#1E293B]">
@@ -230,7 +230,7 @@ export default function TestimonialSection() {
   const currentTestimonial = testimonials[active];
 
   return (
-    <section className="w-full py-10 lg:py-12 bg-[#020617] overflow-hidden">
+    <section className="w-full py-10 lg:py-12 bg-[#020617] overflow-hidden relative">
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-[#6366F1]/5 rounded-full blur-3xl" />
@@ -274,7 +274,7 @@ export default function TestimonialSection() {
         {/* Main Content - Desktop Layout */}
         <div className="hidden lg:flex flex-row items-center gap-6">
           {/* LEFT SIDE - IMAGE CARD */}
-          <div className="relative w-[280px]">
+          <div className="relative w-[280px] mt-[1rem]">
             <div className="bg-gradient-to-br from-[#1E293B] to-[#0F172A] p-3 rounded-2xl border border-[#1E293B] shadow-xl">
               <div className="relative h-[280px] w-full overflow-hidden rounded-xl">
                 <AnimatePresence mode="wait" custom={direction}>
@@ -412,10 +412,11 @@ export default function TestimonialSection() {
           </div>
         </div>
 
-        {/* Mobile Slider View */}
+        {/* Mobile Slider View - Fixed positioning */}
         <div className="lg:hidden">
-          <div className="relative">
-            <div className="bg-gradient-to-br from-[#1E293B] to-[#0F172A] p-3 rounded-2xl border border-[#1E293B] mb-3 max-w-[200px] mx-auto">
+          <div className="relative mt-8">
+            {/* Client Image - Centered */}
+            <div className="bg-gradient-to-br from-[#1E293B] to-[#0F172A] p-3 rounded-2xl border border-[#1E293B] max-w-[200px] mx-auto">
               <div className="relative h-[200px] w-full overflow-hidden rounded-xl">
                 {currentTestimonial.image ? (
                   <Image
@@ -442,14 +443,15 @@ export default function TestimonialSection() {
               </div>
             </div>
 
-            <div className="bg-[#0F172A] border border-[#1E293B] rounded-xl p-4">
+            {/* Testimonial Text Card */}
+            <div className="bg-[#0F172A] border border-[#1E293B] rounded-xl p-4 mt-4">
               <div className="w-7 h-7 rounded-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] flex items-center justify-center mb-2">
                 <Quote className="w-3 h-3 text-white" />
               </div>
               <p className="text-xs text-[#F8FAFC] leading-relaxed font-light tracking-wide">
                 {currentTestimonial.text}
               </p>
-              <div className="flex gap-0.5 mt-2">
+              <div className="flex gap-0.5 mt-3">
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
@@ -463,9 +465,10 @@ export default function TestimonialSection() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between gap-3 mt-4">
-              <div className="flex gap-1.5">
-                {testimonials.map((t, i) => (
+            {/* Navigation Controls */}
+            <div className="flex items-center justify-between gap-3 mt-5">
+              <div className="flex gap-1.5 flex-wrap">
+                {testimonials.slice(0, 5).map((t, i) => (
                   <button
                     key={t.id}
                     onClick={() => {
@@ -493,21 +496,26 @@ export default function TestimonialSection() {
                     </div>
                   </button>
                 ))}
+                {testimonials.length > 5 && (
+                  <div className="w-7 h-7 rounded-lg bg-[#0F172A] border border-[#1E293B] flex items-center justify-center">
+                    <span className="text-[10px] text-[#94A3B8]">+{testimonials.length - 5}</span>
+                  </div>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={prevTestimonial}
-                  className="w-7 h-7 rounded-full bg-[#0F172A] border border-[#1E293B] flex items-center justify-center"
+                  className="w-7 h-7 rounded-full bg-[#0F172A] border border-[#1E293B] flex items-center justify-center hover:border-[#6366F1] transition-all"
                 >
                   <ChevronLeft className="w-3 h-3 text-[#6366F1]" />
                 </button>
                 <button
                   onClick={nextTestimonial}
-                  className="w-7 h-7 rounded-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white flex items-center justify-center"
+                  className="w-7 h-7 rounded-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white flex items-center justify-center hover:shadow-lg transition-all"
                 >
                   <ChevronRight className="w-3 h-3 text-white" />
                 </button>
-                <span className="text-xs text-[#94A3B8]">
+                <span className="text-xs text-[#94A3B8] font-light">
                   {active + 1}/{testimonials.length}
                 </span>
               </div>
@@ -521,7 +529,7 @@ export default function TestimonialSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.3 }}
-          className="mt-6 text-center"
+          className="mt-8 lg:mt-6 text-center"
         >
           <div className="flex items-center justify-center -space-x-2">
             {testimonials.slice(0, 4).map((t, idx) => (

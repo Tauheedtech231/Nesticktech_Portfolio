@@ -89,8 +89,26 @@ const TechStackPage = () => {
 
   return (
     <section className="relative w-full flex flex-col items-center justify-start bg-[#020617] py-8 lg:py-10 overflow-hidden">
-      {/* Clean Background - Minimal */}
-      <div className="absolute inset-0 w-full h-full opacity-10">
+      {/* Video Background */}
+      <div className="absolute inset-0 w-full h-full overflow-hidden">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute top-1/2 left-1/2 min-w-full min-h-full w-auto h-auto object-cover transform -translate-x-1/2 -translate-y-1/2"
+          style={{ filter: 'brightness(0.4)' }}
+        >
+          <source src="/skills-bg.webm" type="video/webm" />
+          Your browser does not support the video tag.
+        </video>
+      </div>
+
+      {/* Overlay Gradient to ensure content readability */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#020617]/80 via-[#020617]/60 to-[#020617]/80" />
+
+      {/* Clean Background Pattern - Slightly visible over video */}
+      <div className="absolute inset-0 w-full h-full opacity-5 pointer-events-none">
         <div className="absolute inset-0 w-full h-full" style={{
           backgroundImage: 'radial-gradient(circle at 2px 2px, #6366F1 0.5px, transparent 0)',
           backgroundSize: '60px 60px'
@@ -101,7 +119,7 @@ const TechStackPage = () => {
         {/* Header - Services Section Font Styles */}
         <div className="text-center max-w-2xl px-4 mb-6 lg:mb-8 mt-8 lg:mt-10">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-3 bg-[#0F172A] border border-[#1E293B] cursor-pointer hover:border-[#6366F1] hover:bg-[#6366F1]/10 transition-all duration-300">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-3 bg-[#0F172A]/80 backdrop-blur-sm border border-[#1E293B] cursor-pointer hover:border-[#6366F1] hover:bg-[#6366F1]/10 transition-all duration-300">
             <Sparkles className="w-3.5 h-3.5 text-[#6366F1]" />
             <span className="text-xs font-medium font-sans tracking-wide text-[#6366F1] italic">
               Tech Stack
@@ -123,9 +141,9 @@ const TechStackPage = () => {
         <div className="flex flex-wrap justify-center gap-1.5 mb-8 lg:mb-10">
           {categories.map(c => (
             <button key={c} onClick={() => setActiveCategory(c)} 
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium font-sans tracking-wide transition-all duration-300 cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium font-sans tracking-wide transition-all duration-300 cursor-pointer backdrop-blur-sm ${
                 activeCategory===c ? 'bg-[#6366F1] text-white shadow-lg shadow-[#6366F1]/25' 
-                : 'bg-[#0F172A] border border-[#1E293B] text-[#94A3B8] hover:border-[#6366F1] hover:text-[#6366F1]'
+                : 'bg-[#0F172A]/80 border border-[#1E293B] text-[#94A3B8] hover:border-[#6366F1] hover:text-[#6366F1]'
               }`}>
               {c}
             </button>
@@ -134,11 +152,11 @@ const TechStackPage = () => {
 
         {/* Orbit Container - Reduced Height */}
         <div className="relative w-full flex items-center justify-center overflow-visible min-h-[280px] sm:min-h-[320px] lg:min-h-[380px]">
-          {/* Outer Rings - Full White */}
+          {/* Outer Rings - Full White with backdrop blur for better visibility */}
           <div className="relative flex items-center justify-center" style={{ width: ringSizes.large, height: ringSizes.large }}>
             {/* Ring 1 - Largest - Full White, Thicker */}
             <div 
-              className="absolute rounded-full" 
+              className="absolute rounded-full backdrop-blur-[1px]" 
               style={{ 
                 width: ringSizes.large, 
                 height: ringSizes.large,
@@ -149,7 +167,7 @@ const TechStackPage = () => {
             
             {/* Ring 2 - Middle - Full White */}
             <div 
-              className="absolute rounded-full" 
+              className="absolute rounded-full backdrop-blur-[1px]" 
               style={{ 
                 width: ringSizes.medium, 
                 height: ringSizes.medium,
@@ -160,7 +178,7 @@ const TechStackPage = () => {
             
             {/* Ring 3 - Smallest - Full White */}
             <div 
-              className="absolute rounded-full" 
+              className="absolute rounded-full backdrop-blur-[1px]" 
               style={{ 
                 width: ringSizes.small, 
                 height: ringSizes.small,
@@ -206,7 +224,7 @@ const TechStackPage = () => {
                     >
                       <motion.button
                         onClick={() => setSelected(tech)}
-                        className="relative rounded-full border border-[#1E293B] bg-[#0F172A] shadow-lg hover:scale-110 transition duration-300 pointer-events-auto group cursor-pointer"
+                        className="relative rounded-full border border-[#1E293B] bg-[#0F172A]/90 backdrop-blur-sm shadow-lg hover:scale-110 transition duration-300 pointer-events-auto group cursor-pointer"
                         style={{ 
                           width: isDesktop ? 56 : 48,
                           height: isDesktop ? 56 : 48,
@@ -222,7 +240,7 @@ const TechStackPage = () => {
                             {tech.icon}
                           </div>
                         </div>
-                        <div className="absolute -bottom-7 left-1/2 transform -translate-x-1/2 bg-[#0F172A] border border-[#1E293B] px-1.5 py-0.5 rounded text-[9px] text-[#F8FAFC] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none font-light tracking-wide">
+                        <div className="absolute -bottom-7 left-1/2 transform -translate-x-1/2 bg-[#0F172A]/90 backdrop-blur-sm border border-[#1E293B] px-1.5 py-0.5 rounded text-[9px] text-[#F8FAFC] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none font-light tracking-wide">
                           {tech.name}
                         </div>
                       </motion.button>
@@ -250,7 +268,7 @@ const TechStackPage = () => {
               animate={{ scale: 1, y: 0, opacity: 1 }}
               exit={{ scale: 0.9, y: 20, opacity: 0 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="bg-[#0F172A] border border-[#1E293B] rounded-2xl max-w-sm w-full text-center shadow-2xl relative overflow-hidden"
+              className="bg-[#0F172A]/95 backdrop-blur-md border border-[#1E293B] rounded-2xl max-w-sm w-full text-center shadow-2xl relative overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               <div className={`h-1.5 bg-gradient-to-r ${selected.gradient}`} />
