@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { 
   Sparkles, X, Braces, Box, Code2, Server, Cpu, Terminal, Database, 
-  Cloud, GitBranch, Smartphone, Figma, Zap
+  Cloud, GitBranch, Smartphone, Figma, Zap, Bot, Brain, Microscope
 } from "lucide-react";
 
 interface TechItem {
@@ -22,13 +22,15 @@ const TechStackPage = () => {
   const [selected, setSelected] = useState<TechItem | null>(null);
   const [activeCategory, setActiveCategory] = useState('All');
   const [isDesktop, setIsDesktop] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   
   const resizeTimeout = useRef<NodeJS.Timeout>(null);
 
   useEffect(() => {
     const calculateSize = () => {
-      const vw = window.innerWidth;
-      setIsDesktop(vw >= 1024);
+      const width = window.innerWidth;
+      setIsDesktop(width >= 1024);
+      setIsMobile(width < 768);
     };
 
     calculateSize();
@@ -69,6 +71,12 @@ const TechStackPage = () => {
     { id:14, name:"Flutter", category:"Mobile", ring: "inner", icon: <Smartphone />, gradient:"from-[#22C55E] to-[#86EFAC]" },
     { id:15, name:"TensorFlow", category:"AI/ML", ring: "inner", icon: <Cpu />, gradient:"from-[#22C55E] to-[#86EFAC]" },
     { id:16, name:"Figma", category:"Design", ring: "inner", icon: <Figma />, gradient:"from-[#8B5CF6] to-[#6366F1]" },
+    
+    // Core Ring - AI & ML (Desktop only)
+    { id:17, name:"PyTorch", category:"AI/ML", ring: "core", icon: <Brain />, gradient:"from-[#EF4444] to-[#F87171]" },
+    { id:18, name:"OpenAI", category:"AI/ML", ring: "core", icon: <Sparkles />, gradient:"from-[#6366F1] to-[#8B5CF6]" },
+    { id:19, name:"Hugging Face", category:"AI/ML", ring: "core", icon: <Microscope />, gradient:"from-[#EC4899] to-[#F472B6]" },
+    { id:20, name:"LangChain", category:"AI/ML", ring: "core", icon: <Zap />, gradient:"from-[#F59E0B] to-[#FBBF24]" },
   ];
 
   const categories = ['All', 'Frontend', 'Backend', 'DevOps', 'Cloud', 'Mobile', 'Database', 'AI/ML', 'Design'];
@@ -77,19 +85,44 @@ const TechStackPage = () => {
     ? techStack 
     : techStack.filter(t => t.category === activeCategory);
 
-  // Get tech by ring
-  const getOuterRingTech = () => filteredTech.filter(t => t.ring === "outer");
-  const getInnerRingTech = () => filteredTech.filter(t => t.ring === "inner");
+  // Mobile par sirf outer aur inner rings ke items dikhayein
+  const getDisplayTech = () => {
+    if (isMobile) {
+      return filteredTech.filter(t => t.ring === "outer" || t.ring === "inner");
+    }
+    return filteredTech;
+  };
+
+  const getOuterRingTech = () => getDisplayTech().filter(t => t.ring === "outer");
+  const getInnerRingTech = () => getDisplayTech().filter(t => t.ring === "inner");
+  const getCoreRingTech = () => {
+    if (isMobile) return [];
+    return getDisplayTech().filter(t => t.ring === "core");
+  };
 
   const outerRingTech = getOuterRingTech();
   const innerRingTech = getInnerRingTech();
+  const coreRingTech = getCoreRingTech();
 
-  // Ring sizes (responsive)
-  const outerRingSize = isDesktop ? 420 : 320;
-  const innerRingSize = isDesktop ? 260 : 200;
+  // Ring sizes - MADE OUTER RING SMALLER ON MOBILE
+  const outerRingSize = isDesktop ? 480 : (isMobile ? 260 : 420); // Changed from 320 to 260
+  const innerRingSize = isDesktop ? 320 : (isMobile ? 180 : 280); // Adjusted inner ring to match
+  const coreRingSize = isDesktop ? 180 : (isMobile ? 0 : 160);
+
+  // Icon sizes - adjusted for smaller rings
+  const outerIconSize = isDesktop ? 56 : (isMobile ? 36 : 48); // Reduced from 44 to 36
+  const innerIconSize = isDesktop ? 48 : (isMobile ? 32 : 42); // Reduced from 38 to 32
+  const coreIconSize = isDesktop ? 40 : (isMobile ? 0 : 36);
+
+  // Label font sizes
+  const labelTextSize = isDesktop ? "text-xs" : (isMobile ? "text-[8px]" : "text-[10px]");
+
+  const ringWrapperWidth = typeof window !== 'undefined'
+    ? Math.min(outerRingSize + 40, window.innerWidth - 24)
+    : outerRingSize + 40;
 
   return (
-    <section className="relative w-full flex flex-col items-center justify-start bg-black py-8 lg:py-10 overflow-hidden">
+    <section className="relative w-full flex flex-col items-center justify-start bg-black py-6 lg:py-10" style={{ overflowX: 'clip' }}>
       
       {/* Video Background */}
       <div className="absolute inset-0 w-full h-full overflow-hidden">
@@ -108,10 +141,10 @@ const TechStackPage = () => {
       {/* Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/50" />
 
-      <div className="relative z-10 w-full max-w-full px-4 sm:px-6 lg:px-8 flex flex-col items-center">
+      <div className="relative z-10 w-full max-w-full px-3 sm:px-6 lg:px-8 flex flex-col items-center">
         
         {/* Header */}
-        <div className="text-center max-w-2xl px-4 mb-6 lg:mb-8 mt-8 lg:mt-10">
+        <div className="text-center max-w-2xl px-4 mb-4 lg:mb-8 mt-4 lg:mt-10">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-3 bg-[#0F172A]/80 backdrop-blur-sm border border-[#1E293B] cursor-pointer hover:border-[#6366F1] hover:bg-[#6366F1]/10 transition-all duration-300">
             <Sparkles className="w-3.5 h-3.5 text-[#6366F1]" />
             <span className="text-xs font-medium font-sans tracking-wide text-[#6366F1] italic">
@@ -129,10 +162,10 @@ const TechStackPage = () => {
         </div>
 
         {/* Category Filters */}
-        <div className="flex flex-wrap justify-center gap-1.5 mb-8 lg:mb-10">
+        <div className="flex flex-wrap justify-center gap-1.5 mb-6 lg:mb-10 px-2 max-w-full overflow-x-auto pb-2">
           {categories.map(c => (
             <button key={c} onClick={() => setActiveCategory(c)} 
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium font-sans tracking-wide transition-all duration-300 cursor-pointer backdrop-blur-sm ${
+              className={`px-2 py-1 lg:px-3 lg:py-1.5 rounded-lg text-[10px] lg:text-xs font-medium font-sans tracking-wide transition-all duration-300 cursor-pointer backdrop-blur-sm whitespace-nowrap ${
                 activeCategory===c ? 'bg-[#6366F1] text-white shadow-lg shadow-[#6366F1]/25' 
                 : 'bg-[#0F172A]/80 border border-[#1E293B] text-[#94A3B8] hover:border-[#6366F1] hover:text-[#6366F1]'
               }`}>
@@ -141,158 +174,235 @@ const TechStackPage = () => {
           ))}
         </div>
 
-        {/* 2 Rings Container - Full Width */}
-        <div className="relative w-full flex items-center justify-center min-h-[450px] lg:min-h-[550px]">
+        {/* Rings Container */}
+        <div className="relative w-full flex items-center justify-center py-6 lg:py-10">
+          <div 
+            className="relative flex items-center justify-center"
+            style={{ 
+              width: ringWrapperWidth,
+              height: outerRingSize + 40,
+              margin: '0 auto',
+            }}
+          >
           
-          {/* Outer Ring - Frontend + Backend */}
-          <div
-            className="absolute rounded-full"
-            style={{
-              width: outerRingSize,
-              height: outerRingSize,
-              border: `2px solid rgba(99, 102, 241, 0.4)`,
-              boxShadow: `0 0 40px rgba(99, 102, 241, 0.2)`,
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-            }}
-          >
-            {/* Outer Ring Label */}
-            <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
-              <span className="text-[10px] lg:text-xs text-[#6366F1] font-light tracking-wide bg-black/50 px-2 py-0.5 rounded-full backdrop-blur-sm">
-                Frontend & Backend
-              </span>
-            </div>
+            {/* Outer Ring */}
+            <div
+              className="absolute rounded-full"
+              style={{
+                width: outerRingSize,
+                height: outerRingSize,
+                border: `2px solid rgba(99, 102, 241, 0.5)`,
+                boxShadow: `0 0 40px rgba(99, 102, 241, 0.2)`,
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                backgroundColor: 'rgba(0,0,0,0.15)',
+              }}
+            >
+              <div className="absolute -top-5 lg:-top-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap z-10">
+                <span className={`${labelTextSize} text-[#6366F1] font-light tracking-wide bg-black/60 px-2 py-0.5 rounded-full backdrop-blur-sm border border-[#6366F1]/30`}>
+                  {isMobile ? "Frontend & Backend" : "Frontend & Backend"}
+                </span>
+              </div>
 
-            {/* Outer Ring Icons */}
-            <div className="relative w-full h-full">
-              <motion.div 
-                className="relative w-full h-full"
-                animate={{ rotate: 360 }}
-                transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-              >
-                {outerRingTech.map((tech, index) => {
-                  const angle = (index / outerRingTech.length) * 360;
-                  const radius = outerRingSize / 2;
+              <div className="relative w-full h-full">
+                <motion.div 
+                  className="relative w-full h-full"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 35, repeat: Infinity, ease: "linear" }}
+                >
+                  {outerRingTech.map((tech, index) => {
+                    const angle = (index / outerRingTech.length) * 360;
+                    const radius = outerRingSize / 2;
 
-                  return (
-                    <div
-                      key={tech.id}
-                      className="absolute left-1/2 top-1/2"
-                      style={{
-                        transform: `rotate(${angle}deg) translateX(${radius}px) rotate(-${angle}deg)`,
-                        transformOrigin: '0 0',
-                      }}
-                    >
-                      <motion.button
-                        onClick={() => setSelected(tech)}
-                        className="relative rounded-full border border-[#1E293B] bg-[#0F172A]/90 backdrop-blur-sm shadow-lg hover:scale-110 transition duration-300 pointer-events-auto group cursor-pointer"
-                        style={{ 
-                          width: isDesktop ? 52 : 44,
-                          height: isDesktop ? 52 : 44,
-                          marginLeft: isDesktop ? -26 : -22,
-                          marginTop: isDesktop ? -26 : -22,
+                    return (
+                      <div
+                        key={tech.id}
+                        className="absolute left-1/2 top-1/2"
+                        style={{
+                          transform: `rotate(${angle}deg) translateX(${radius}px) rotate(-${angle}deg)`,
+                          transformOrigin: '0 0',
                         }}
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.95 }}
                       >
-                        <div className={`absolute inset-0 bg-gradient-to-br ${tech.gradient} opacity-0 group-hover:opacity-15 transition-opacity duration-300 rounded-full`} />
-                        <div className="relative w-full h-full flex items-center justify-center">
-                          <div className="w-4 h-4 lg:w-5 lg:h-5 text-white">
-                            {tech.icon}
+                        <motion.button
+                          onClick={() => setSelected(tech)}
+                          className="relative rounded-full border border-[#1E293B] bg-[#0F172A]/90 backdrop-blur-sm shadow-lg hover:scale-110 transition duration-300 pointer-events-auto group cursor-pointer"
+                          style={{ 
+                            width: outerIconSize,
+                            height: outerIconSize,
+                            marginLeft: -outerIconSize / 2,
+                            marginTop: -outerIconSize / 2,
+                          }}
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <div className={`absolute inset-0 bg-gradient-to-br ${tech.gradient} opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-full`} />
+                          <div className="relative w-full h-full flex items-center justify-center">
+                            <div className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5 lg:w-6 lg:h-6'} text-white`}>
+                              {tech.icon}
+                            </div>
                           </div>
-                        </div>
-                        <div className="absolute -bottom-7 left-1/2 transform -translate-x-1/2 bg-[#0F172A]/90 backdrop-blur-sm border border-[#1E293B] px-1.5 py-0.5 rounded text-[8px] lg:text-[9px] text-[#F8FAFC] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none font-light tracking-wide">
-                          {tech.name}
-                        </div>
-                      </motion.button>
-                    </div>
-                  );
-                })}
-              </motion.div>
-            </div>
-          </div>
-
-          {/* Inner Ring - DevOps + Mobile + Cloud + Database */}
-          <div
-            className="absolute rounded-full"
-            style={{
-              width: innerRingSize,
-              height: innerRingSize,
-              border: `2px solid rgba(236, 72, 153, 0.4)`,
-              boxShadow: `0 0 30px rgba(236, 72, 153, 0.15)`,
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-            }}
-          >
-            {/* Inner Ring Label */}
-            <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
-              <span className="text-[10px] lg:text-xs text-[#EC4899] font-light tracking-wide bg-black/50 px-2 py-0.5 rounded-full backdrop-blur-sm">
-                DevOps, Cloud, Mobile & Database
-              </span>
+                          <div className="absolute -bottom-5 lg:-bottom-7 left-1/2 transform -translate-x-1/2 bg-[#0F172A]/95 backdrop-blur-sm border border-[#1E293B] px-1.5 py-0.5 rounded text-[7px] lg:text-[9px] text-[#F8FAFC] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-20">
+                            {tech.name}
+                          </div>
+                        </motion.button>
+                      </div>
+                    );
+                  })}
+                </motion.div>
+              </div>
             </div>
 
-            {/* Inner Ring Icons */}
-            <div className="relative w-full h-full">
-              <motion.div 
-                className="relative w-full h-full"
-                animate={{ rotate: -360 }}
-                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-              >
-                {innerRingTech.map((tech, index) => {
-                  const angle = (index / innerRingTech.length) * 360;
-                  const radius = innerRingSize / 2;
+            {/* Inner Ring */}
+            <div
+              className="absolute rounded-full"
+              style={{
+                width: innerRingSize,
+                height: innerRingSize,
+                border: `2px solid rgba(236, 72, 153, 0.5)`,
+                boxShadow: `0 0 30px rgba(236, 72, 153, 0.15)`,
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                backgroundColor: 'rgba(0,0,0,0.1)',
+              }}
+            >
+              <div className="absolute -top-5 lg:-top-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap z-10">
+                <span className={`${labelTextSize} text-[#EC4899] font-light tracking-wide bg-black/60 px-2 py-0.5 rounded-full backdrop-blur-sm border border-[#EC4899]/30`}>
+                  {isMobile ? "DevOps & Cloud" : "DevOps, Cloud, Mobile & DB"}
+                </span>
+              </div>
 
-                  return (
-                    <div
-                      key={tech.id}
-                      className="absolute left-1/2 top-1/2"
-                      style={{
-                        transform: `rotate(${angle}deg) translateX(${radius}px) rotate(-${angle}deg)`,
-                        transformOrigin: '0 0',
-                      }}
-                    >
-                      <motion.button
-                        onClick={() => setSelected(tech)}
-                        className="relative rounded-full border border-[#1E293B] bg-[#0F172A]/90 backdrop-blur-sm shadow-lg hover:scale-110 transition duration-300 pointer-events-auto group cursor-pointer"
-                        style={{ 
-                          width: isDesktop ? 44 : 38,
-                          height: isDesktop ? 44 : 38,
-                          marginLeft: isDesktop ? -22 : -19,
-                          marginTop: isDesktop ? -22 : -19,
+              <div className="relative w-full h-full">
+                <motion.div 
+                  className="relative w-full h-full"
+                  animate={{ rotate: -360 }}
+                  transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+                >
+                  {innerRingTech.map((tech, index) => {
+                    const angle = (index / innerRingTech.length) * 360;
+                    const radius = innerRingSize / 2;
+
+                    return (
+                      <div
+                        key={tech.id}
+                        className="absolute left-1/2 top-1/2"
+                        style={{
+                          transform: `rotate(${angle}deg) translateX(${radius}px) rotate(-${angle}deg)`,
+                          transformOrigin: '0 0',
                         }}
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.95 }}
                       >
-                        <div className={`absolute inset-0 bg-gradient-to-br ${tech.gradient} opacity-0 group-hover:opacity-15 transition-opacity duration-300 rounded-full`} />
-                        <div className="relative w-full h-full flex items-center justify-center">
-                          <div className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-white">
-                            {tech.icon}
+                        <motion.button
+                          onClick={() => setSelected(tech)}
+                          className="relative rounded-full border border-[#1E293B] bg-[#0F172A]/90 backdrop-blur-sm shadow-lg hover:scale-110 transition duration-300 pointer-events-auto group cursor-pointer"
+                          style={{ 
+                            width: innerIconSize,
+                            height: innerIconSize,
+                            marginLeft: -innerIconSize / 2,
+                            marginTop: -innerIconSize / 2,
+                          }}
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <div className={`absolute inset-0 bg-gradient-to-br ${tech.gradient} opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-full`} />
+                          <div className="relative w-full h-full flex items-center justify-center">
+                            <div className={`${isMobile ? 'w-3.5 h-3.5' : 'w-4 h-4 lg:w-5 lg:h-5'} text-white`}>
+                              {tech.icon}
+                            </div>
                           </div>
-                        </div>
-                        <div className="absolute -bottom-7 left-1/2 transform -translate-x-1/2 bg-[#0F172A]/90 backdrop-blur-sm border border-[#1E293B] px-1.5 py-0.5 rounded text-[8px] lg:text-[9px] text-[#F8FAFC] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none font-light tracking-wide">
-                          {tech.name}
-                        </div>
-                      </motion.button>
-                    </div>
-                  );
-                })}
-              </motion.div>
+                          <div className="absolute -bottom-5 lg:-bottom-7 left-1/2 transform -translate-x-1/2 bg-[#0F172A]/95 backdrop-blur-sm border border-[#1E293B] px-1.5 py-0.5 rounded text-[7px] lg:text-[9px] text-[#F8FAFC] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-20">
+                            {tech.name}
+                          </div>
+                        </motion.button>
+                      </div>
+                    );
+                  })}
+                </motion.div>
+              </div>
             </div>
-          </div>
 
-          {/* Center Logo */}
-          <div className="absolute z-20 text-center" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
-            <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] p-[2px] shadow-lg shadow-[#6366F1]/20">
-              <div className="w-full h-full rounded-full bg-black flex items-center justify-center overflow-hidden">
-                <Image
-                  src="/nesticklogo.jpg"
-                  alt="Nestick Tech Logo"
-                  width={60}
-                  height={60}
-                  className="object-cover w-full h-full"
-                />
+            {/* Core Ring - Desktop only */}
+            {!isMobile && coreRingTech.length > 0 && (
+              <div
+                className="absolute rounded-full"
+                style={{
+                  width: coreRingSize,
+                  height: coreRingSize,
+                  border: `2px solid rgba(34, 197, 94, 0.5)`,
+                  boxShadow: `0 0 20px rgba(34, 197, 94, 0.15)`,
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  backgroundColor: 'rgba(0,0,0,0.08)',
+                }}
+              >
+                <div className="absolute -top-5 lg:-top-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap z-10">
+                  <span className={`${labelTextSize} text-[#22C55E] font-light tracking-wide bg-black/60 px-2 py-0.5 rounded-full backdrop-blur-sm border border-[#22C55E]/30`}>
+                    AI & ML
+                  </span>
+                </div>
+
+                <div className="relative w-full h-full">
+                  <motion.div 
+                    className="relative w-full h-full"
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+                  >
+                    {coreRingTech.map((tech, index) => {
+                      const angle = (index / coreRingTech.length) * 360;
+                      const radius = coreRingSize / 2;
+
+                      return (
+                        <div
+                          key={tech.id}
+                          className="absolute left-1/2 top-1/2"
+                          style={{
+                            transform: `rotate(${angle}deg) translateX(${radius}px) rotate(-${angle}deg)`,
+                            transformOrigin: '0 0',
+                          }}
+                        >
+                          <motion.button
+                            onClick={() => setSelected(tech)}
+                            className="relative rounded-full border border-[#1E293B] bg-[#0F172A]/90 backdrop-blur-sm shadow-lg hover:scale-110 transition duration-300 pointer-events-auto group cursor-pointer"
+                            style={{ 
+                              width: coreIconSize,
+                              height: coreIconSize,
+                              marginLeft: -coreIconSize / 2,
+                              marginTop: -coreIconSize / 2,
+                            }}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            <div className={`absolute inset-0 bg-gradient-to-br ${tech.gradient} opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-full`} />
+                            <div className="relative w-full h-full flex items-center justify-center">
+                              <div className="w-4 h-4 lg:w-5 lg:h-5 text-white">
+                                {tech.icon}
+                              </div>
+                            </div>
+                            <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 bg-[#0F172A]/95 backdrop-blur-sm border border-[#1E293B] px-1.5 py-0.5 rounded text-[8px] lg:text-[9px] text-[#F8FAFC] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-20">
+                              {tech.name}
+                            </div>
+                          </motion.button>
+                        </div>
+                      );
+                    })}
+                  </motion.div>
+                </div>
+              </div>
+            )}
+
+            {/* Center Logo */}
+            <div className="absolute z-20 text-center" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
+              <div className={`${isMobile ? 'w-10 h-10' : 'w-14 h-14 lg:w-20 lg:h-20'} rounded-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] p-[2px] shadow-lg shadow-[#6366F1]/30`}>
+                <div className="w-full h-full rounded-full bg-black flex items-center justify-center overflow-hidden">
+                  <Image
+                    src="/nesticklogo.jpg"
+                    alt="Nestick Tech Logo"
+                    width={isMobile ? 40 : 80}
+                    height={isMobile ? 40 : 80}
+                    className="object-cover w-full h-full"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -306,7 +416,7 @@ const TechStackPage = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4"
             onClick={() => setSelected(null)}
           >
             <motion.div

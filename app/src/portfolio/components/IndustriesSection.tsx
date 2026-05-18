@@ -11,7 +11,7 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-// Industries data
+// Industries data - Updated as requested
 const tiles = [
   {
     id: 1,
@@ -39,24 +39,24 @@ const tiles = [
   },
   {
     id: 4,
-    name: "STARTUPS",
-    desc: "MVP & scaling solutions",
-    icon: Rocket,
+    name: "ERP",
+    desc: "LMS admission automation",
+    icon: Rocket, // Keeping Rocket icon or you can change to a different one if needed
     clipPath: "polygon(0% 0%, 88% 0%, 100% 12%, 100% 100%, 12% 100%, 0% 88%)",
     angle: { x: -200, y: 150, rotate: 12 },
   },
   {
     id: 5,
-    name: "FINANCE",
-    desc: "Secure transactions & compliance",
-    icon: Landmark,
+    name: "SHOPIFY",
+    desc: "WordPress",
+    icon: Landmark, // Keeping Landmark icon or you can change to ShoppingBag/Cart icon
     clipPath: "polygon(12% 0%, 88% 0%, 100% 12%, 100% 88%, 88% 100%, 12% 100%, 0% 88%, 0% 12%)",
     angle: { x: 0, y: 200, rotate: -10 },
   },
   {
     id: 6,
-    name: "MEDICAL",
-    desc: "Healthcare & telemedicine",
+    name: "MarX",
+    desc: "Build N",
     icon: Heart,
     clipPath: "polygon(0% 5%, 5% 0%, 95% 0%, 100% 5%, 100% 95%, 95% 100%, 5% 100%, 0% 95%)",
     angle: { x: 200, y: 150, rotate: -12 },
@@ -142,6 +142,9 @@ export default function Home() {
       ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     };
   }, []);
+
+  // Mobile tiles filtered to only show EDUCATION, E-COMMERCE, CONSTRUCTION (first 3)
+  const mobileTiles = tiles.slice(0, 3);
 
   return (
     <div
@@ -342,7 +345,7 @@ export default function Home() {
           pointer-events: none;
         }
         
-        /* Mobile grid - stacked layout */
+        /* Mobile grid - stacked layout (only 3 cards) */
         .mobile-stack {
           display: flex;
           flex-direction: column;
@@ -358,7 +361,7 @@ export default function Home() {
           opacity: 0;
         }
         
-        /* Desktop grid - full width control */
+        /* Desktop grid - full width control (all 6 cards) */
         .desktop-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
@@ -402,10 +405,10 @@ export default function Home() {
         </p>
       </div>
 
-      {/* Mobile Layout - Always visible on mobile */}
+      {/* Mobile Layout - Only shows EDUCATION, E-COMMERCE, CONSTRUCTION */}
       <div className="md:hidden w-full industries-section">
         <div className="mobile-stack">
-          {tiles.map((tile, index) => {
+          {mobileTiles.map((tile, index) => {
             const IconComponent = tile.icon;
             return (
               <div
@@ -433,7 +436,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Desktop Layout - Hidden on mobile */}
+      {/* Desktop Layout - Shows all 6 cards */}
       <div className="hidden md:block w-full industries-section">
         <div className="desktop-grid">
           {tiles.map((tile, index) => {
