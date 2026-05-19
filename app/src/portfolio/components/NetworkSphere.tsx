@@ -365,37 +365,43 @@ const NetworkSphere = () => {
 
   return (
     <div 
-      className="w-full h-full"
+      className="w-full h-full relative overflow-hidden"
       style={{ cursor: 'pointer' }}
     >
-      <Canvas
-        camera={{
-          position: isMobile ? [2.5, 0.5, 3.5] : [3, 1, 4],
-          fov: isMobile ? 45 : 40,
-        }}
-        style={{
-          width: '100%',
-          height: '100%',
-          background: 'transparent',
-          cursor: 'pointer'
-        }}
-        gl={{
-          antialias: true,
-          powerPreference: 'default',
-          precision: 'lowp',
-          alpha: true,
-          stencil: false,
-          depth: true,
-        }}
-        dpr={isMobile ? [1, 1] : [1, 1.5]}
-        performance={{ min: 0.5 }}
-      >
-        <ambientLight intensity={1} />
-        <pointLight position={[2, 2, 2]} intensity={1.2} color="#818CF8" />
-        <pointLight position={[-2, -1, 2]} intensity={0.8} color="#C084FC" />
-        <pointLight position={[0, 3, -2]} intensity={0.6} color="#22D3EE" />
-        <SphereContent isMobile={isMobile} />
-      </Canvas>
+      {/* Add padding wrapper to ensure sphere is fully visible on mobile */}
+      <div className={`absolute inset-0 ${isMobile ? 'scale-90' : 'scale-100'}`}>
+        <Canvas
+          camera={{
+            position: isMobile ? [0, 0, 4.5] : [3, 1, 4],
+            fov: isMobile ? 50 : 40,
+            near: 0.1,
+            far: 1000,
+          }}
+          style={{
+            width: '100%',
+            height: '100%',
+            background: 'transparent',
+            cursor: 'pointer'
+          }}
+          gl={{
+            antialias: true,
+            powerPreference: 'high-performance',
+            alpha: true,
+            stencil: false,
+            depth: true,
+          }}
+          dpr={isMobile ? [1, 1.2] : [1, 1.5]}
+          performance={{ min: 0.5 }}
+        >
+          <ambientLight intensity={1.2} />
+          <pointLight position={[2, 2, 2]} intensity={1.2} color="#818CF8" />
+          <pointLight position={[-2, -1, 2]} intensity={0.8} color="#C084FC" />
+          <pointLight position={[0, 3, -2]} intensity={0.6} color="#22D3EE" />
+          {/* Add a helper light from below to illuminate the bottom of the sphere */}
+          <pointLight position={[0, -3, 0]} intensity={0.5} color="#A78BFA" />
+          <SphereContent isMobile={isMobile} />
+        </Canvas>
+      </div>
     </div>
   );
 };

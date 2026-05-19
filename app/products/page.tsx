@@ -83,7 +83,6 @@ export default function CinematicShowcase() {
   
   const isMountedRef = useRef(true);
   const rafRef = useRef<number | null>(null);
-  const scrollTriggerRef = useRef<{ start: number; end: number } | null>(null);
 
   // Handle scroll-based animation
   useEffect(() => {
@@ -124,14 +123,6 @@ export default function CinematicShowcase() {
     window.addEventListener('resize', handleScroll);
     handleScroll();
     
-    if (sectionRef.current) {
-      const rect = sectionRef.current.getBoundingClientRect();
-      scrollTriggerRef.current = {
-        start: rect.top + window.scrollY,
-        end: rect.top + window.scrollY + rect.height
-      };
-    }
-    
     return () => {
       isMountedRef.current = false;
       if (rafRef.current) {
@@ -142,59 +133,28 @@ export default function CinematicShowcase() {
     };
   }, []);
 
-  useEffect(() => {
-    const updateScrollTrigger = () => {
-      if (sectionRef.current) {
-        const rect = sectionRef.current.getBoundingClientRect();
-        scrollTriggerRef.current = {
-          start: rect.top + window.scrollY,
-          end: rect.top + window.scrollY + rect.height
-        };
-      }
-    };
-    
-    window.addEventListener('resize', updateScrollTrigger);
-    return () => window.removeEventListener('resize', updateScrollTrigger);
-  }, []);
-
-  // Next button click - Sirf scroll karo, koi state change nahi
+  // Simple next button - directly scroll by window height
   const goToNextStep = () => {
-    if (!scrollTriggerRef.current) return;
+    const windowHeight = window.innerHeight;
+    const currentScroll = window.scrollY;
+    const targetScroll = currentScroll + windowHeight;
     
-    const currentStep = activeProductIndex * IMAGES_PER_PRODUCT + activeImageIndex;
-    if (currentStep < TOTAL_STEPS - 1) {
-      const nextStep = currentStep + 1;
-      const newProgress = nextStep / TOTAL_STEPS;
-      const start = scrollTriggerRef.current.start;
-      const end = scrollTriggerRef.current.end;
-      const scrollDistance = end - start;
-      const targetScroll = start + scrollDistance * newProgress;
-      
-      window.scrollTo({
-        top: targetScroll,
-        behavior: 'smooth'
-      });
-    }
+    window.scrollTo({
+      top: targetScroll,
+      behavior: 'smooth'
+    });
   };
 
-  // Previous button click - Sirf scroll karo, koi state change nahi
+  // Simple previous button
   const goToPrevStep = () => {
-    if (!scrollTriggerRef.current) return;
+    const windowHeight = window.innerHeight;
+    const currentScroll = window.scrollY;
+    const targetScroll = currentScroll - windowHeight;
     
-    const currentStep = activeProductIndex * IMAGES_PER_PRODUCT + activeImageIndex;
-    if (currentStep > 0) {
-      const prevStep = currentStep - 1;
-      const newProgress = prevStep / TOTAL_STEPS;
-      const start = scrollTriggerRef.current.start;
-      const end = scrollTriggerRef.current.end;
-      const scrollDistance = end - start;
-      const targetScroll = start + scrollDistance * newProgress;
-      
-      window.scrollTo({
-        top: targetScroll,
-        behavior: 'smooth'
-      });
-    }
+    window.scrollTo({
+      top: Math.max(0, targetScroll),
+      behavior: 'smooth'
+    });
   };
 
   const openModal = (product: Product) => {
@@ -228,10 +188,9 @@ export default function CinematicShowcase() {
             <div className="absolute inset-0 bg-black/70" />
           </div>
 
-          {/* Step Indicators - Shows on both mobile and desktop */}
+          {/* Step Indicators */}
           <div className="absolute top-20 left-0 right-0 z-30">
             <div className="flex flex-col items-center justify-center px-4">
-              {/* Product Step Indicators */}
               <div className="flex items-center gap-3 md:gap-6 flex-wrap justify-center">
                 {products.map((product, pIdx) => {
                   const isActiveProduct = pIdx === activeProductIndex;
@@ -265,7 +224,6 @@ export default function CinematicShowcase() {
                 })}
               </div>
               
-              {/* Image Counter */}
               <div className="mt-3 text-xs text-white/50 bg-black/40 px-3 py-1 rounded-full">
                 Image {activeImageIndex + 1} / {IMAGES_PER_PRODUCT} • Product {activeProductIndex + 1} / {products.length}
               </div>
@@ -400,12 +358,11 @@ export default function CinematicShowcase() {
                 </div>
               </div>
 
-              {/* Navigation Arrows - Sirf scroll karega, image change scroll se automatic */}
+              {/* Navigation Arrows */}
               <div className="flex justify-between gap-4 mt-6">
                 <button
                   onClick={goToPrevStep}
-                  disabled={currentGlobalStep === 0}
-                  className="flex-1 bg-white/10 backdrop-blur-md rounded-xl py-3 flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-30 disabled:active:scale-100"
+                  className="flex-1 bg-white/10 backdrop-blur-md rounded-xl py-3 flex items-center justify-center gap-2 active:scale-95 transition-all"
                 >
                   <ChevronLeft className="w-5 h-5 text-white" />
                   <span className="text-white text-sm font-medium">Previous</span>
@@ -413,8 +370,7 @@ export default function CinematicShowcase() {
                 
                 <button
                   onClick={goToNextStep}
-                  disabled={currentGlobalStep >= TOTAL_STEPS - 1}
-                  className="flex-1 bg-gradient-to-r from-indigo-600 to-indigo-500 rounded-xl py-3 flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-30 disabled:active:scale-100"
+                  className="flex-1 bg-gradient-to-r from-indigo-600 to-indigo-500 rounded-xl py-3 flex items-center justify-center gap-2 active:scale-95 transition-all"
                 >
                   <span className="text-white text-sm font-medium">Next</span>
                   <ChevronRight className="w-5 h-5 text-white" />
@@ -444,17 +400,15 @@ export default function CinematicShowcase() {
           </div>
 
           {/* Desktop Next Button */}
-          {currentGlobalStep < TOTAL_STEPS - 1 && (
-            <button
-              onClick={goToNextStep}
-              className="fixed bottom-8 right-8 z-50 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 rounded-full px-6 py-3 transition-all duration-300 cursor-pointer group flex items-center gap-2 shadow-lg shadow-indigo-500/25 hidden md:flex"
-            >
-              <span className="text-sm text-white font-semibold">
-                Next Image ({activeImageIndex + 1}/{IMAGES_PER_PRODUCT})
-              </span>
-              <ChevronRight className="w-4 h-4 text-white group-hover:translate-x-1 transition-transform" />
-            </button>
-          )}
+          <button
+            onClick={goToNextStep}
+            className="fixed bottom-8 right-8 z-50 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 rounded-full px-6 py-3 transition-all duration-300 cursor-pointer group flex items-center gap-2 shadow-lg shadow-indigo-500/25 hidden md:flex"
+          >
+            <span className="text-sm text-white font-semibold">
+              Next Section
+            </span>
+            <ChevronRight className="w-4 h-4 text-white group-hover:translate-x-1 transition-transform" />
+          </button>
         </div>
       </section>
 
