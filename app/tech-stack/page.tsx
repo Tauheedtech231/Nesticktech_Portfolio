@@ -59,7 +59,7 @@ const TechStackPage = () => {
     { id:4, name:"Vue.js", category:"Frontend", ring: "outer", icon: <Braces />, gradient:"from-[#3B82F6] to-[#60A5FA]" },
     { id:5, name:"Node.js", category:"Backend", ring: "outer", icon: <Server />, gradient:"from-[#F59E0B] to-[#FBBF24]" },
     { id:6, name:"Python", category:"Backend", ring: "outer", icon: <Cpu />, gradient:"from-[#EF4444] to-[#F87171]" },
-    { id:7, name:"Java", category:"Backend", ring: "outer", icon: <Terminal />, gradient:"from-[#F97316] to-[#FB923C]" },
+   
     
     // Inner Ring - DevOps + Mobile + Cloud + Database
     { id:8, name:"AWS", category:"Cloud", ring: "inner", icon: <Cloud />, gradient:"from-[#F97316] to-[#FB923C]" },
@@ -104,24 +104,23 @@ const TechStackPage = () => {
   const innerRingTech = getInnerRingTech();
   const coreRingTech = getCoreRingTech();
 
-  // Ring sizes - MADE OUTER RING SMALLER ON MOBILE
-  const outerRingSize = isDesktop ? 480 : (isMobile ? 260 : 420); // Changed from 320 to 260
-  const innerRingSize = isDesktop ? 320 : (isMobile ? 180 : 280); // Adjusted inner ring to match
-  const coreRingSize = isDesktop ? 180 : (isMobile ? 0 : 160);
+  // Ring sizes - Properly calculated for center alignment
+  const outerRingSize = isDesktop ? 520 : (isMobile ? 280 : 420);
+  const innerRingSize = isDesktop ? 360 : (isMobile ? 200 : 280);
+  const coreRingSize = isDesktop ? 200 : (isMobile ? 0 : 160);
 
-  // Icon sizes - adjusted for smaller rings
-  const outerIconSize = isDesktop ? 56 : (isMobile ? 36 : 48); // Reduced from 44 to 36
-  const innerIconSize = isDesktop ? 48 : (isMobile ? 32 : 42); // Reduced from 38 to 32
-  const coreIconSize = isDesktop ? 40 : (isMobile ? 0 : 36);
+  // Icon sizes
+  const outerIconSize = isDesktop ? 56 : (isMobile ? 40 : 48);
+  const innerIconSize = isDesktop ? 48 : (isMobile ? 36 : 42);
+  const coreIconSize = isDesktop ? 44 : (isMobile ? 0 : 36);
 
-  // Label font sizes
   const labelTextSize = isDesktop ? "text-xs" : (isMobile ? "text-[8px]" : "text-[10px]");
 
   const ringWrapperWidth = typeof window !== 'undefined'
     ? Math.min(outerRingSize + 40, window.innerWidth - 24)
     : outerRingSize + 40;
 
-  return (
+return (
     <section className="relative w-full flex flex-col items-center justify-start bg-black py-6 lg:py-10" style={{ overflowX: 'clip' }}>
       
       {/* Video Background */}
@@ -196,7 +195,7 @@ const TechStackPage = () => {
                 top: '50%',
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
-                backgroundColor: 'rgba(0,0,0,0.15)',
+                backgroundColor: 'transparent',
               }}
             >
               <div className="absolute -top-5 lg:-top-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap z-10">
@@ -212,33 +211,36 @@ const TechStackPage = () => {
                   transition={{ duration: 35, repeat: Infinity, ease: "linear" }}
                 >
                   {outerRingTech.map((tech, index) => {
+                    // Proper angle calculation for equal distribution
                     const angle = (index / outerRingTech.length) * 360;
+                    // Radius from center to icon center
                     const radius = outerRingSize / 2;
+                    // Calculate position
+                    const x = Math.cos((angle - 90) * Math.PI / 180) * radius;
+                    const y = Math.sin((angle - 90) * Math.PI / 180) * radius;
 
                     return (
                       <div
                         key={tech.id}
-                        className="absolute left-1/2 top-1/2"
+                        className="absolute"
                         style={{
-                          transform: `rotate(${angle}deg) translateX(${radius}px) rotate(-${angle}deg)`,
-                          transformOrigin: '0 0',
+                          left: `calc(50% + ${x}px)`,
+                          top: `calc(50% + ${y}px)`,
+                          transform: 'translate(-50%, -50%)',
                         }}
                       >
                         <motion.button
                           onClick={() => setSelected(tech)}
-                          className="relative rounded-full border border-[#1E293B] bg-[#0F172A]/90 backdrop-blur-sm shadow-lg hover:scale-110 transition duration-300 pointer-events-auto group cursor-pointer"
+                          className="relative rounded-full transition duration-300 pointer-events-auto group cursor-pointer flex items-center justify-center"
                           style={{ 
                             width: outerIconSize,
                             height: outerIconSize,
-                            marginLeft: -outerIconSize / 2,
-                            marginTop: -outerIconSize / 2,
                           }}
-                          whileHover={{ scale: 1.1 }}
+                          whileHover={{ scale: 1.15 }}
                           whileTap={{ scale: 0.95 }}
                         >
-                          <div className={`absolute inset-0 bg-gradient-to-br ${tech.gradient} opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-full`} />
                           <div className="relative w-full h-full flex items-center justify-center">
-                            <div className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5 lg:w-6 lg:h-6'} text-white`}>
+                            <div className={`${isMobile ? 'w-5 h-5' : 'w-7 h-7 lg:w-8 lg:h-8'} text-white`}>
                               {tech.icon}
                             </div>
                           </div>
@@ -264,7 +266,7 @@ const TechStackPage = () => {
                 top: '50%',
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
-                backgroundColor: 'rgba(0,0,0,0.1)',
+                backgroundColor: 'transparent',
               }}
             >
               <div className="absolute -top-5 lg:-top-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap z-10">
@@ -282,31 +284,31 @@ const TechStackPage = () => {
                   {innerRingTech.map((tech, index) => {
                     const angle = (index / innerRingTech.length) * 360;
                     const radius = innerRingSize / 2;
+                    const x = Math.cos((angle - 90) * Math.PI / 180) * radius;
+                    const y = Math.sin((angle - 90) * Math.PI / 180) * radius;
 
                     return (
                       <div
                         key={tech.id}
-                        className="absolute left-1/2 top-1/2"
+                        className="absolute"
                         style={{
-                          transform: `rotate(${angle}deg) translateX(${radius}px) rotate(-${angle}deg)`,
-                          transformOrigin: '0 0',
+                          left: `calc(50% + ${x}px)`,
+                          top: `calc(50% + ${y}px)`,
+                          transform: 'translate(-50%, -50%)',
                         }}
                       >
                         <motion.button
                           onClick={() => setSelected(tech)}
-                          className="relative rounded-full border border-[#1E293B] bg-[#0F172A]/90 backdrop-blur-sm shadow-lg hover:scale-110 transition duration-300 pointer-events-auto group cursor-pointer"
+                          className="relative rounded-full transition duration-300 pointer-events-auto group cursor-pointer flex items-center justify-center"
                           style={{ 
                             width: innerIconSize,
                             height: innerIconSize,
-                            marginLeft: -innerIconSize / 2,
-                            marginTop: -innerIconSize / 2,
                           }}
-                          whileHover={{ scale: 1.1 }}
+                          whileHover={{ scale: 1.15 }}
                           whileTap={{ scale: 0.95 }}
                         >
-                          <div className={`absolute inset-0 bg-gradient-to-br ${tech.gradient} opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-full`} />
                           <div className="relative w-full h-full flex items-center justify-center">
-                            <div className={`${isMobile ? 'w-3.5 h-3.5' : 'w-4 h-4 lg:w-5 lg:h-5'} text-white`}>
+                            <div className={`${isMobile ? 'w-4 h-4' : 'w-6 h-6 lg:w-7 lg:h-7'} text-white`}>
                               {tech.icon}
                             </div>
                           </div>
@@ -333,7 +335,7 @@ const TechStackPage = () => {
                   top: '50%',
                   left: '50%',
                   transform: 'translate(-50%, -50%)',
-                  backgroundColor: 'rgba(0,0,0,0.08)',
+                  backgroundColor: 'transparent',
                 }}
               >
                 <div className="absolute -top-5 lg:-top-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap z-10">
@@ -351,31 +353,31 @@ const TechStackPage = () => {
                     {coreRingTech.map((tech, index) => {
                       const angle = (index / coreRingTech.length) * 360;
                       const radius = coreRingSize / 2;
+                      const x = Math.cos((angle - 90) * Math.PI / 180) * radius;
+                      const y = Math.sin((angle - 90) * Math.PI / 180) * radius;
 
                       return (
                         <div
                           key={tech.id}
-                          className="absolute left-1/2 top-1/2"
+                          className="absolute"
                           style={{
-                            transform: `rotate(${angle}deg) translateX(${radius}px) rotate(-${angle}deg)`,
-                            transformOrigin: '0 0',
+                            left: `calc(50% + ${x}px)`,
+                            top: `calc(50% + ${y}px)`,
+                            transform: 'translate(-50%, -50%)',
                           }}
                         >
                           <motion.button
                             onClick={() => setSelected(tech)}
-                            className="relative rounded-full border border-[#1E293B] bg-[#0F172A]/90 backdrop-blur-sm shadow-lg hover:scale-110 transition duration-300 pointer-events-auto group cursor-pointer"
+                            className="relative rounded-full transition duration-300 pointer-events-auto group cursor-pointer flex items-center justify-center"
                             style={{ 
                               width: coreIconSize,
                               height: coreIconSize,
-                              marginLeft: -coreIconSize / 2,
-                              marginTop: -coreIconSize / 2,
                             }}
-                            whileHover={{ scale: 1.1 }}
+                            whileHover={{ scale: 1.15 }}
                             whileTap={{ scale: 0.95 }}
                           >
-                            <div className={`absolute inset-0 bg-gradient-to-br ${tech.gradient} opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-full`} />
                             <div className="relative w-full h-full flex items-center justify-center">
-                              <div className="w-4 h-4 lg:w-5 lg:h-5 text-white">
+                              <div className="w-6 h-6 lg:w-7 lg:h-7 text-white">
                                 {tech.icon}
                               </div>
                             </div>
@@ -392,8 +394,11 @@ const TechStackPage = () => {
             )}
 
             {/* Center Logo */}
-            <div className="absolute z-20 text-center" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
-              <div className={`${isMobile ? 'w-10 h-10' : 'w-14 h-14 lg:w-20 lg:h-20'} rounded-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] p-[2px] shadow-lg shadow-[#6366F1]/30`}>
+            <div 
+              className="absolute z-20 text-center cursor-pointer"
+              style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
+            >
+              <div className={`${isMobile ? 'w-10 h-10' : 'w-14 h-14 lg:w-20 lg:h-20'} rounded-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] p-[2px] shadow-lg shadow-[#6366F1]/30 transition-all duration-300 hover:scale-110 hover:shadow-xl`}>
                 <div className="w-full h-full rounded-full bg-black flex items-center justify-center overflow-hidden">
                   <Image
                     src="/nesticklogo.jpg"

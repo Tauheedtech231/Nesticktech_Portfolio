@@ -126,7 +126,7 @@ const Hero = () => {
   const CurrentIcon = techStacks[currentTech].icon;
 
   return (
-    <section className="relative min-h-screen bg-[#020617] overflow-hidden pt-24 sm:pt-28 lg:pt-32">
+    <section className="relative min-h-screen bg-[#020617] overflow-hidden pt-24 sm:pt-28 lg:pt-32 pb-12 sm:pb-16 lg:pb-20">
       {/* Background Image - Now visible with minimal overlay */}
       <div className="absolute inset-0 w-full h-full">
         <img 
@@ -272,7 +272,7 @@ const Hero = () => {
               duration: 0.6,
               ease: "easeOut"
             }}
-            className="relative w-full h-[250px] sm:h-[300px] md:h-[350px] lg:h-[450px] mt-2 sm:mt-4 lg:mt-0 order-2 z-0"
+            className="relative w-full h-[250px] sm:h-[300px] md:h-[350px] lg:h-[450px] mt-2 sm:mt-4 lg:mt-0 mb-8 sm:mb-12 lg:mb-16 order-2 z-0"
           >
             <div className="absolute inset-0 bg-gradient-to-t from-[#020617]/50 via-transparent to-transparent pointer-events-none z-10 lg:hidden" />
             

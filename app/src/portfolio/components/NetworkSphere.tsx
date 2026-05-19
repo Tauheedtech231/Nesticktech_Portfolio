@@ -1,4 +1,4 @@
-
+/* eslint-disable react-hooks/set-state-in-effect */
 'use client';
 
 import { useRef, useMemo, useEffect, useState } from 'react';
@@ -98,31 +98,26 @@ const SphereContent = ({ isMobile = false }) => {
     animationRef.current = [];
   };
 
-  // Handle hover on sphere shells - gradual connection
+  // Handle hover on sphere shells - gradual connection (Desktop only)
   const handleSphereHover = () => {
-    if (isHovering) return;
+    if (isHovering || isMobile) return;
     setIsHovering(true);
     
-    // Clear any existing timeouts
     clearAllTimeouts();
     
-    // Gradually connect lines one by one
     const allLineIndices = connections.map((_, idx) => idx);
     allLineIndices.forEach((idx, order) => {
       const timeout = setTimeout(() => {
         setLineProgress(prev => ({ ...prev, [idx]: 1 }));
-      }, order * 25); // 25ms delay between each line for smooth behavior
+      }, order * 25);
       animationRef.current.push(timeout);
     });
   };
 
   const handleSphereLeave = () => {
+    if (isMobile) return;
     setIsHovering(false);
-    
-    // Clear all timeouts to stop any pending animations
     clearAllTimeouts();
-    
-    // Immediately reset all lines to original state
     setLineProgress({});
   };
 
@@ -148,6 +143,17 @@ const SphereContent = ({ isMobile = false }) => {
     return positions;
   }, [nodes]);
 
+  // Mobile: Immediately set all connections to green
+  useEffect(() => {
+    if (isMobile) {
+      const initialProgress: { [key: number]: number } = {};
+      connections.forEach((_, idx) => {
+        initialProgress[idx] = 1;
+      });
+      setLineProgress(initialProgress);
+    }
+  }, [isMobile, connections]);
+
   // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
@@ -157,10 +163,10 @@ const SphereContent = ({ isMobile = false }) => {
 
   return (
     <group ref={sphereRef}>
-      {/* 🌐 Main Sphere with hover detection */}
+      {/* 🌐 Main Sphere */}
       <mesh 
-        onPointerOver={handleSphereHover} 
-        onPointerOut={handleSphereLeave}
+        onPointerOver={!isMobile ? handleSphereHover : undefined} 
+        onPointerOut={!isMobile ? handleSphereLeave : undefined}
       >
         <sphereGeometry args={[1.5, isMobile ? 16 : 24, isMobile ? 16 : 24]} />
         <meshPhongMaterial
@@ -173,7 +179,7 @@ const SphereContent = ({ isMobile = false }) => {
         />
       </mesh>
 
-      {/* Inner sphere */}
+      {/* Inner sphere (Desktop only) */}
       {!isMobile && (
         <mesh>
           <sphereGeometry args={[1.0, 16, 16]} />
@@ -186,18 +192,28 @@ const SphereContent = ({ isMobile = false }) => {
         </mesh>
       )}
 
-      {/* 🔗 Connections - Gradual green transition on hover */}
+      {/* 🔗 Connections */}
       {connections.slice(0, isMobile ? 30 : undefined).map(([start, end], i) => {
-        const progress = lineProgress[i] || 0;
-        const isConnected = progress === 1;
+        // Mobile: Always green
+        if (isMobile) {
+          return (
+            <Line
+              key={i}
+              points={[start, end]}
+              color="#22C55E"
+              opacity={0.9}
+              transparent
+              lineWidth={0.8}
+            />
+          );
+        }
         
-        // Interpolate between purple and green based on progress
+        // Desktop: Gradual purple to green on hover
+        const progress = lineProgress[i] || 0;
         const purpleColor = new THREE.Color(0xA78BFA);
         const greenColor = new THREE.Color(0x22C55E);
         const color = purpleColor.clone().lerp(greenColor, progress);
-        
-        const opacity = isConnected ? 0.9 : 0.35;
-        const lineWidth = isMobile ? 0.8 : 1.0;
+        const opacity = progress === 1 ? 0.9 : 0.35;
         
         return (
           <Line
@@ -206,28 +222,27 @@ const SphereContent = ({ isMobile = false }) => {
             color={color}
             opacity={opacity}
             transparent
-            lineWidth={lineWidth}
+            lineWidth={1.0}
           />
         );
       })}
 
-      {/* ✨ Nodes - Blue on hover */}
- <points>
-  <bufferGeometry>
-    <bufferAttribute
-      attach="attributes-position"
-      args={[nodePositions, 3]}
-    />
-  </bufferGeometry>
-
-  <pointsMaterial
-    size={isMobile ? 0.14 : 0.12}
-    color={isHovering ? "#3B82F6" : "#C4B5FD"}
-    sizeAttenuation
-    transparent
-    opacity={isHovering ? 1 : 0.9}
-  />
-</points>
+      {/* ✨ Nodes */}
+      <points>
+        <bufferGeometry>
+          <bufferAttribute
+            attach="attributes-position"
+            args={[nodePositions, 3]}
+          />
+        </bufferGeometry>
+        <pointsMaterial
+          size={isMobile ? 0.14 : 0.12}
+          color={isHovering ? "#3B82F6" : "#C4B5FD"}
+          sizeAttenuation
+          transparent
+          opacity={isHovering ? 1 : 0.9}
+        />
+      </points>
 
       {/* 🌌 Particles */}
       <points geometry={particleGeometry}>
@@ -292,13 +307,10 @@ const NetworkSphere = () => {
         dpr={isMobile ? [1, 1] : [1, 1.5]}
         performance={{ min: 0.5 }}
       >
-        {/* 💡 Lighting */}
         <ambientLight intensity={1} />
-
         <pointLight position={[2, 2, 2]} intensity={1.2} color="#818CF8" />
         <pointLight position={[-2, -1, 2]} intensity={0.8} color="#C084FC" />
         <pointLight position={[0, 3, -2]} intensity={0.6} color="#22D3EE" />
-
         <SphereContent isMobile={isMobile} />
       </Canvas>
     </div>

@@ -157,7 +157,7 @@ export default function CinematicShowcase() {
     return () => window.removeEventListener('resize', updateScrollTrigger);
   }, []);
 
-  // Next button click - ek scroll automatic
+  // Next button click - Sirf scroll karo, koi state change nahi
   const goToNextStep = () => {
     if (!scrollTriggerRef.current) return;
     
@@ -177,7 +177,7 @@ export default function CinematicShowcase() {
     }
   };
 
-  // Previous button click
+  // Previous button click - Sirf scroll karo, koi state change nahi
   const goToPrevStep = () => {
     if (!scrollTriggerRef.current) return;
     
@@ -214,7 +214,7 @@ export default function CinematicShowcase() {
   return (
     <>
       <section ref={sectionRef} className="relative h-[1600vh] text-white">
-        <div className="sticky top-0 h-screen overflow-hidden">
+        <div className="sticky top-0 h-screen overflow-hidden pt-16 md:pt-0">
           
           {/* BACKGROUND IMAGE */}
           <div className="absolute inset-0 -z-10">
@@ -228,51 +228,52 @@ export default function CinematicShowcase() {
             <div className="absolute inset-0 bg-black/70" />
           </div>
 
-          {/* DESKTOP UI - Shows full layout */}
-          <div className="hidden md:block relative h-full">
-            {/* Step Indicator */}
-            <div className="absolute top-20 left-0 right-0 z-30">
-              <div className="flex flex-col items-center justify-center px-4">
-                <div className="flex items-center gap-4 md:gap-6 flex-wrap justify-center">
-                  {products.map((product, pIdx) => {
-                    const isActiveProduct = pIdx === activeProductIndex;
-                    const isPassedProduct = pIdx < activeProductIndex;
-                    return (
-                      <div key={product.title} className="flex flex-col items-center">
-                        <div className="flex items-center">
-                          <div className={`relative flex items-center justify-center transition-all duration-500 ${
-                            isActiveProduct ? 'w-10 h-10 md:w-12 md:h-12' : 'w-6 h-6 md:w-8 md:h-8'
+          {/* Step Indicators - Shows on both mobile and desktop */}
+          <div className="absolute top-20 left-0 right-0 z-30">
+            <div className="flex flex-col items-center justify-center px-4">
+              {/* Product Step Indicators */}
+              <div className="flex items-center gap-3 md:gap-6 flex-wrap justify-center">
+                {products.map((product, pIdx) => {
+                  const isActiveProduct = pIdx === activeProductIndex;
+                  const isPassedProduct = pIdx < activeProductIndex;
+                  return (
+                    <div key={product.title} className="flex flex-col items-center">
+                      <div className="flex items-center">
+                        <div className={`relative flex items-center justify-center transition-all duration-500 ${
+                          isActiveProduct ? 'w-8 h-8 md:w-12 md:h-12' : 'w-6 h-6 md:w-8 md:h-8'
+                        }`}>
+                          {isActiveProduct && (
+                            <div className="absolute inset-0 rounded-full bg-indigo-500/30 animate-ping" />
+                          )}
+                          <div className={`rounded-full transition-all duration-300 flex items-center justify-center ${
+                            isActiveProduct ? 'bg-indigo-500 w-full h-full' : 
+                            isPassedProduct ? 'bg-indigo-400/60 w-full h-full' : 'bg-white/20 w-full h-full'
                           }`}>
-                            {isActiveProduct && (
-                              <div className="absolute inset-0 rounded-full bg-indigo-500/30 animate-ping" />
-                            )}
-                            <div className={`rounded-full transition-all duration-300 flex items-center justify-center ${
-                              isActiveProduct ? 'bg-indigo-500 w-full h-full' : 
-                              isPassedProduct ? 'bg-indigo-400/60 w-full h-full' : 'bg-white/20 w-full h-full'
-                            }`}>
-                              <span className={`text-xs font-bold ${isActiveProduct ? 'text-white' : 'text-white/70'}`}>
-                                {pIdx + 1}
-                              </span>
-                            </div>
+                            <span className={`text-xs font-bold ${isActiveProduct ? 'text-white' : 'text-white/70'}`}>
+                              {pIdx + 1}
+                            </span>
                           </div>
-                          <span className={`ml-2 text-xs md:text-sm font-medium whitespace-nowrap transition-all duration-300 ${
-                            isActiveProduct ? 'text-indigo-400' : isPassedProduct ? 'text-white/60' : 'text-white/30'
-                          }`}>
-                            {product.title}
-                          </span>
                         </div>
+                        <span className={`hidden md:block ml-2 text-xs md:text-sm font-medium whitespace-nowrap transition-all duration-300 ${
+                          isActiveProduct ? 'text-indigo-400' : isPassedProduct ? 'text-white/60' : 'text-white/30'
+                        }`}>
+                          {product.title}
+                        </span>
                       </div>
-                    );
-                  })}
-                </div>
-                
-                <div className="mt-3 text-xs text-white/50 bg-black/40 px-3 py-1 rounded-full">
-                  Image {activeImageIndex + 1} / {IMAGES_PER_PRODUCT} • Product {activeProductIndex + 1} / {products.length}
-                </div>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {/* Image Counter */}
+              <div className="mt-3 text-xs text-white/50 bg-black/40 px-3 py-1 rounded-full">
+                Image {activeImageIndex + 1} / {IMAGES_PER_PRODUCT} • Product {activeProductIndex + 1} / {products.length}
               </div>
             </div>
+          </div>
 
-            {/* Desktop Content */}
+          {/* DESKTOP UI */}
+          <div className="hidden md:block relative h-full">
             <div className="relative h-full flex items-start justify-center pt-24 md:pt-32">
               {products.map((product, pIdx) => {
                 const isActive = pIdx === activeProductIndex;
@@ -290,7 +291,6 @@ export default function CinematicShowcase() {
                     }}
                   >
                     <div className="grid grid-cols-1 md:grid-cols-5 items-center gap-6">
-                      {/* LEFT */}
                       <div className="md:col-span-1 text-left">
                         <div className="text-sm text-indigo-400">
                           0{pIdx + 1} — PRODUCT
@@ -320,7 +320,6 @@ export default function CinematicShowcase() {
                         )}
                       </div>
 
-                      {/* CENTER - Image */}
                       <div className="md:col-span-3 flex justify-center">
                         <div className="group relative cursor-pointer">
                           <Image
@@ -336,7 +335,6 @@ export default function CinematicShowcase() {
                         </div>
                       </div>
 
-                      {/* RIGHT */}
                       <div className="md:col-span-1 flex flex-col items-end gap-4">
                         <button 
                           onClick={() => openModal(product)}
@@ -355,12 +353,10 @@ export default function CinematicShowcase() {
             </div>
           </div>
 
-          {/* MOBILE UI - Fixed margin, card with demo button, image, and 2 arrows */}
+          {/* MOBILE UI */}
           <div className="block md:hidden relative h-full flex items-center justify-center px-4">
-            <div className="w-full max-w-sm mt-[-40px]">
-              {/* Card Container */}
+            <div className="w-full max-w-sm mt-[-20px]">
               <div className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20">
-                {/* Image Section */}
                 <div className="relative w-full h-64 bg-black/30">
                   <Image
                     src={currentImageUrl}
@@ -368,13 +364,11 @@ export default function CinematicShowcase() {
                     fill
                     className="object-cover"
                   />
-                  {/* Image Counter Badge */}
                   <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1 text-[10px] text-white/80">
                     {activeImageIndex + 1}/{IMAGES_PER_PRODUCT}
                   </div>
                 </div>
 
-                {/* Content Section */}
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="text-lg font-bold text-white">
@@ -389,7 +383,6 @@ export default function CinematicShowcase() {
                     {currentProduct?.desc}
                   </p>
 
-                  {/* Tags */}
                   <div className="flex flex-wrap gap-1 mb-4">
                     {currentProduct?.tags.slice(0, 2).map((tag, idx) => (
                       <span key={idx} className="text-[9px] px-2 py-0.5 rounded-full bg-white/10 text-white/70">
@@ -398,7 +391,6 @@ export default function CinematicShowcase() {
                     ))}
                   </div>
 
-                  {/* Demo Button */}
                   <button
                     onClick={() => openModal(currentProduct!)}
                     className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-xl text-sm transition-all duration-200"
@@ -408,7 +400,7 @@ export default function CinematicShowcase() {
                 </div>
               </div>
 
-              {/* Navigation Arrows */}
+              {/* Navigation Arrows - Sirf scroll karega, image change scroll se automatic */}
               <div className="flex justify-between gap-4 mt-6">
                 <button
                   onClick={goToPrevStep}
@@ -429,7 +421,6 @@ export default function CinematicShowcase() {
                 </button>
               </div>
 
-              {/* Product Progress */}
               <div className="mt-4 text-center">
                 <div className="flex justify-center gap-1">
                   {products.map((_, idx) => (
