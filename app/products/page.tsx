@@ -14,6 +14,7 @@ interface Product {
   tags: string[];
   status: string;
   icon: React.ReactNode;
+  bgColor: string;
 }
 
 const products: Product[] = [
@@ -29,6 +30,7 @@ const products: Product[] = [
     tags: ["Education", "LMS", "School Management"],
     status: "Live",
     icon: <Building2 className="w-7 h-7 text-indigo-400" />,
+    bgColor: "from-indigo-900/50 via-purple-900/40 to-blue-900/50",
   },
   {
     title: "Advance POS",
@@ -42,6 +44,7 @@ const products: Product[] = [
     tags: ["Retail", "POS", "Inventory"],
     status: "Live",
     icon: <ShoppingCart className="w-7 h-7 text-indigo-400" />,
+    bgColor: "from-emerald-900/50 via-teal-900/40 to-cyan-900/50",
   },
   {
     title: "MarX",
@@ -55,6 +58,7 @@ const products: Product[] = [
     tags: ["Marketing", "Automation", "CRM"],
     status: "In Development",
     icon: <TrendingUp className="w-7 h-7 text-indigo-400" />,
+    bgColor: "from-orange-900/50 via-amber-900/40 to-yellow-900/50",
   },
   {
     title: "Build N",
@@ -68,6 +72,7 @@ const products: Product[] = [
     tags: ["Construction", "Project"],
     status: "Concept",
     icon: <Store className="w-7 h-7 text-indigo-400" />,
+    bgColor: "from-slate-900/50 via-gray-900/40 to-zinc-900/50",
   },
 ];
 
@@ -80,9 +85,15 @@ export default function CinematicShowcase() {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [currentBgColor, setCurrentBgColor] = useState(products[0].bgColor);
   
   const isMountedRef = useRef(true);
   const rafRef = useRef<number | null>(null);
+
+  // Update background color when product changes
+  useEffect(() => {
+    setCurrentBgColor(products[activeProductIndex].bgColor);
+  }, [activeProductIndex]);
 
   // Handle scroll-based animation
   useEffect(() => {
@@ -176,55 +187,61 @@ export default function CinematicShowcase() {
       <section ref={sectionRef} className="relative h-[1600vh] text-white">
         <div className="sticky top-0 h-screen overflow-hidden pt-16 md:pt-0">
           
-          {/* BACKGROUND IMAGE */}
-          <div className="absolute inset-0 -z-10">
-            <Image
-              src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=2000&auto=format&fit=crop"
-              alt="background"
-              fill
-              className="object-cover opacity-30"
-              priority
-            />
-            <div className="absolute inset-0 bg-black/70" />
+          {/* BACKGROUND with dynamic color transition */}
+          <div className="absolute inset-0 -z-10 transition-all duration-700 ease-in-out">
+            {/* Dynamic Gradient Background */}
+            <div className={`absolute inset-0 bg-gradient-to-br ${currentBgColor} transition-opacity duration-700`} />
+            {/* Subtle overlay for better text readability */}
+            <div className="absolute inset-0 bg-black/50" />
           </div>
 
-          {/* Step Indicators */}
+          {/* Step Indicators with Connecting Lines */}
           <div className="absolute top-20 left-0 right-0 z-30">
             <div className="flex flex-col items-center justify-center px-4">
-              <div className="flex items-center gap-3 md:gap-6 flex-wrap justify-center">
+              <div className="flex items-center gap-1 md:gap-2 flex-wrap justify-center">
                 {products.map((product, pIdx) => {
                   const isActiveProduct = pIdx === activeProductIndex;
                   const isPassedProduct = pIdx < activeProductIndex;
                   return (
-                    <div key={product.title} className="flex flex-col items-center">
-                      <div className="flex items-center">
-                        <div className={`relative flex items-center justify-center transition-all duration-500 ${
-                          isActiveProduct ? 'w-8 h-8 md:w-12 md:h-12' : 'w-6 h-6 md:w-8 md:h-8'
-                        }`}>
-                          {isActiveProduct && (
-                            <div className="absolute inset-0 rounded-full bg-indigo-500/30 animate-ping" />
-                          )}
-                          <div className={`rounded-full transition-all duration-300 flex items-center justify-center ${
-                            isActiveProduct ? 'bg-indigo-500 w-full h-full' : 
-                            isPassedProduct ? 'bg-indigo-400/60 w-full h-full' : 'bg-white/20 w-full h-full'
+                    <div key={product.title} className="flex items-center">
+                      <div className="flex flex-col items-center">
+                        <div className="flex items-center">
+                          <div className={`relative flex items-center justify-center transition-all duration-500 ${
+                            isActiveProduct ? 'w-8 h-8 md:w-12 md:h-12' : 'w-6 h-6 md:w-8 md:h-8'
                           }`}>
-                            <span className={`text-xs font-bold ${isActiveProduct ? 'text-white' : 'text-white/70'}`}>
-                              {pIdx + 1}
-                            </span>
+                            {isActiveProduct && (
+                              <div className="absolute inset-0 rounded-full bg-indigo-500/30 animate-ping" />
+                            )}
+                            <div className={`rounded-full transition-all duration-300 flex items-center justify-center ${
+                              isActiveProduct ? 'bg-indigo-500 w-full h-full' : 
+                              isPassedProduct ? 'bg-indigo-400/60 w-full h-full' : 'bg-white/20 w-full h-full'
+                            }`}>
+                              <span className={`text-xs font-bold ${isActiveProduct ? 'text-white' : 'text-white/70'}`}>
+                                {pIdx + 1}
+                              </span>
+                            </div>
                           </div>
+                          <span className={`hidden md:block ml-2 text-xs md:text-sm font-medium whitespace-nowrap transition-all duration-300 ${
+                            isActiveProduct ? 'text-indigo-400' : isPassedProduct ? 'text-white/60' : 'text-white/30'
+                          }`}>
+                            {product.title}
+                          </span>
                         </div>
-                        <span className={`hidden md:block ml-2 text-xs md:text-sm font-medium whitespace-nowrap transition-all duration-300 ${
-                          isActiveProduct ? 'text-indigo-400' : isPassedProduct ? 'text-white/60' : 'text-white/30'
-                        }`}>
-                          {product.title}
-                        </span>
                       </div>
+                      {/* Connecting Line */}
+                      {pIdx < products.length - 1 && (
+                        <div className={`w-6 md:w-10 h-0.5 mx-1 md:mx-2 rounded-full transition-all duration-300 ${
+                          pIdx < activeProductIndex
+                            ? 'bg-gradient-to-r from-indigo-500 to-indigo-400'
+                            : 'bg-white/20'
+                        }`} />
+                      )}
                     </div>
                   );
                 })}
               </div>
               
-              <div className="mt-3 text-xs text-white/50 bg-black/40 px-3 py-1 rounded-full">
+              <div className="mt-6 text-xs text-white/50 bg-black/40 px-3 py-1 rounded-full">
                 Image {activeImageIndex + 1} / {IMAGES_PER_PRODUCT} • Product {activeProductIndex + 1} / {products.length}
               </div>
             </div>
@@ -249,6 +266,7 @@ export default function CinematicShowcase() {
                     }}
                   >
                     <div className="grid grid-cols-1 md:grid-cols-5 items-center gap-6">
+                      {/* Left side description - clear for active, blur for others */}
                       <div className="md:col-span-1 text-left">
                         <div className="text-sm text-indigo-400">
                           0{pIdx + 1} — PRODUCT
@@ -256,13 +274,19 @@ export default function CinematicShowcase() {
                         <div className="mt-2 inline-block px-2 py-1 text-xs rounded-full bg-indigo-500/20 text-indigo-300">
                           {product.status}
                         </div>
-                        <h2 className="mt-3 text-3xl md:text-4xl font-bold">
+                        <h2 className={`mt-3 text-3xl md:text-4xl font-bold transition-all duration-500 ${
+                          !isActive && 'blur-[2px] opacity-50'
+                        }`}>
                           {product.title}
                         </h2>
-                        <p className="mt-4 text-white/60 text-sm md:text-base">
+                        <p className={`mt-4 text-white/60 text-sm md:text-base transition-all duration-500 ${
+                          !isActive && 'blur-[2px] opacity-30'
+                        }`}>
                           {product.desc}
                         </p>
-                        <div className="mt-4 flex flex-wrap gap-2">
+                        <div className={`mt-4 flex flex-wrap gap-2 transition-all duration-500 ${
+                          !isActive && 'blur-[2px] opacity-30'
+                        }`}>
                           {product.tags.map((tag, tagIdx) => (
                             <span key={tagIdx} className="text-xs px-2 py-1 rounded-full bg-white/10 text-white/70">
                               {tag}
@@ -271,7 +295,7 @@ export default function CinematicShowcase() {
                         </div>
                         
                         {isActive && (
-                          <div className="mt-4 text-xs text-indigo-300/70 flex items-center gap-1">
+                          <div className=" text-xs text-indigo-300/70 flex items-center gap-1 mt-4">
                             <span className="inline-block w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
                             Image {activeImageIndex + 1} of {IMAGES_PER_PRODUCT}
                           </div>
@@ -279,13 +303,13 @@ export default function CinematicShowcase() {
                       </div>
 
                       <div className="md:col-span-3 flex justify-center">
-                        <div className="group relative cursor-pointer">
+                        <div className="group mt-[1rem] relative cursor-pointer">
                           <Image
                             src={isActive ? currentImageUrl : product.images[0]}
                             alt={`${product.title} view`}
                             width={640}
                             height={480}
-                            className={`relative h-[360px] w-[540px] md:h-[440px] md:w-[600px] rounded-2xl object-cover shadow-2xl border border-white/20 transition-all duration-500 group-hover:scale-105 group-hover:-translate-y-2 ${
+                            className={`relative h-[540px] w-[540px] md:h-[440px] md:w-[600px] rounded-2xl object-cover shadow-2xl border border-white/20 transition-all duration-500 group-hover:scale-105 group-hover:-translate-y-2 ${
                               !isActive && 'opacity-50 blur-[2px]'
                             }`}
                             priority={isActive && activeImageIndex === 0}
@@ -314,6 +338,8 @@ export default function CinematicShowcase() {
           {/* MOBILE UI */}
           <div className="block md:hidden relative h-full flex items-center justify-center px-4">
             <div className="w-full max-w-sm mt-2rem">
+           
+
               <div className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20">
                 <div className="relative w-full h-64 bg-black/30">
                   <Image
@@ -376,36 +402,16 @@ export default function CinematicShowcase() {
                   <ChevronRight className="w-5 h-5 text-white" />
                 </button>
               </div>
-
-              <div className="mt-4 text-center">
-                <div className="flex justify-center gap-1">
-                  {products.map((_, idx) => (
-                    <div
-                      key={idx}
-                      className={`h-1 rounded-full transition-all duration-300 ${
-                        idx === activeProductIndex
-                          ? 'w-6 bg-indigo-400'
-                          : idx < activeProductIndex
-                          ? 'w-2 bg-indigo-400/60'
-                          : 'w-2 bg-white/20'
-                      }`}
-                    />
-                  ))}
-                </div>
-                <p className="text-[10px] text-white/40 mt-2">
-                  Product {activeProductIndex + 1} of {products.length}
-                </p>
-              </div>
             </div>
           </div>
 
           {/* Desktop Next Button */}
           <button
             onClick={goToNextStep}
-            className="fixed bottom-8 right-8 z-50 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 rounded-full px-6 py-3 transition-all duration-300 cursor-pointer group flex items-center gap-2 shadow-lg shadow-indigo-500/25 hidden md:flex"
+            className="fixed bottom-8 mb-[4rem] right-10 z-50 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 rounded-full px-6 py-3 transition-all duration-300 cursor-pointer group flex items-center gap-2 shadow-lg shadow-indigo-500/25 hidden md:flex"
           >
             <span className="text-sm text-white font-semibold">
-              Next Section
+              Next image
             </span>
             <ChevronRight className="w-4 h-4 text-white group-hover:translate-x-1 transition-transform" />
           </button>

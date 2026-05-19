@@ -263,7 +263,7 @@ const Hero = () => {
             </motion.div>
           </motion.div>
 
-          {/* Right side - Network Sphere */}
+          {/* Right side - Network Sphere - CLEANED UP */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -272,18 +272,12 @@ const Hero = () => {
               duration: 0.6,
               ease: "easeOut"
             }}
-            className="relative w-full h-[250px] sm:h-[300px] md:h-[350px] lg:h-[450px] mt-2 sm:mt-4 lg:mt-0 mb-8 sm:mb-12 lg:mb-16 order-2 z-0"
+            className="relative w-full h-[250px] sm:h-[300px] md:h-[350px] lg:h-[450px] mt-2 sm:mt-4 lg:mt-0 mb-8 sm:mb-12 lg:mb-16 order-2"
           >
-            <div className="absolute inset-0 bg-gradient-to-t from-[#020617]/50 via-transparent to-transparent pointer-events-none z-10 lg:hidden" />
-            
-            <div className="absolute -top-4 -right-4 w-20 h-20 sm:w-24 sm:h-24 bg-[#6366F1]/20 rounded-full blur-2xl" />
-            <div className="absolute -bottom-4 -left-4 w-24 h-24 sm:w-28 sm:h-28 bg-[#8B5CF6]/20 rounded-full blur-2xl" />
-            
-            <div className={`w-full h-full ${isMobile ? 'scale-100' : 'scale-95 lg:scale-100'}`}>
+            {/* REMOVED: gradient overlay that was causing darkness */}
+            <div className="w-full h-full">
               <NetworkSphere />
             </div>
-            
-            <div className="absolute -inset-4 bg-gradient-to-r from-[#6366F1]/10 to-[#8B5CF6]/10 blur-3xl rounded-full -z-10" />
           </motion.div>
         </div>
       </div>
