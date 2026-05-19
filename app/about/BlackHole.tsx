@@ -180,12 +180,11 @@ export default function Hero() {
           animation: gradient 3s ease infinite;
         }
 
-        /* Mobile specific - video pushed EXTREME up */
-        @media (max-width: 768px) {
-          video {
-            object-position: 50% -40% !important;
-          }
-        }
+@media (max-width: 768px) {
+  video {
+    transform: translateY(-120px);
+  }
+}
       `}</style>
     </section>
   );

@@ -52,7 +52,7 @@ const products: Product[] = [
     images: [
       "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop",
       "https://images.unsplash.com/photo-1533750516457-a7f992034fec?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1557838923-2985c318be48?w=800&h=600&fit=crop",
+      "https://media.istockphoto.com/id/2183632353/photo/dashboard-finance-management-on-laptop-computer-analyzing-sales-data-and-growth-graph-chart.webp?a=1&b=1&s=612x612&w=0&k=20&c=pOZ0voye9qZn__cyXlRjIDIl4avUfDf-0i7FT80qE20=",
       "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=600&fit=crop",
     ],
     tags: ["Marketing", "Automation", "CRM"],
@@ -67,7 +67,7 @@ const products: Product[] = [
       "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=800&h=600&fit=crop",
       "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&h=600&fit=crop",
       "https://plus.unsplash.com/premium_photo-1681691912442-68c4179c530c?w=600&auto=format&fit=crop&q=60",
-      "https://images.unsplash.com/photo-1429497419816-9ca5cfb4571a?w=600&auto=format&fit=crop&q=60",
+    "https://plus.unsplash.com/premium_photo-1671808062726-2a7ffcd6109e?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTd8fENvbnN0cnVjdGlvbnxlbnwwfHwwfHx8MA%3D%3D"
     ],
     tags: ["Construction", "Project"],
     status: "Concept",
