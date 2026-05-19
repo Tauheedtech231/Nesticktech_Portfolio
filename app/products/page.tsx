@@ -313,7 +313,7 @@ export default function CinematicShowcase() {
 
           {/* MOBILE UI */}
           <div className="block md:hidden relative h-full flex items-center justify-center px-4">
-            <div className="w-full max-w-sm mt-[-20px]">
+            <div className="w-full max-w-sm mt-2rem">
               <div className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20">
                 <div className="relative w-full h-64 bg-black/30">
                   <Image

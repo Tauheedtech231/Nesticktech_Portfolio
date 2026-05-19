@@ -115,13 +115,17 @@ const SphereContent = ({ isMobile = false }) => {
   const animationRef = useRef<NodeJS.Timeout[]>([]);
   const isAnimatingRef = useRef(false);
 
-  const nodeCount = isMobile ? 30 : 40;
-  const connectionThreshold = isMobile ? 2.2 : 2.0;
-  const particleCount = isMobile ? 60 : 150;
+  // Perfect balanced size for mobile
+  const sphereRadius = isMobile ? 1.7 : 1.5;
+  const innerSphereRadius = isMobile ? 1.15 : 1.0;
+  const nodeRadius = isMobile ? 1.95 : 1.8;
+  const nodeCount = isMobile ? 32 : 40;
+  const connectionThreshold = isMobile ? 2.3 : 2.0;
+  const particleCount = isMobile ? 70 : 150;
 
   const nodes = useMemo(() => {
-    return generateSpherePoints(nodeCount, 1.8);
-  }, [nodeCount]);
+    return generateSpherePoints(nodeCount, nodeRadius);
+  }, [nodeCount, nodeRadius]);
 
   const connections = useMemo(() => {
     if (isMobile) {
@@ -132,10 +136,12 @@ const SphereContent = ({ isMobile = false }) => {
 
   const particleGeometry = useMemo(() => {
     const geometry = new THREE.BufferGeometry();
-    const positions = generateParticlePositions(particleCount, 2.5, 4.0);
+    const minParticleRadius = isMobile ? 2.7 : 2.5;
+    const maxParticleRadius = isMobile ? 4.2 : 4.0;
+    const positions = generateParticlePositions(particleCount, minParticleRadius, maxParticleRadius);
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     return geometry;
-  }, [particleCount]);
+  }, [particleCount, isMobile]);
 
   const clearAllTimeouts = () => {
     animationRef.current.forEach(timeout => clearTimeout(timeout));
@@ -158,17 +164,16 @@ const SphereContent = ({ isMobile = false }) => {
       allLineIndices.forEach((idx, order) => {
         const timeout = setTimeout(() => {
           setLineProgress(prev => ({ ...prev, [idx]: 1 }));
-        }, order * 25); // 25ms delay between each line
+        }, order * 20);
         animationRef.current.push(timeout);
       });
       
-      // After all lines are green, reset and start again
-      const totalDuration = allLineIndices.length * 25;
+      const totalDuration = allLineIndices.length * 20;
       const resetTimeout = setTimeout(() => {
         setLineProgress({});
         isAnimatingRef.current = false;
-        startMobileAnimation(); // Restart the loop
-      }, totalDuration + 1000); // 1 second pause before restarting
+        startMobileAnimation();
+      }, totalDuration + 800);
       
       animationRef.current.push(resetTimeout);
     };
@@ -215,7 +220,7 @@ const SphereContent = ({ isMobile = false }) => {
     const time = clock.getElapsedTime() * 0.3;
 
     if (sphereRef.current) {
-      sphereRef.current.rotation.y = time * (isMobile ? 0.15 : 0.2);
+      sphereRef.current.rotation.y = time * (isMobile ? 0.12 : 0.2);
       if (!isMobile) {
         sphereRef.current.rotation.x = Math.sin(time * 0.1) * 0.1;
       }
@@ -239,42 +244,39 @@ const SphereContent = ({ isMobile = false }) => {
   }, []);
 
   return (
-    <group ref={sphereRef}>
+    <group ref={sphereRef} position={isMobile ? [0, 0.2, 0] : [0, 0, 0]}>
       {/* Main Sphere */}
       <mesh 
         onPointerOver={!isMobile ? handleSphereHover : undefined} 
         onPointerOut={!isMobile ? handleSphereLeave : undefined}
       >
-        <sphereGeometry args={[1.5, isMobile ? 20 : 24, isMobile ? 20 : 24]} />
+        <sphereGeometry args={[sphereRadius, isMobile ? 24 : 24, isMobile ? 24 : 24]} />
         <meshPhongMaterial
           color={isHovering ? "#3B82F6" : "#818CF8"}
           emissive={isHovering ? "#2563EB" : "#A78BFA"}
           emissiveIntensity={isHovering ? 1.8 : 1.5}
           transparent
-          opacity={isMobile ? 0.3 : 0.25}
+          opacity={isMobile ? 0.35 : 0.25}
           wireframe
         />
       </mesh>
 
-      {/* Inner sphere (Desktop only) */}
-      {!isMobile && (
-        <mesh>
-          <sphereGeometry args={[1.0, 16, 16]} />
-          <meshBasicMaterial
-            color={isHovering ? "#3B82F6" : "#C084FC"}
-            wireframe
-            transparent
-            opacity={isHovering ? 0.3 : 0.15}
-          />
-        </mesh>
-      )}
+      {/* Inner sphere */}
+      <mesh>
+        <sphereGeometry args={[innerSphereRadius, isMobile ? 20 : 16, isMobile ? 20 : 16]} />
+        <meshBasicMaterial
+          color={isHovering ? "#3B82F6" : "#C084FC"}
+          wireframe
+          transparent
+          opacity={isMobile ? 0.2 : (isHovering ? 0.3 : 0.15)}
+        />
+      </mesh>
 
       {/* Connections */}
       {connections.map(([start, end], i) => {
         const progress = lineProgress[i] || 0;
         
         if (isMobile) {
-          // Mobile: Animated green lines (purple to green transition)
           const purpleColor = new THREE.Color(0xA78BFA);
           const greenColor = new THREE.Color(0x22C55E);
           const color = purpleColor.clone().lerp(greenColor, progress);
@@ -287,12 +289,11 @@ const SphereContent = ({ isMobile = false }) => {
               color={color}
               opacity={opacity}
               transparent
-              lineWidth={0.9}
+              lineWidth={1.0}
             />
           );
         }
         
-        // Desktop: Purple to Green transition on hover
         const purpleColor = new THREE.Color(0xA78BFA);
         const greenColor = new THREE.Color(0x22C55E);
         const color = purpleColor.clone().lerp(greenColor, progress);
@@ -319,7 +320,7 @@ const SphereContent = ({ isMobile = false }) => {
           />
         </bufferGeometry>
         <pointsMaterial
-          size={isMobile ? 0.12 : 0.12}
+          size={isMobile ? 0.13 : 0.12}
           color={isHovering ? "#3B82F6" : "#C4B5FD"}
           sizeAttenuation
           transparent
@@ -330,11 +331,11 @@ const SphereContent = ({ isMobile = false }) => {
       {/* Particles */}
       <points geometry={particleGeometry}>
         <pointsMaterial
-          size={isMobile ? 0.05 : 0.04}
+          size={isMobile ? 0.055 : 0.04}
           color="#22D3EE"
           sizeAttenuation
           transparent
-          opacity={isMobile ? 0.5 : 0.35}
+          opacity={isMobile ? 0.55 : 0.35}
         />
       </points>
     </group>
@@ -365,43 +366,42 @@ const NetworkSphere = () => {
 
   return (
     <div 
-      className="w-full h-full relative overflow-hidden"
+      className="w-full h-full relative overflow-visible"
       style={{ cursor: 'pointer' }}
     >
-      {/* Add padding wrapper to ensure sphere is fully visible on mobile */}
-      <div className={`absolute inset-0 ${isMobile ? 'scale-90' : 'scale-100'}`}>
-        <Canvas
-          camera={{
-            position: isMobile ? [0, 0, 4.5] : [3, 1, 4],
-            fov: isMobile ? 50 : 40,
-            near: 0.1,
-            far: 1000,
-          }}
-          style={{
-            width: '100%',
-            height: '100%',
-            background: 'transparent',
-            cursor: 'pointer'
-          }}
-          gl={{
-            antialias: true,
-            powerPreference: 'high-performance',
-            alpha: true,
-            stencil: false,
-            depth: true,
-          }}
-          dpr={isMobile ? [1, 1.2] : [1, 1.5]}
-          performance={{ min: 0.5 }}
-        >
-          <ambientLight intensity={1.2} />
-          <pointLight position={[2, 2, 2]} intensity={1.2} color="#818CF8" />
-          <pointLight position={[-2, -1, 2]} intensity={0.8} color="#C084FC" />
-          <pointLight position={[0, 3, -2]} intensity={0.6} color="#22D3EE" />
-          {/* Add a helper light from below to illuminate the bottom of the sphere */}
-          <pointLight position={[0, -3, 0]} intensity={0.5} color="#A78BFA" />
-          <SphereContent isMobile={isMobile} />
-        </Canvas>
-      </div>
+      <Canvas
+        camera={{
+          position: isMobile ? [0, 0.3, 5.2] : [3, 1, 4],
+          fov: isMobile ? 50 : 40,
+          near: 0.1,
+          far: 1000,
+        }}
+        style={{
+          width: '100%',
+          height: '100%',
+          background: 'transparent',
+          cursor: 'pointer'
+        }}
+        gl={{
+          antialias: true,
+          powerPreference: 'high-performance',
+          alpha: true,
+          stencil: false,
+          depth: true,
+        }}
+        dpr={isMobile ? [1, 1.2] : [1, 1.5]}
+        performance={{ min: 0.5 }}
+      >
+        <ambientLight intensity={1.2} />
+        <pointLight position={[3, 3, 3]} intensity={1.2} color="#818CF8" />
+        <pointLight position={[-3, -2, 3]} intensity={0.8} color="#C084FC" />
+        <pointLight position={[0, 4, -3]} intensity={0.7} color="#22D3EE" />
+        <pointLight position={[0, -4, 0]} intensity={0.8} color="#A78BFA" />
+        <pointLight position={[2, -1, 2]} intensity={0.6} color="#818CF8" />
+        {/* Extra light from below to prevent bottom clipping */}
+        <pointLight position={[0, -5, 1]} intensity={0.7} color="#C084FC" />
+        <SphereContent isMobile={isMobile} />
+      </Canvas>
     </div>
   );
 };
