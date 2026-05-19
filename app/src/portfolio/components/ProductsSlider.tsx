@@ -61,9 +61,14 @@ const PartnersSlider = () => {
   const sliderContainerRef = useRef<HTMLDivElement>(null);
   const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [duplicatedPartners, setDuplicatedPartners] = useState<Partner[]>([]);
 
-  // Duplicate partners for seamless infinite scroll
-  const duplicatedPartners = [...partnersData, ...partnersData, ...partnersData, ...partnersData, ...partnersData, ...partnersData, ...partnersData];
+  // Create seamless infinite loop - enough copies to fill the screen and beyond
+  useEffect(() => {
+    // Create 8-10 copies for seamless infinite loop (ensures no gaps)
+    const copies = [...partnersData, ...partnersData, ...partnersData, ...partnersData, ...partnersData, ...partnersData, ...partnersData, ...partnersData];
+    setDuplicatedPartners(copies);
+  }, []);
 
   // Scroll parallax effect for the slider
   const { scrollYProgress } = useScroll({
@@ -71,11 +76,11 @@ const PartnersSlider = () => {
     offset: ["start end", "end start"]
   });
 
-  // Slider moves based on scroll - FASTER movement (3-4 partners feel)
-  // Increased range from -120 to -200 and 120 to 200 for faster movement
-  const sliderX = useTransform(scrollYProgress, [0, 0.5, 1], [-200, 0, 200]);
+  // Continuous infinite scroll - uses modulo logic to create seamless loop
+  // Range from -800 to 800 to accommodate many copies
+  const sliderX = useTransform(scrollYProgress, [0, 0.2, 0.5, 0.8, 1], [0, -200, -400, -600, -800]);
   
-  // Background parallax - slightly faster
+  // Background parallax
   const bgY = useTransform(scrollYProgress, [0, 1], [0, -120]);
   const sectionOpacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.7, 1, 1, 0.7]);
 
@@ -125,7 +130,7 @@ const PartnersSlider = () => {
         ref={sectionRef}
         className="relative py-8 sm:py-10 bg-gradient-to-b from-[#0A0F1E] to-[#020617] overflow-x-clip"
       >
-        {/* Parallax Background Effect - Wrapped with overflow containment */}
+        {/* Parallax Background Effect */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div 
             className="absolute inset-0"
@@ -133,7 +138,7 @@ const PartnersSlider = () => {
           >
             <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(99,102,241,0.03)_25%,rgba(99,102,241,0.03)_50%,transparent_50%,transparent_75%,rgba(99,102,241,0.03)_75%)] bg-[size:40px_40px] animate-[shift_20s_linear_infinite]" />
             
-            {/* Glowing orbs - All contained within bounds */}
+            {/* Glowing orbs */}
             <div className="absolute top-1/4 -left-20 w-64 h-64 bg-[#6366F1]/10 rounded-full blur-3xl animate-pulse" />
             <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-[#8B5CF6]/10 rounded-full blur-3xl animate-pulse delay-1000" />
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#06B6D4]/5 rounded-full blur-3xl animate-pulse delay-500" />
@@ -157,7 +162,7 @@ const PartnersSlider = () => {
             </motion.h2>
           </motion.div>
 
-          {/* Container with scroll-based slider - Fixed overflow issues */}
+          {/* Container with scroll-based slider - Seamless infinite loop */}
           <div className="relative w-full overflow-x-clip">
             <motion.div 
               variants={fromBottomVariants}
@@ -169,10 +174,8 @@ const PartnersSlider = () => {
                 x: sliderX,
               }}
             >
-              {/* Slider - Added negative margins to compensate for container padding */}
-              <div
-                className="flex gap-8 md:gap-12 lg:gap-16 items-center py-4 -mx-4 md:-mx-8 px-4 md:px-8"
-              >
+              {/* Slider - Seamless loop with no gaps */}
+              <div className="flex gap-8 md:gap-12 lg:gap-16 items-center py-4 w-max">
                 {duplicatedPartners.map((partner, index) => (
                   <div
                     key={`${partner.id}-${index}`}
@@ -180,7 +183,7 @@ const PartnersSlider = () => {
                     onClick={() => handlePartnerClick(partner)}
                   >
                     <div className="flex flex-col items-center justify-center transition-all duration-300">
-                      {/* Image Container - Rounded */}
+                      {/* Image Container */}
                       <div className="relative mb-1 md:mb-2">
                         <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#6366F1]/20 to-[#8B5CF6]/20 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500" />
                         <div className="relative w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-full bg-gradient-to-br from-[#1E293B] to-[#0F172A] flex items-center justify-center border border-[#334155] group-hover:border-[#6366F1] transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl group-hover:shadow-[#6366F1]/20 overflow-hidden">

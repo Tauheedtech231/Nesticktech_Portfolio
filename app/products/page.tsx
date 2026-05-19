@@ -86,9 +86,6 @@ export default function CinematicShowcase() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [currentBgColor, setCurrentBgColor] = useState(products[0].bgColor);
-  const [scrollCount, setScrollCount] = useState(0);
-  const [initialOffset, setInitialOffset] = useState(200);
-  const [isInitialAnimationComplete, setIsInitialAnimationComplete] = useState(false);
   
   const isMountedRef = useRef(true);
   const rafRef = useRef<number | null>(null);
@@ -97,26 +94,6 @@ export default function CinematicShowcase() {
   useEffect(() => {
     setCurrentBgColor(products[activeProductIndex].bgColor);
   }, [activeProductIndex]);
-
-  // Track scroll count to reduce initial offset
-  useEffect(() => {
-    const handleWheel = (e: WheelEvent) => {
-      if (scrollCount < 2 && e.deltaY > 0) {
-        setScrollCount(prev => prev + 1);
-        // Reduce offset gradually on each scroll
-        if (scrollCount === 0) {
-          setInitialOffset(100);
-        } else if (scrollCount === 1) {
-          setInitialOffset(0);
-          // Mark animation as complete after offset is reduced to 0
-          setTimeout(() => setIsInitialAnimationComplete(true), 500);
-        }
-      }
-    };
-    
-    window.addEventListener('wheel', handleWheel);
-    return () => window.removeEventListener('wheel', handleWheel);
-  }, [scrollCount]);
 
   // Handle scroll-based animation
   useEffect(() => {
@@ -150,11 +127,6 @@ export default function CinematicShowcase() {
         
         setActiveProductIndex(productIdx);
         setActiveImageIndex(imageIdx);
-        
-        // Mark animation as complete after first scroll movement
-        if (scrollPosition > 10 && !isInitialAnimationComplete) {
-          setIsInitialAnimationComplete(true);
-        }
       });
     };
     
@@ -170,7 +142,7 @@ export default function CinematicShowcase() {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleScroll);
     };
-  }, [isInitialAnimationComplete]);
+  }, []);
 
   // Simple next button - directly scroll by window height
   const goToNextStep = () => {
@@ -182,11 +154,6 @@ export default function CinematicShowcase() {
       top: targetScroll,
       behavior: 'smooth'
     });
-    
-    // Mark animation as complete when user interacts
-    if (!isInitialAnimationComplete) {
-      setTimeout(() => setIsInitialAnimationComplete(true), 500);
-    }
   };
 
   // Simple previous button
@@ -199,11 +166,6 @@ export default function CinematicShowcase() {
       top: Math.max(0, targetScroll),
       behavior: 'smooth'
     });
-    
-    // Mark animation as complete when user interacts
-    if (!isInitialAnimationComplete) {
-      setTimeout(() => setIsInitialAnimationComplete(true), 500);
-    }
   };
 
   const openModal = (product: Product) => {
@@ -218,6 +180,7 @@ export default function CinematicShowcase() {
 
   const currentProduct = products[activeProductIndex];
   const currentImageUrl = currentProduct?.images[activeImageIndex] || currentProduct?.images[0];
+  const currentGlobalStep = activeProductIndex * IMAGES_PER_PRODUCT + activeImageIndex;
   
   return (
     <>
@@ -232,66 +195,57 @@ export default function CinematicShowcase() {
             <div className="absolute inset-0 bg-black/50" />
           </div>
 
-          {/* Step Indicators with Connecting Lines - Only show after animation complete */}
-          <AnimatePresence>
-            {isInitialAnimationComplete && (
-              <motion.div 
-                className="absolute top-20 left-0 right-0 z-30"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
-              >
-                <div className="flex flex-col items-center justify-center px-4">
-                  <div className="flex items-center gap-1 md:gap-2 flex-wrap justify-center">
-                    {products.map((product, pIdx) => {
-                      const isActiveProduct = pIdx === activeProductIndex;
-                      const isPassedProduct = pIdx < activeProductIndex;
-                      return (
-                        <div key={product.title} className="flex items-center">
-                          <div className="flex flex-col items-center">
-                            <div className="flex items-center">
-                              <div className={`relative flex items-center justify-center transition-all duration-500 ${
-                                isActiveProduct ? 'w-8 h-8 md:w-12 md:h-12' : 'w-6 h-6 md:w-8 md:h-8'
-                              }`}>
-                                {isActiveProduct && (
-                                  <div className="absolute inset-0 rounded-full bg-indigo-500/30 animate-ping" />
-                                )}
-                                <div className={`rounded-full transition-all duration-300 flex items-center justify-center ${
-                                  isActiveProduct ? 'bg-indigo-500 w-full h-full' : 
-                                  isPassedProduct ? 'bg-indigo-400/60 w-full h-full' : 'bg-white/20 w-full h-full'
-                                }`}>
-                                  <span className={`text-xs font-bold ${isActiveProduct ? 'text-white' : 'text-white/70'}`}>
-                                    {pIdx + 1}
-                                  </span>
-                                </div>
-                              </div>
-                              <span className={`hidden md:block ml-2 text-xs md:text-sm font-medium whitespace-nowrap transition-all duration-300 ${
-                                isActiveProduct ? 'text-indigo-400' : isPassedProduct ? 'text-white/60' : 'text-white/30'
-                              }`}>
-                                {product.title}
+          {/* Step Indicators with Connecting Lines */}
+          <div className="absolute top-20 left-0 right-0 z-30">
+            <div className="flex flex-col items-center justify-center px-4">
+              <div className="flex items-center gap-1 md:gap-2 flex-wrap justify-center">
+                {products.map((product, pIdx) => {
+                  const isActiveProduct = pIdx === activeProductIndex;
+                  const isPassedProduct = pIdx < activeProductIndex;
+                  return (
+                    <div key={product.title} className="flex items-center">
+                      <div className="flex flex-col items-center">
+                        <div className="flex items-center">
+                          <div className={`relative flex items-center justify-center transition-all duration-500 ${
+                            isActiveProduct ? 'w-8 h-8 md:w-12 md:h-12' : 'w-6 h-6 md:w-8 md:h-8'
+                          }`}>
+                            {isActiveProduct && (
+                              <div className="absolute inset-0 rounded-full bg-indigo-500/30 animate-ping" />
+                            )}
+                            <div className={`rounded-full transition-all duration-300 flex items-center justify-center ${
+                              isActiveProduct ? 'bg-indigo-500 w-full h-full' : 
+                              isPassedProduct ? 'bg-indigo-400/60 w-full h-full' : 'bg-white/20 w-full h-full'
+                            }`}>
+                              <span className={`text-xs font-bold ${isActiveProduct ? 'text-white' : 'text-white/70'}`}>
+                                {pIdx + 1}
                               </span>
                             </div>
                           </div>
-                          {/* Connecting Line */}
-                          {pIdx < products.length - 1 && (
-                            <div className={`w-6 md:w-10 h-0.5 mx-1 md:mx-2 rounded-full transition-all duration-300 ${
-                              pIdx < activeProductIndex
-                                ? 'bg-gradient-to-r from-indigo-500 to-indigo-400'
-                                : 'bg-white/20'
-                            }`} />
-                          )}
+                          <span className={`hidden md:block ml-2 text-xs md:text-sm font-medium whitespace-nowrap transition-all duration-300 ${
+                            isActiveProduct ? 'text-indigo-400' : isPassedProduct ? 'text-white/60' : 'text-white/30'
+                          }`}>
+                            {product.title}
+                          </span>
                         </div>
-                      );
-                    })}
-                  </div>
-                  
-                  <div className="mt-6 text-xs text-white/50 bg-black/40 px-3 py-1 rounded-full">
-                    Image {activeImageIndex + 1} / {IMAGES_PER_PRODUCT} • Product {activeProductIndex + 1} / {products.length}
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                      </div>
+                      {/* Connecting Line */}
+                      {pIdx < products.length - 1 && (
+                        <div className={`w-6 md:w-10 h-0.5 mx-1 md:mx-2 rounded-full transition-all duration-300 ${
+                          pIdx < activeProductIndex
+                            ? 'bg-gradient-to-r from-indigo-500 to-indigo-400'
+                            : 'bg-white/20'
+                        }`} />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              
+              <div className="mt-6 text-xs text-white/50 bg-black/40 px-3 py-1 rounded-full">
+                Image {activeImageIndex + 1} / {IMAGES_PER_PRODUCT} • Product {activeProductIndex + 1} / {products.length}
+              </div>
+            </div>
+          </div>
 
           {/* DESKTOP UI */}
           <div className="hidden md:block relative h-full">
@@ -300,18 +254,12 @@ export default function CinematicShowcase() {
                 const isActive = pIdx === activeProductIndex;
                 const offset = pIdx - activeProductIndex;
                 
-                // Apply initial offset only to first product when animation not complete
-                let translateY = offset * 140;
-                if (pIdx === 0 && !isInitialAnimationComplete && isActive) {
-                  translateY = initialOffset;
-                }
-                
                 return (
                   <div
                     key={product.title}
                     className="absolute w-full max-w-7xl px-6 transition-all duration-500"
                     style={{
-                      transform: `translateY(${translateY}px) scale(${isActive ? 1 : 0.85})`,
+                      transform: `translateY(${offset * 140}px) scale(${isActive ? 1 : 0.85})`,
                       opacity: isActive ? 1 : 0.25,
                       zIndex: isActive ? 10 : 1,
                       pointerEvents: isActive ? 'auto' : 'none'
@@ -346,7 +294,7 @@ export default function CinematicShowcase() {
                           ))}
                         </div>
                         
-                        {isActive && isInitialAnimationComplete && (
+                        {isActive && (
                           <div className=" text-xs text-indigo-300/70 flex items-center gap-1 mt-4">
                             <span className="inline-block w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
                             Image {activeImageIndex + 1} of {IMAGES_PER_PRODUCT}
@@ -387,15 +335,12 @@ export default function CinematicShowcase() {
             </div>
           </div>
 
-          {/* MOBILE UI - Same effect for mobile */}
+          {/* MOBILE UI */}
           <div className="block md:hidden relative h-full flex items-center justify-center px-4">
             <div className="w-full max-w-sm mt-2rem">
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20"
-                style={{
-                  transform: !isInitialAnimationComplete ? `translateY(${initialOffset * 0.5}px)` : 'translateY(0)',
-                  transition: 'transform 0.5s ease'
-                }}
-              >
+           
+
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20">
                 <div className="relative w-full h-64 bg-black/30">
                   <Image
                     src={currentImageUrl}
@@ -461,22 +406,15 @@ export default function CinematicShowcase() {
           </div>
 
           {/* Desktop Next Button */}
-          <AnimatePresence>
-            {isInitialAnimationComplete && (
-              <motion.button
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: 0.2 }}
-                onClick={goToNextStep}
-                className="fixed bottom-8 mb-[4rem] right-10 z-50 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 rounded-full px-6 py-3 transition-all duration-300 cursor-pointer group flex items-center gap-2 shadow-lg shadow-indigo-500/25 hidden md:flex"
-              >
-                <span className="text-sm text-white font-semibold">
-                  Next image
-                </span>
-                <ChevronRight className="w-4 h-4 text-white group-hover:translate-x-1 transition-transform" />
-              </motion.button>
-            )}
-          </AnimatePresence>
+          <button
+            onClick={goToNextStep}
+            className="fixed bottom-8 mb-[4rem] right-10 z-50 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 rounded-full px-6 py-3 transition-all duration-300 cursor-pointer group flex items-center gap-2 shadow-lg shadow-indigo-500/25 hidden md:flex"
+          >
+            <span className="text-sm text-white font-semibold">
+              Next image
+            </span>
+            <ChevronRight className="w-4 h-4 text-white group-hover:translate-x-1 transition-transform" />
+          </button>
         </div>
       </section>
 

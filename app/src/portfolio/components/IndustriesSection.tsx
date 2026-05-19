@@ -352,7 +352,7 @@ export default function Home() {
           pointer-events: none;
         }
         
-        /* Hover Features - Perfectly centered in the middle of the card */
+        /* Hover Features - No bullets, left aligned, increased font size */
         .tile-features {
           position: absolute;
           top: 0;
@@ -382,46 +382,44 @@ export default function Home() {
           margin: 0;
           display: flex;
           flex-direction: column;
-          gap: 12px;
-          text-align: center;
-          width: 100%;
-          max-width: 90%;
+          gap: 14px;
+          text-align: left;
+          width: auto;
         }
         
         .features-list li {
           display: flex;
           align-items: center;
-          justify-content: center;
-          gap: 8px;
           font-family: 'Montserrat', sans-serif;
-          font-size: 10px;
+          font-size: 13px;
           color: #ffffff;
-          line-height: 1.3;
+          line-height: 1.4;
           font-weight: 500;
           letter-spacing: 0.5px;
           text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-          text-align: center;
+          white-space: nowrap;
         }
         
-        .features-list li::before {
-          content: "•";
-          color: #ffffff;
-          font-size: 14px;
-          font-weight: normal;
-          flex-shrink: 0;
-          text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        @media (max-width: 768px) {
+          .features-list {
+            gap: 10px;
+          }
+          .features-list li {
+            font-size: 11px;
+            white-space: normal;
+            text-align: left;
+          }
         }
         
         @media (min-width: 768px) {
           .features-list li {
-            font-size: 11px;
-            gap: 8px;
+            font-size: 14px;
           }
         }
         
         @media (min-width: 1024px) {
           .features-list li {
-            font-size: 12px;
+            font-size: 15px;
           }
         }
         
@@ -506,7 +504,6 @@ export default function Home() {
                     </div>
                     <div className="tile-name">{tile.name}</div>
                     <div className="tile-desc">{tile.desc}</div>
-                    {/* Features - Centered in middle of card */}
                     <div className="tile-features">
                       <ul className="features-list">
                         {tile.hoverFeatures.map((feature, idx) => (
@@ -548,7 +545,6 @@ export default function Home() {
                     </div>
                     <div className="tile-name">{tile.name}</div>
                     <div className="tile-desc">{tile.desc}</div>
-                    {/* Features - Centered in middle of card */}
                     <div className="tile-features">
                       <ul className="features-list">
                         {tile.hoverFeatures.map((feature, idx) => (
