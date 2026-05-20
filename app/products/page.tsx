@@ -1,8 +1,9 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable react/no-unescaped-entities */
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, useScroll, useTransform, animate, useMotionValue, spring } from "framer-motion";
 import Image from "next/image";
 import { Building2, ShoppingCart, TrendingUp, Store, ChevronRight, ChevronLeft, X } from "lucide-react";
 import PartnerCollaboratorPage from "./PartnerSection";
@@ -67,7 +68,7 @@ const products: Product[] = [
       "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=800&h=600&fit=crop",
       "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&h=600&fit=crop",
       "https://plus.unsplash.com/premium_photo-1681691912442-68c4179c530c?w=600&auto=format&fit=crop&q=60",
-    "https://plus.unsplash.com/premium_photo-1671808062726-2a7ffcd6109e?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTd8fENvbnN0cnVjdGlvbnxlbnwwfHwwfHx8MA%3D%3D"
+      "https://plus.unsplash.com/premium_photo-1671808062726-2a7ffcd6109e?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTd8fENvbnN0cnVjdGlvbnxlbnwwfHwwfHx8MA%3D%3D"
     ],
     tags: ["Construction", "Project"],
     status: "Concept",
@@ -81,21 +82,27 @@ const TOTAL_STEPS = products.length * IMAGES_PER_PRODUCT;
 
 export default function CinematicShowcase() {
   const sectionRef = useRef<HTMLDivElement | null>(null);
+  const contentRef = useRef<HTMLDivElement | null>(null);
+  
+  // EXISTING SCROLL LOGIC - COMPLETELY UNCHANGED
   const [activeProductIndex, setActiveProductIndex] = useState(0);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [currentBgColor, setCurrentBgColor] = useState(products[0].bgColor);
+  const [cinematicComplete, setCinematicComplete] = useState(false);
   
   const isMountedRef = useRef(true);
   const rafRef = useRef<number | null>(null);
 
   // Update background color when product changes
   useEffect(() => {
-    setCurrentBgColor(products[activeProductIndex].bgColor);
-  }, [activeProductIndex]);
+    if (cinematicComplete) {
+      setCurrentBgColor(products[activeProductIndex].bgColor);
+    }
+  }, [activeProductIndex, cinematicComplete]);
 
-  // Handle scroll-based animation
+  // EXISTING SCROLL HANDLER - PRESERVED EXACTLY
   useEffect(() => {
     isMountedRef.current = true;
     
@@ -144,7 +151,51 @@ export default function CinematicShowcase() {
     };
   }, []);
 
-  // Simple next button - directly scroll by window height
+  // PREMIUM CINEMATIC INTRO ANIMATION
+  useEffect(() => {
+    if (!contentRef.current) return;
+    
+    const element = contentRef.current;
+    
+    // Start position: VERY FAR above (deep off-screen top)
+    element.style.transform = "translateY(-150vh)";
+    element.style.transition = "none";
+    element.style.opacity = "0";
+    
+    // Force reflow
+    element.getBoundingClientRect();
+    
+    // Fade in smoothly
+    element.style.transition = "opacity 0.6s cubic-bezier(0.2, 0.9, 0.4, 1.1)";
+    element.style.opacity = "1";
+    
+    // Apple-style cinematic spring animation sequence
+    setTimeout(() => {
+      element.style.transition = "transform 1.6s cubic-bezier(0.2, 0.8, 0.25, 1.05)";
+      element.style.transform = "translateY(12vh)";
+      
+      const onFirstPhaseEnd = () => {
+        element.style.transition = "transform 1s cubic-bezier(0.2, 0.65, 0.3, 1.1)";
+        element.style.transform = "translateY(0)";
+        
+        element.addEventListener("transitionend", () => {
+          element.style.transition = "";
+          element.style.transform = "";
+          setCinematicComplete(true);
+        }, { once: true });
+        
+        element.removeEventListener("transitionend", onFirstPhaseEnd);
+      };
+      
+      element.addEventListener("transitionend", onFirstPhaseEnd, { once: true });
+    }, 80);
+    
+    return () => {
+      element.style.transition = "";
+    };
+  }, []);
+
+  // Navigation functions - unchanged
   const goToNextStep = () => {
     const windowHeight = window.innerHeight;
     const currentScroll = window.scrollY;
@@ -156,7 +207,6 @@ export default function CinematicShowcase() {
     });
   };
 
-  // Simple previous button
   const goToPrevStep = () => {
     const windowHeight = window.innerHeight;
     const currentScroll = window.scrollY;
@@ -180,245 +230,290 @@ export default function CinematicShowcase() {
 
   const currentProduct = products[activeProductIndex];
   const currentImageUrl = currentProduct?.images[activeImageIndex] || currentProduct?.images[0];
-  const currentGlobalStep = activeProductIndex * IMAGES_PER_PRODUCT + activeImageIndex;
   
   return (
     <>
       <section ref={sectionRef} className="relative h-[1600vh] text-white">
         <div className="sticky top-0 h-screen overflow-hidden pt-16 md:pt-0">
           
-          {/* BACKGROUND with dynamic color transition */}
-          <div className="absolute inset-0 -z-10 transition-all duration-700 ease-in-out">
-            {/* Dynamic Gradient Background */}
-            <div className={`absolute inset-0 bg-gradient-to-br ${currentBgColor} transition-opacity duration-700`} />
-            {/* Subtle overlay for better text readability */}
-            <div className="absolute inset-0 bg-black/50" />
+          {/* BACKGROUND - DURING INTRO: PURE BLACK ONLY, NOTHING ELSE */}
+          {/* AFTER INTRO: GRADIENT + BLURRED IMAGE */}
+          <div className="absolute inset-0 -z-10">
+            {/* Base black background - always there */}
+            <div className="absolute inset-0 bg-black" />
+            
+            {/* Gradient background - only visible after cinematic completes */}
+            {cinematicComplete && (
+              <>
+                <div className={`absolute inset-0 bg-gradient-to-br ${currentBgColor} transition-opacity duration-1000 opacity-100`} />
+                <div className="absolute inset-0 bg-black/50" />
+              </>
+            )}
           </div>
 
-          {/* Step Indicators with Connecting Lines */}
-          <div className="absolute top-20 left-0 right-0 z-30">
-            <div className="flex flex-col items-center justify-center px-4">
-              <div className="flex items-center gap-1 md:gap-2 flex-wrap justify-center">
-                {products.map((product, pIdx) => {
-                  const isActiveProduct = pIdx === activeProductIndex;
-                  const isPassedProduct = pIdx < activeProductIndex;
-                  return (
-                    <div key={product.title} className="flex items-center">
-                      <div className="flex flex-col items-center">
-                        <div className="flex items-center">
-                          <div className={`relative flex items-center justify-center transition-all duration-500 ${
-                            isActiveProduct ? 'w-8 h-8 md:w-12 md:h-12' : 'w-6 h-6 md:w-8 md:h-8'
-                          }`}>
-                            {isActiveProduct && (
-                              <div className="absolute inset-0 rounded-full bg-indigo-500/30 animate-ping" />
-                            )}
-                            <div className={`rounded-full transition-all duration-300 flex items-center justify-center ${
-                              isActiveProduct ? 'bg-indigo-500 w-full h-full' : 
-                              isPassedProduct ? 'bg-indigo-400/60 w-full h-full' : 'bg-white/20 w-full h-full'
+          {/* Blurred background product image - ONLY after intro completes */}
+          {cinematicComplete && (
+            <div className="absolute inset-0 opacity-30 pointer-events-none">
+              <div className="absolute inset-0 bg-black/40 backdrop-blur-3xl" />
+              <Image
+                src={currentImageUrl}
+                alt="background"
+                fill
+                className="object-cover scale-110 blur-2xl opacity-20"
+                aria-hidden="true"
+              />
+            </div>
+          )}
+
+          {/* CINEMATIC CONTENT WRAPPER - animated as a whole */}
+          <div 
+            ref={contentRef}
+            className="relative h-full will-change-transform"
+            style={{ opacity: 0 }}
+          >
+            {/* Step Indicators with Connecting Lines */}
+            <div className="absolute top-20 left-0 right-0 z-30">
+              <div className="flex flex-col items-center justify-center px-4">
+                <div className="flex items-center gap-1 md:gap-2 flex-wrap justify-center">
+                  {products.map((product, pIdx) => {
+                    const isActiveProduct = pIdx === activeProductIndex;
+                    const isPassedProduct = pIdx < activeProductIndex;
+                    return (
+                      <div key={product.title} className="flex items-center">
+                        <div className="flex flex-col items-center">
+                          <div className="flex items-center">
+                            <div className={`relative flex items-center justify-center transition-all duration-500 ${
+                              isActiveProduct ? 'w-8 h-8 md:w-12 md:h-12' : 'w-6 h-6 md:w-8 md:h-8'
                             }`}>
-                              <span className={`text-xs font-bold ${isActiveProduct ? 'text-white' : 'text-white/70'}`}>
-                                {pIdx + 1}
-                              </span>
+                              {isActiveProduct && cinematicComplete && (
+                                <div className="absolute inset-0 rounded-full bg-indigo-500/30 animate-ping" />
+                              )}
+                              <div className={`rounded-full transition-all duration-300 flex items-center justify-center ${
+                                isActiveProduct ? 'bg-indigo-500 w-full h-full' : 
+                                isPassedProduct ? 'bg-indigo-400/60 w-full h-full' : 'bg-white/20 w-full h-full'
+                              }`}>
+                                <span className={`text-xs font-bold ${isActiveProduct ? 'text-white' : 'text-white/70'}`}>
+                                  {pIdx + 1}
+                                </span>
+                              </div>
                             </div>
+                            <span className={`hidden md:block ml-2 text-xs md:text-sm font-medium whitespace-nowrap transition-all duration-300 ${
+                              isActiveProduct ? 'text-indigo-400' : isPassedProduct ? 'text-white/60' : 'text-white/30'
+                            }`}>
+                              {product.title}
+                            </span>
                           </div>
-                          <span className={`hidden md:block ml-2 text-xs md:text-sm font-medium whitespace-nowrap transition-all duration-300 ${
-                            isActiveProduct ? 'text-indigo-400' : isPassedProduct ? 'text-white/60' : 'text-white/30'
+                        </div>
+                        {pIdx < products.length - 1 && (
+                          <div className={`w-6 md:w-10 h-0.5 mx-1 md:mx-2 rounded-full transition-all duration-300 ${
+                            pIdx < activeProductIndex
+                              ? 'bg-gradient-to-r from-indigo-500 to-indigo-400'
+                              : 'bg-white/20'
+                          }`} />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                <div className="mt-6 text-xs text-white/50 bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm">
+                  {!cinematicComplete ? (
+                    <span className="inline-flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-white/60 animate-pulse" />
+                      CINEMATIC ENTRANCE
+                    </span>
+                  ) : (
+                    `Image ${activeImageIndex + 1} / ${IMAGES_PER_PRODUCT} • Product ${activeProductIndex + 1} / ${products.length}`
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* DESKTOP UI */}
+            <div className="hidden md:block relative h-full">
+              <div className="relative h-full flex items-start justify-center pt-24 md:pt-32">
+                {products.map((product, pIdx) => {
+                  const isActive = pIdx === activeProductIndex;
+                  const offset = pIdx - activeProductIndex;
+                  
+                  return (
+                    <div
+                      key={product.title}
+                      className="absolute w-full max-w-7xl px-6 transition-all duration-500"
+                      style={{
+                        transform: `translateY(${offset * 140}px) scale(${isActive ? 1 : 0.85})`,
+                        opacity: isActive ? 1 : 0.25,
+                        zIndex: isActive ? 10 : 1,
+                        pointerEvents: isActive ? 'auto' : 'none'
+                      }}
+                    >
+                      <div className="grid grid-cols-1 md:grid-cols-5 items-center gap-6">
+                        {/* Left side description */}
+                        <div className="md:col-span-1 text-left">
+                          <div className="text-sm text-indigo-400">
+                            0{pIdx + 1} — PRODUCT
+                          </div>
+                          <div className="mt-2 inline-block px-2 py-1 text-xs rounded-full bg-indigo-500/20 text-indigo-300">
+                            {product.status}
+                          </div>
+                          <h2 className={`mt-3 text-3xl md:text-4xl font-bold transition-all duration-500 ${
+                            !isActive && 'blur-[2px] opacity-50'
                           }`}>
                             {product.title}
-                          </span>
+                          </h2>
+                          <p className={`mt-4 text-white/60 text-sm md:text-base transition-all duration-500 ${
+                            !isActive && 'blur-[2px] opacity-30'
+                          }`}>
+                            {product.desc}
+                          </p>
+                          <div className={`mt-4 flex flex-wrap gap-2 transition-all duration-500 ${
+                            !isActive && 'blur-[2px] opacity-30'
+                          }`}>
+                            {product.tags.map((tag, tagIdx) => (
+                              <span key={tagIdx} className="text-xs px-2 py-1 rounded-full bg-white/10 text-white/70">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                          
+                          {isActive && cinematicComplete && (
+                            <div className="text-xs text-indigo-300/70 flex items-center gap-1 mt-4">
+                              <span className="inline-block w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
+                              Scroll to explore • Image {activeImageIndex + 1} of {IMAGES_PER_PRODUCT}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="md:col-span-3 flex justify-center">
+                          <div className="group mt-[1rem] relative cursor-pointer">
+                            <Image
+                              src={isActive ? currentImageUrl : product.images[0]}
+                              alt={`${product.title} view`}
+                              width={640}
+                              height={480}
+                              className={`relative h-[540px] w-[540px] md:h-[440px] md:w-[600px] rounded-2xl object-cover shadow-2xl border border-white/20 transition-all duration-500 ${
+                                cinematicComplete ? 'group-hover:scale-105 group-hover:-translate-y-2' : ''
+                              } ${!isActive && 'opacity-50 blur-[2px]'}`}
+                              priority={isActive && activeImageIndex === 0}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="md:col-span-1 flex flex-col items-end gap-4">
+                          <button 
+                            onClick={() => openModal(product)}
+                            className={`rounded-xl px-6 py-3 text-black font-medium transition-all duration-300 ${
+                              cinematicComplete 
+                                ? 'bg-white cursor-pointer hover:scale-105 hover:shadow-xl' 
+                                : 'bg-white/40 cursor-not-allowed'
+                            }`}
+                            disabled={!cinematicComplete}
+                          >
+                            Request Demo
+                          </button>
+                          <div className="mt-2 text-sm text-white/60 text-right">
+                            📞 03237594869
+                          </div>
                         </div>
                       </div>
-                      {/* Connecting Line */}
-                      {pIdx < products.length - 1 && (
-                        <div className={`w-6 md:w-10 h-0.5 mx-1 md:mx-2 rounded-full transition-all duration-300 ${
-                          pIdx < activeProductIndex
-                            ? 'bg-gradient-to-r from-indigo-500 to-indigo-400'
-                            : 'bg-white/20'
-                        }`} />
-                      )}
                     </div>
                   );
                 })}
               </div>
-              
-              <div className="mt-6 text-xs text-white/50 bg-black/40 px-3 py-1 rounded-full">
-                Image {activeImageIndex + 1} / {IMAGES_PER_PRODUCT} • Product {activeProductIndex + 1} / {products.length}
-              </div>
             </div>
-          </div>
 
-          {/* DESKTOP UI */}
-          <div className="hidden md:block relative h-full">
-            <div className="relative h-full flex items-start justify-center pt-24 md:pt-32">
-              {products.map((product, pIdx) => {
-                const isActive = pIdx === activeProductIndex;
-                const offset = pIdx - activeProductIndex;
-                
-                return (
-                  <div
-                    key={product.title}
-                    className="absolute w-full max-w-7xl px-6 transition-all duration-500"
-                    style={{
-                      transform: `translateY(${offset * 140}px) scale(${isActive ? 1 : 0.85})`,
-                      opacity: isActive ? 1 : 0.25,
-                      zIndex: isActive ? 10 : 1,
-                      pointerEvents: isActive ? 'auto' : 'none'
-                    }}
-                  >
-                    <div className="grid grid-cols-1 md:grid-cols-5 items-center gap-6">
-                      {/* Left side description - clear for active, blur for others */}
-                      <div className="md:col-span-1 text-left">
-                        <div className="text-sm text-indigo-400">
-                          0{pIdx + 1} — PRODUCT
-                        </div>
-                        <div className="mt-2 inline-block px-2 py-1 text-xs rounded-full bg-indigo-500/20 text-indigo-300">
-                          {product.status}
-                        </div>
-                        <h2 className={`mt-3 text-3xl md:text-4xl font-bold transition-all duration-500 ${
-                          !isActive && 'blur-[2px] opacity-50'
-                        }`}>
-                          {product.title}
-                        </h2>
-                        <p className={`mt-4 text-white/60 text-sm md:text-base transition-all duration-500 ${
-                          !isActive && 'blur-[2px] opacity-30'
-                        }`}>
-                          {product.desc}
-                        </p>
-                        <div className={`mt-4 flex flex-wrap gap-2 transition-all duration-500 ${
-                          !isActive && 'blur-[2px] opacity-30'
-                        }`}>
-                          {product.tags.map((tag, tagIdx) => (
-                            <span key={tagIdx} className="text-xs px-2 py-1 rounded-full bg-white/10 text-white/70">
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                        
-                        {isActive && (
-                          <div className=" text-xs text-indigo-300/70 flex items-center gap-1 mt-4">
-                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
-                            Image {activeImageIndex + 1} of {IMAGES_PER_PRODUCT}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="md:col-span-3 flex justify-center">
-                        <div className="group mt-[1rem] relative cursor-pointer">
-                          <Image
-                            src={isActive ? currentImageUrl : product.images[0]}
-                            alt={`${product.title} view`}
-                            width={640}
-                            height={480}
-                            className={`relative h-[540px] w-[540px] md:h-[440px] md:w-[600px] rounded-2xl object-cover shadow-2xl border border-white/20 transition-all duration-500 group-hover:scale-105 group-hover:-translate-y-2 ${
-                              !isActive && 'opacity-50 blur-[2px]'
-                            }`}
-                            priority={isActive && activeImageIndex === 0}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="md:col-span-1 flex flex-col items-end gap-4">
-                        <button 
-                          onClick={() => openModal(product)}
-                          className="rounded-xl bg-white cursor-pointer px-6 py-3 text-black font-medium hover:scale-105 transition"
-                        >
-                          Request Demo
-                        </button>
-                        <div className="mt-2 text-sm text-white/60 text-right">
-                          📞 03237594869
-                        </div>
-                      </div>
+            {/* MOBILE UI */}
+            <div className="block md:hidden relative h-full flex items-center justify-center px-4">
+              <div className="w-full max-w-sm mt-2rem">
+                <div className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20">
+                  <div className="relative w-full h-64 bg-black/30">
+                    <Image
+                      src={currentImageUrl}
+                      alt={currentProduct?.title || "Product"}
+                      fill
+                      className="object-cover"
+                    />
+                    <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1 text-[10px] text-white/80">
+                      {activeImageIndex + 1}/{IMAGES_PER_PRODUCT}
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          </div>
 
-          {/* MOBILE UI */}
-          <div className="block md:hidden relative h-full flex items-center justify-center px-4">
-            <div className="w-full max-w-sm mt-2rem">
-           
-
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20">
-                <div className="relative w-full h-64 bg-black/30">
-                  <Image
-                    src={currentImageUrl}
-                    alt={currentProduct?.title || "Product"}
-                    fill
-                    className="object-cover"
-                  />
-                  <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1 text-[10px] text-white/80">
-                    {activeImageIndex + 1}/{IMAGES_PER_PRODUCT}
-                  </div>
-                </div>
-
-                <div className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-lg font-bold text-white">
-                      {currentProduct?.title}
-                    </h3>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300">
-                      {currentProduct?.status}
-                    </span>
-                  </div>
-                  
-                  <p className="text-white/60 text-xs mb-3 line-clamp-2">
-                    {currentProduct?.desc}
-                  </p>
-
-                  <div className="flex flex-wrap gap-1 mb-4">
-                    {currentProduct?.tags.slice(0, 2).map((tag, idx) => (
-                      <span key={idx} className="text-[9px] px-2 py-0.5 rounded-full bg-white/10 text-white/70">
-                        {tag}
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-lg font-bold text-white">
+                        {currentProduct?.title}
+                      </h3>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300">
+                        {currentProduct?.status}
                       </span>
-                    ))}
+                    </div>
+                    
+                    <p className="text-white/60 text-xs mb-3 line-clamp-2">
+                      {currentProduct?.desc}
+                    </p>
+
+                    <div className="flex flex-wrap gap-1 mb-4">
+                      {currentProduct?.tags.slice(0, 2).map((tag, idx) => (
+                        <span key={idx} className="text-[9px] px-2 py-0.5 rounded-full bg-white/10 text-white/70">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+
+                    <button
+                      onClick={() => cinematicComplete && openModal(currentProduct!)}
+                      disabled={!cinematicComplete}
+                      className={`w-full font-medium py-2.5 rounded-xl text-sm transition-all duration-200 ${
+                        cinematicComplete 
+                          ? 'bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer' 
+                          : 'bg-indigo-600/40 text-white/60 cursor-not-allowed'
+                      }`}
+                    >
+                      Request Demo
+                    </button>
                   </div>
-
-                  <button
-                    onClick={() => openModal(currentProduct!)}
-                    className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-xl text-sm transition-all duration-200"
-                  >
-                    Request Demo
-                  </button>
                 </div>
-              </div>
 
-              {/* Navigation Arrows */}
-              <div className="flex justify-between gap-4 mt-6">
-                <button
-                  onClick={goToPrevStep}
-                  className="flex-1 bg-white/10 backdrop-blur-md rounded-xl py-3 flex items-center justify-center gap-2 active:scale-95 transition-all"
-                >
-                  <ChevronLeft className="w-5 h-5 text-white" />
-                  <span className="text-white text-sm font-medium">Previous</span>
-                </button>
-                
-                <button
-                  onClick={goToNextStep}
-                  className="flex-1 bg-gradient-to-r from-indigo-600 to-indigo-500 rounded-xl py-3 flex items-center justify-center gap-2 active:scale-95 transition-all"
-                >
-                  <span className="text-white text-sm font-medium">Next</span>
-                  <ChevronRight className="w-5 h-5 text-white" />
-                </button>
+                {/* Navigation Arrows */}
+                {cinematicComplete && (
+                  <div className="flex justify-between gap-4 mt-6">
+                    <button
+                      onClick={goToPrevStep}
+                      className="flex-1 bg-white/10 backdrop-blur-md rounded-xl py-3 flex items-center justify-center gap-2 active:scale-95 transition-all"
+                    >
+                      <ChevronLeft className="w-5 h-5 text-white" />
+                      <span className="text-white text-sm font-medium">Previous</span>
+                    </button>
+                    
+                    <button
+                      onClick={goToNextStep}
+                      className="flex-1 bg-gradient-to-r from-indigo-600 to-indigo-500 rounded-xl py-3 flex items-center justify-center gap-2 active:scale-95 transition-all"
+                    >
+                      <span className="text-white text-sm font-medium">Next</span>
+                      <ChevronRight className="w-5 h-5 text-white" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
-          </div>
 
-          {/* Desktop Next Button */}
-          <button
-            onClick={goToNextStep}
-            className="fixed bottom-8 mb-[4rem] right-10 z-50 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 rounded-full px-6 py-3 transition-all duration-300 cursor-pointer group flex items-center gap-2 shadow-lg shadow-indigo-500/25 hidden md:flex"
-          >
-            <span className="text-sm text-white font-semibold">
-              Next image
-            </span>
-            <ChevronRight className="w-4 h-4 text-white group-hover:translate-x-1 transition-transform" />
-          </button>
+            {/* Desktop Next Button */}
+            {cinematicComplete && (
+              <button
+                onClick={goToNextStep}
+                className="fixed bottom-8 mb-[4rem] right-10 z-50 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 rounded-full px-6 py-3 transition-all duration-300 cursor-pointer group flex items-center gap-2 shadow-lg shadow-indigo-500/25 hidden md:flex"
+              >
+                <span className="text-sm text-white font-semibold">
+                  Next image
+                </span>
+                <ChevronRight className="w-4 h-4 text-white group-hover:translate-x-1 transition-transform" />
+              </button>
+            )}
+          </div>
         </div>
       </section>
 
-      {/* Modal */}
+      {/* Modal - unchanged */}
       {isModalOpen && selectedProduct && (
         <div
           className="fixed inset-0 z-[200] flex items-center justify-center p-4"
