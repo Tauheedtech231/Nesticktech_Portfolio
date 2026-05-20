@@ -14,7 +14,7 @@ export default function CinematicLoader({ children }: CinematicLoaderProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animFrameRef = useRef<number>(0);
 
-  // Particle system on canvas
+  // Enhanced particle system for FREE FIRE style
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -38,7 +38,7 @@ export default function CinematicLoader({ children }: CinematicLoaderProps) {
     };
 
     const particles: Particle[] = [];
-    const colors = ["#00e5ff", "#6366f1", "#39ff14", "#8b5cf6", "#fff700"];
+    const colors = ["#ff6b00", "#ff3300", "#ff9900", "#ffcc00", "#ff5500"];
 
     const spawnParticle = () => {
       const edge = Math.floor(Math.random() * 4);
@@ -49,18 +49,18 @@ export default function CinematicLoader({ children }: CinematicLoaderProps) {
       else { x = 0; y = Math.random() * canvas.height; }
 
       const cx = canvas.width / 2, cy = canvas.height / 2;
-      const angle = Math.atan2(cy - y, cx - x) + (Math.random() - 0.5) * 0.6;
-      const speed = 1 + Math.random() * 2.5;
+      const angle = Math.atan2(cy - y, cx - x) + (Math.random() - 0.5) * 0.8;
+      const speed = 1.5 + Math.random() * 3;
 
       particles.push({
         x, y,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
-        size: 1 + Math.random() * 2.5,
-        alpha: 0.6 + Math.random() * 0.4,
+        size: 2 + Math.random() * 4,
+        alpha: 0.7 + Math.random() * 0.3,
         color: colors[Math.floor(Math.random() * colors.length)],
         life: 0,
-        maxLife: 80 + Math.random() * 120,
+        maxLife: 60 + Math.random() * 100,
       });
     };
 
@@ -68,7 +68,7 @@ export default function CinematicLoader({ children }: CinematicLoaderProps) {
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       frame++;
-      if (frame % 3 === 0) spawnParticle();
+      if (frame % 2 === 0) spawnParticle();
 
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
@@ -81,10 +81,10 @@ export default function CinematicLoader({ children }: CinematicLoaderProps) {
         ctx.save();
         ctx.globalAlpha = alpha;
         ctx.fillStyle = p.color;
-        ctx.shadowBlur = 8;
+        ctx.shadowBlur = 12;
         ctx.shadowColor = p.color;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * (1 - t * 0.5), 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, p.size * (1 - t * 0.7), 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
 
@@ -101,12 +101,13 @@ export default function CinematicLoader({ children }: CinematicLoaderProps) {
     };
   }, []);
 
-  // Progress simulation
+  // Progress simulation with FREE FIRE style timing
   useEffect(() => {
     const texts = [
       "INITIALIZING NESTICK TECH",
       "LOADING ASSETS...",
-      "PREPARING EXPERIENCE...",
+      "PREPARING BATTLEGROUND...",
+      "CHECKING UPDATES...",
       "ALMOST READY...",
       "WELCOME TO NESTICK TECH",
     ];
@@ -114,11 +115,11 @@ export default function CinematicLoader({ children }: CinematicLoaderProps) {
     let current = 0;
     const interval = setInterval(() => {
       setProgress((prev) => {
-        const next = prev + Math.random() * 3.2 + 0.5;
+        const next = prev + Math.random() * 2.5 + 0.8;
         if (next >= 100) {
           clearInterval(interval);
-          setTimeout(() => setPhase("flash"), 200);
-          setTimeout(() => setPhase("done"), 800);
+          setTimeout(() => setPhase("flash"), 300);
+          setTimeout(() => setPhase("done"), 1000);
           return 100;
         }
         const idx = Math.floor((next / 100) * texts.length);
@@ -128,7 +129,7 @@ export default function CinematicLoader({ children }: CinematicLoaderProps) {
         }
         return next;
       });
-    }, 40);
+    }, 50);
 
     return () => clearInterval(interval);
   }, []);
@@ -146,16 +147,16 @@ export default function CinematicLoader({ children }: CinematicLoaderProps) {
         overflow: "hidden",
         fontFamily: "'Rajdhani', 'Orbitron', sans-serif",
         opacity: phase === "flash" ? 0 : 1,
-        transition: phase === "flash" ? "opacity 0.6s ease" : "none",
+        transition: phase === "flash" ? "opacity 0.8s ease-out" : "none",
         background: "radial-gradient(ellipse at center, #0a0a0a 0%, #000000 100%)",
       }}
     >
-      {/* Animated gradient background */}
+      {/* Animated gradient background - FREE FIRE style orange glow */}
       <div
         style={{
           position: "absolute",
           inset: 0,
-          background: "radial-gradient(circle at 30% 40%, rgba(99,102,241,0.08) 0%, rgba(0,0,0,0) 50%), radial-gradient(circle at 70% 60%, rgba(139,92,246,0.06) 0%, rgba(0,0,0,0) 50%)",
+          background: "radial-gradient(circle at 30% 40%, rgba(255,107,0,0.12) 0%, rgba(0,0,0,0) 50%), radial-gradient(circle at 70% 60%, rgba(255,51,0,0.08) 0%, rgba(0,0,0,0) 50%)",
         }}
       />
 
@@ -165,7 +166,7 @@ export default function CinematicLoader({ children }: CinematicLoaderProps) {
           position: "absolute",
           inset: 0,
           background:
-            "radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.85) 100%)",
+            "radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.9) 100%)",
         }}
       />
 
@@ -176,63 +177,11 @@ export default function CinematicLoader({ children }: CinematicLoaderProps) {
           position: "absolute",
           inset: 0,
           pointerEvents: "none",
-          opacity: 0.55,
+          opacity: 0.7,
         }}
       />
 
-      {/* Nestick Tech logo - Centered at top */}
-      <div
-  style={{
-    position: "absolute",
-    top: "32px",
-    left: 0,
-    right: 0,
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: "12px",
-  }}
->
-  {/* Small Rounded Logo Image */}
-  <div style={{ position: "relative", width: "40px", height: "40px" }}>
-    <Image
-      src="/nesticklogo.jpg"
-      alt="Nestick Logo"
-      fill
-      className="object-contain rounded-full"
-      style={{ filter: "drop-shadow(0 0 10px #6366f1)" }}
-    />
-  </div>
-  
-  <span
-    style={{
-      fontSize: "clamp(20px, 4vw, 32px)",
-      fontWeight: 900,
-      letterSpacing: "0.08em",
-      color: "#fff",
-      textShadow: "0 0 20px #6366f1, 0 0 40px #8b5cf6",
-      fontFamily: "'Orbitron', sans-serif",
-      textTransform: "uppercase",
-    }}
-  >
-    NESTICK
-  </span>
-  <span
-    style={{
-      fontSize: "clamp(20px, 4vw, 32px)",
-      fontWeight: 900,
-      letterSpacing: "0.08em",
-      color: "#6366f1",
-      textShadow: "0 0 20px #6366f1, 0 0 40px #8b5cf6",
-      fontFamily: "'Orbitron', sans-serif",
-      textTransform: "uppercase",
-    }}
-  >
-    TECH
-  </span>
-</div>
-
-      {/* Central Glowing Logo - Background element */}
+      {/* FREE FIRE Style - Large Background Logo */}
       <div
         style={{
           position: "absolute",
@@ -240,48 +189,130 @@ export default function CinematicLoader({ children }: CinematicLoaderProps) {
           left: "50%",
           transform: "translate(-50%, -50%)",
           textAlign: "center",
-          opacity: 0.08,
+          opacity: 0.15,
           pointerEvents: "none",
         }}
       >
         <div
           style={{
-            fontSize: "clamp(60px, 15vw, 180px)",
+            fontSize: "clamp(80px, 20vw, 250px)",
             fontWeight: 900,
             color: "transparent",
-            background: "linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7)",
+            background: "linear-gradient(135deg, #ff6b00, #ff3300, #ff9900)",
             backgroundClip: "text",
             WebkitBackgroundClip: "text",
-            letterSpacing: "0.15em",
+            letterSpacing: "0.2em",
             whiteSpace: "nowrap",
+            filter: "blur(2px)",
           }}
         >
           NT
         </div>
       </div>
 
-      {/* Loading bar area - PERFECTLY CENTERED vertically and horizontally */}
+      {/* Large "NESTICK TECH" behind content */}
       <div
         style={{
           position: "absolute",
-          top: "50%",
+          bottom: "15%",
+          left: 0,
+          right: 0,
+          textAlign: "center",
+          opacity: 0.04,
+          pointerEvents: "none",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            fontSize: "clamp(40px, 10vw, 100px)",
+            fontWeight: 900,
+            letterSpacing: "0.3em",
+            color: "#ff6b00",
+            fontFamily: "'Orbitron', sans-serif",
+            textTransform: "uppercase",
+          }}
+        >
+          NESTICK TECH
+        </div>
+      </div>
+
+      {/* FREE FIRE Style - Brand Logo at Top Left with 50% opacity during loading */}
+      <div
+        style={{
+          position: "absolute",
+          top: "24px",
+          left: "24px",
+          display: "flex",
+          alignItems: "center",
+          gap: "10px",
+          zIndex: 10,
+          opacity: 0.5, // 50% opacity as requested
+        }}
+      >
+        <div style={{ position: "relative", width: "45px", height: "45px" }}>
+          <Image
+            src="/nesticklogo.jpg"
+            alt="Nestick Logo"
+            fill
+            className="object-contain rounded-full"
+            style={{ filter: "drop-shadow(0 0 15px #ff6b00)" }}
+          />
+        </div>
+        <div>
+          <span
+            style={{
+              fontSize: "clamp(14px, 3vw, 20px)",
+              fontWeight: 900,
+              letterSpacing: "0.1em",
+              color: "#fff",
+              textShadow: "0 0 15px #ff6b00, 0 0 30px #ff3300",
+              fontFamily: "'Orbitron', sans-serif",
+              textTransform: "uppercase",
+            }}
+          >
+            NESTICK
+          </span>
+          <span
+            style={{
+              fontSize: "clamp(14px, 3vw, 20px)",
+              fontWeight: 900,
+              letterSpacing: "0.1em",
+              color: "#ff6b00",
+              textShadow: "0 0 15px #ff6b00",
+              fontFamily: "'Orbitron', sans-serif",
+              textTransform: "uppercase",
+              marginLeft: "4px",
+            }}
+          >
+            TECH
+          </span>
+        </div>
+      </div>
+
+      {/* FREE FIRE Style - Loading bar at BOTTOM (like Free Fire) */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: "60px",
           left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: "min(500px, 85vw)",
+          transform: "translateX(-50%)",
+          width: "min(600px, 90vw)",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          gap: "16px",
+          gap: "12px",
         }}
       >
-        {/* Loading text */}
+        {/* Loading text with FREE FIRE style */}
         <p
           style={{
             margin: 0,
-            fontSize: "clamp(11px, 2.5vw, 14px)",
-            letterSpacing: "0.25em",
-            color: "rgba(255,255,255,0.7)",
-            fontWeight: 500,
+            fontSize: "clamp(10px, 2vw, 12px)",
+            letterSpacing: "0.2em",
+            color: "rgba(255,255,255,0.8)",
+            fontWeight: 600,
             textTransform: "uppercase",
             fontFamily: "'Rajdhani', sans-serif",
             textAlign: "center",
@@ -290,109 +321,80 @@ export default function CinematicLoader({ children }: CinematicLoaderProps) {
           {loadingText}
         </p>
 
-        {/* Progress bar container */}
+        {/* Progress bar container - FREE FIRE style orange bar */}
         <div style={{ position: "relative", width: "100%" }}>
           {/* Track */}
           <div
             style={{
               width: "100%",
-              height: "4px",
-              background: "rgba(255,255,255,0.1)",
-              borderRadius: "4px",
+              height: "3px",
+              background: "rgba(255,255,255,0.15)",
+              borderRadius: "2px",
               overflow: "visible",
               position: "relative",
             }}
           >
-            {/* Fill */}
+            {/* Fill - Orange gradient like Free Fire */}
             <div
               style={{
                 height: "100%",
                 width: `${progress}%`,
-                borderRadius: "4px",
+                borderRadius: "2px",
                 background:
-                  "linear-gradient(90deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%)",
+                  "linear-gradient(90deg, #ff6b00 0%, #ff9900 50%, #ffcc00 100%)",
                 backgroundSize: "200% 100%",
-                animation: "shimmer 1.4s linear infinite",
-                boxShadow: "0 0 8px #6366f1, 0 0 16px #8b5cf6aa",
-                transition: "width 0.1s linear",
+                animation: "shimmer 1.2s linear infinite",
+                boxShadow: "0 0 12px #ff6b00, 0 0 24px #ff9900aa",
+                transition: "width 0.08s linear",
                 position: "relative",
               }}
             >
-              {/* Glowing tip */}
+              {/* Glowing tip - Fire effect */}
               <div
                 style={{
                   position: "absolute",
-                  right: "-3px",
-                  top: "-5px",
-                  width: "14px",
-                  height: "14px",
+                  right: "-4px",
+                  top: "-6px",
+                  width: "16px",
+                  height: "16px",
                   borderRadius: "50%",
                   background: "#fff",
-                  boxShadow: "0 0 8px #fff, 0 0 20px #8b5cf6",
+                  boxShadow: "0 0 10px #fff, 0 0 25px #ff6b00, 0 0 40px #ff9900",
                   opacity: progress < 100 ? 1 : 0,
                   transition: "opacity 0.3s",
                 }}
               />
             </div>
           </div>
-
-          {/* Tick marks */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              marginTop: "8px",
-              padding: "0 2px",
-            }}
-          >
-            {[0, 25, 50, 75, 100].map((tick) => (
-              <span
-                key={tick}
-                style={{
-                  fontSize: "10px",
-                  color:
-                    progress >= tick
-                      ? "rgba(139,92,246,0.9)"
-                      : "rgba(255,255,255,0.3)",
-                  letterSpacing: "0.1em",
-                  fontFamily: "'Rajdhani', sans-serif",
-                  transition: "color 0.3s",
-                  fontWeight: 500,
-                }}
-              >
-                {tick}%
-              </span>
-            ))}
-          </div>
         </div>
 
-        {/* Percentage counter */}
+        {/* Percentage counter - FREE FIRE style big number */}
         <div
           style={{
             display: "flex",
             alignItems: "baseline",
-            gap: "2px",
-            marginTop: "4px",
+            gap: "3px",
+            marginTop: "8px",
           }}
         >
           <span
             style={{
-              fontSize: "clamp(32px, 6vw, 48px)",
+              fontSize: "clamp(28px, 5vw, 38px)",
               fontWeight: 900,
-              color: "#fff",
+              color: "#ff6b00",
               fontFamily: "'Orbitron', sans-serif",
               lineHeight: 1,
-              textShadow: "0 0 24px #8b5cf6",
-              letterSpacing: "0.03em",
+              textShadow: "0 0 30px #ff6b00, 0 0 60px #ff3300",
+              letterSpacing: "0.05em",
             }}
           >
             {Math.floor(progress)}
           </span>
           <span
             style={{
-              fontSize: "clamp(16px, 3vw, 22px)",
+              fontSize: "clamp(14px, 2.5vw, 18px)",
               fontWeight: 700,
-              color: "rgba(139,92,246,0.85)",
+              color: "rgba(255,107,0,0.8)",
               fontFamily: "'Orbitron', sans-serif",
             }}
           >
@@ -401,6 +403,19 @@ export default function CinematicLoader({ children }: CinematicLoaderProps) {
         </div>
       </div>
 
+      {/* FREE FIRE Style - Fire particles effect at bottom */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: "120px",
+          background: "linear-gradient(to top, rgba(255,107,0,0.1) 0%, transparent 100%)",
+          pointerEvents: "none",
+        }}
+      />
+
       {/* Shimmer keyframes */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;700&family=Orbitron:wght@700;900&display=swap');
@@ -408,6 +423,11 @@ export default function CinematicLoader({ children }: CinematicLoaderProps) {
         @keyframes shimmer {
           0%   { background-position: 200% 0; }
           100% { background-position: -200% 0; }
+        }
+
+        @keyframes firePulse {
+          0%, 100% { opacity: 0.5; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.05); }
         }
       `}</style>
     </div>
