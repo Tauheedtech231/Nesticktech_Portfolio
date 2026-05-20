@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useScroll, useTransform, animate, useMotionValue, spring } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { Building2, ShoppingCart, TrendingUp, Store, ChevronRight, ChevronLeft, X } from "lucide-react";
 import PartnerCollaboratorPage from "./PartnerSection";
@@ -271,8 +271,8 @@ export default function CinematicShowcase() {
             className="relative h-full will-change-transform"
             style={{ opacity: 0 }}
           >
-            {/* Step Indicators with Connecting Lines */}
-            <div className="absolute top-20 left-0 right-0 z-30">
+            {/* Step Indicators with Connecting Lines - Desktop Version */}
+            <div className="absolute top-20 left-0 right-0 z-30 hidden md:block">
               <div className="flex flex-col items-center justify-center px-4">
                 <div className="flex items-center gap-1 md:gap-2 flex-wrap justify-center">
                   {products.map((product, pIdx) => {
@@ -422,78 +422,134 @@ export default function CinematicShowcase() {
               </div>
             </div>
 
-            {/* MOBILE UI */}
-            <div className="block md:hidden relative h-full flex items-center justify-center px-4">
-              <div className="w-full max-w-sm mt-2rem">
-                <div className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20">
-                  <div className="relative w-full h-64 bg-black/30">
-                    <Image
-                      src={currentImageUrl}
-                      alt={currentProduct?.title || "Product"}
-                      fill
-                      className="object-cover"
-                    />
-                    <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1 text-[10px] text-white/80">
-                      {activeImageIndex + 1}/{IMAGES_PER_PRODUCT}
-                    </div>
+            {/* MOBILE UI - Fixed steps indicator position */}
+            <div className="block md:hidden relative h-full">
+              {/* Mobile Steps Indicator - At the TOP, separate from content */}
+              <div className="absolute top-4 left-0 right-0 z-20 px-4">
+                <div className="flex flex-col items-center justify-center">
+                  <div className="flex items-center gap-1 flex-wrap justify-center">
+                    {products.map((product, pIdx) => {
+                      const isActiveProduct = pIdx === activeProductIndex;
+                      const isPassedProduct = pIdx < activeProductIndex;
+                      return (
+                        <div key={product.title} className="flex items-center">
+                          <div className="flex flex-col items-center">
+                            <div className="flex items-center">
+                              <div className={`relative flex items-center justify-center transition-all duration-500 ${
+                                isActiveProduct ? 'w-6 h-6' : 'w-5 h-5'
+                              }`}>
+                                {isActiveProduct && cinematicComplete && (
+                                  <div className="absolute inset-0 rounded-full bg-indigo-500/30 animate-ping" />
+                                )}
+                                <div className={`rounded-full transition-all duration-300 flex items-center justify-center ${
+                                  isActiveProduct ? 'bg-indigo-500 w-full h-full' : 
+                                  isPassedProduct ? 'bg-indigo-400/60 w-full h-full' : 'bg-white/20 w-full h-full'
+                                }`}>
+                                  <span className={`text-[10px] font-bold ${isActiveProduct ? 'text-white' : 'text-white/70'}`}>
+                                    {pIdx + 1}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          {pIdx < products.length - 1 && (
+                            <div className={`w-3 h-0.5 mx-0.5 rounded-full transition-all duration-300 ${
+                              pIdx < activeProductIndex
+                                ? 'bg-gradient-to-r from-indigo-500 to-indigo-400'
+                                : 'bg-white/20'
+                            }`} />
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
-
-                  <div className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-lg font-bold text-white">
-                        {currentProduct?.title}
-                      </h3>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300">
-                        {currentProduct?.status}
+                  
+                  <div className="mt-2 text-[10px] text-white/50 bg-black/40 px-2 py-0.5 rounded-full backdrop-blur-sm">
+                    {!cinematicComplete ? (
+                      <span className="inline-flex items-center gap-1">
+                        <span className="w-1 h-1 rounded-full bg-white/60 animate-pulse" />
+                        CINEMATIC ENTRANCE
                       </span>
-                    </div>
-                    
-                    <p className="text-white/60 text-xs mb-3 line-clamp-2">
-                      {currentProduct?.desc}
-                    </p>
-
-                    <div className="flex flex-wrap gap-1 mb-4">
-                      {currentProduct?.tags.slice(0, 2).map((tag, idx) => (
-                        <span key={idx} className="text-[9px] px-2 py-0.5 rounded-full bg-white/10 text-white/70">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-
-                    <button
-                      onClick={() => cinematicComplete && openModal(currentProduct!)}
-                      disabled={!cinematicComplete}
-                      className={`w-full font-medium py-2.5 rounded-xl text-sm transition-all duration-200 ${
-                        cinematicComplete 
-                          ? 'bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer' 
-                          : 'bg-indigo-600/40 text-white/60 cursor-not-allowed'
-                      }`}
-                    >
-                      Request Demo
-                    </button>
+                    ) : (
+                      `${activeImageIndex + 1}/${IMAGES_PER_PRODUCT} • ${activeProductIndex + 1}/${products.length}`
+                    )}
                   </div>
                 </div>
+              </div>
 
-                {/* Navigation Arrows */}
-                {cinematicComplete && (
-                  <div className="flex justify-between gap-4 mt-6">
-                    <button
-                      onClick={goToPrevStep}
-                      className="flex-1 bg-white/10 backdrop-blur-md rounded-xl py-3 flex items-center justify-center gap-2 active:scale-95 transition-all"
-                    >
-                      <ChevronLeft className="w-5 h-5 text-white" />
-                      <span className="text-white text-sm font-medium">Previous</span>
-                    </button>
-                    
-                    <button
-                      onClick={goToNextStep}
-                      className="flex-1 bg-gradient-to-r from-indigo-600 to-indigo-500 rounded-xl py-3 flex items-center justify-center gap-2 active:scale-95 transition-all"
-                    >
-                      <span className="text-white text-sm font-medium">Next</span>
-                      <ChevronRight className="w-5 h-5 text-white" />
-                    </button>
+              {/* Mobile Content - Centered with proper spacing */}
+              <div className="relative h-full flex items-center justify-center px-4">
+                <div className="w-full max-w-sm">
+                  <div className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20 mt-12">
+                    <div className="relative w-full h-64 bg-black/30">
+                      <Image
+                        src={currentImageUrl}
+                        alt={currentProduct?.title || "Product"}
+                        fill
+                        className="object-cover"
+                      />
+                      <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1 text-[10px] text-white/80">
+                        {activeImageIndex + 1}/{IMAGES_PER_PRODUCT}
+                      </div>
+                    </div>
+
+                    <div className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-lg font-bold text-white">
+                          {currentProduct?.title}
+                        </h3>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300">
+                          {currentProduct?.status}
+                        </span>
+                      </div>
+                      
+                      <p className="text-white/60 text-xs mb-3 line-clamp-2">
+                        {currentProduct?.desc}
+                      </p>
+
+                      <div className="flex flex-wrap gap-1 mb-4">
+                        {currentProduct?.tags.slice(0, 2).map((tag, idx) => (
+                          <span key={idx} className="text-[9px] px-2 py-0.5 rounded-full bg-white/10 text-white/70">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+
+                      <button
+                        onClick={() => cinematicComplete && openModal(currentProduct!)}
+                        disabled={!cinematicComplete}
+                        className={`w-full font-medium py-2.5 rounded-xl text-sm transition-all duration-200 ${
+                          cinematicComplete 
+                            ? 'bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer' 
+                            : 'bg-indigo-600/40 text-white/60 cursor-not-allowed'
+                        }`}
+                      >
+                        Request Demo
+                      </button>
+                    </div>
                   </div>
-                )}
+
+                  {/* Navigation Arrows */}
+                  {cinematicComplete && (
+                    <div className="flex justify-between gap-4 mt-6">
+                      <button
+                        onClick={goToPrevStep}
+                        className="flex-1 bg-white/10 backdrop-blur-md rounded-xl py-3 flex items-center justify-center gap-2 active:scale-95 transition-all"
+                      >
+                        <ChevronLeft className="w-5 h-5 text-white" />
+                        <span className="text-white text-sm font-medium">Previous</span>
+                      </button>
+                      
+                      <button
+                        onClick={goToNextStep}
+                        className="flex-1 bg-gradient-to-r from-indigo-600 to-indigo-500 rounded-xl py-3 flex items-center justify-center gap-2 active:scale-95 transition-all"
+                      >
+                        <span className="text-white text-sm font-medium">Next</span>
+                        <ChevronRight className="w-5 h-5 text-white" />
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -514,82 +570,96 @@ export default function CinematicShowcase() {
       </section>
 
       {/* Modal - unchanged */}
-      {isModalOpen && selectedProduct && (
-        <div
-          className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-          onClick={closeModal}
-        >
-          <div
-            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+      <AnimatePresence>
+        {isModalOpen && selectedProduct && (
+          <motion.div
+            className="fixed inset-0 z-[200] flex items-center justify-center p-4"
             onClick={closeModal}
-          />
-          <div
-            className="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl max-w-md w-full max-h-[85vh] overflow-y-auto p-5 shadow-2xl border border-white/10"
-            onClick={(e) => e.stopPropagation()}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
           >
-            <button
+            <motion.div
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
               onClick={closeModal}
-              className="absolute top-4 right-4 text-white/60 hover:text-white transition cursor-pointer"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            />
+            <motion.div
+              className="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl max-w-md w-full max-h-[85vh] overflow-y-auto p-5 shadow-2xl border border-white/10"
+              onClick={(e) => e.stopPropagation()}
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
             >
-              <X className="w-5 h-5" />
-            </button>
-            <div className="text-center">
-              <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-indigo-500/20 flex items-center justify-center">
-                {selectedProduct.icon}
+              <button
+                onClick={closeModal}
+                className="absolute top-4 right-4 text-white/60 hover:text-white transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <div className="text-center">
+                <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-indigo-500/20 flex items-center justify-center">
+                  {selectedProduct.icon}
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-2">
+                  Request Demo - {selectedProduct.title}
+                </h3>
+                <p className="text-white/60 mb-5 text-sm">
+                  Fill out the form below and our team will get back to you within 24 hours.
+                </p>
+                <form className="space-y-3 text-left" onSubmit={(e) => e.preventDefault()}>
+                  <div>
+                    <label className="block text-sm text-white/70 mb-1">Full Name</label>
+                    <input
+                      type="text"
+                      placeholder="Enter your name"
+                      className="w-full px-4 py-2.5 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-indigo-400 transition"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-white/70 mb-1">Email Address</label>
+                    <input
+                      type="email"
+                      placeholder="Enter your email"
+                      className="w-full px-4 py-2.5 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-indigo-400 transition"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-white/70 mb-1">Phone Number</label>
+                    <input
+                      type="tel"
+                      placeholder="Enter your phone number"
+                      className="w-full px-4 py-2.5 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-indigo-400 transition"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-white/70 mb-1">Message (Optional)</label>
+                    <textarea
+                      rows={3}
+                      placeholder="Any specific requirements?"
+                      className="w-full px-4 py-2.5 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-indigo-400 transition resize-none"
+                    />
+                  </div>
+                  <motion.button
+                    type="submit"
+                    className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-3 rounded-xl transition duration-200 cursor-pointer"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    Submit Request
+                  </motion.button>
+                </form>
+                <p className="text-xs text-white/40 mt-4">
+                  We'll contact you shortly to schedule a personalized demo.
+                </p>
               </div>
-              <h3 className="text-2xl font-bold text-white mb-2">
-                Request Demo - {selectedProduct.title}
-              </h3>
-              <p className="text-white/60 mb-5 text-sm">
-                Fill out the form below and our team will get back to you within 24 hours.
-              </p>
-              <form className="space-y-3 text-left" onSubmit={(e) => e.preventDefault()}>
-                <div>
-                  <label className="block text-sm text-white/70 mb-1">Full Name</label>
-                  <input
-                    type="text"
-                    placeholder="Enter your name"
-                    className="w-full px-4 py-2.5 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-indigo-400 transition"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-white/70 mb-1">Email Address</label>
-                  <input
-                    type="email"
-                    placeholder="Enter your email"
-                    className="w-full px-4 py-2.5 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-indigo-400 transition"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-white/70 mb-1">Phone Number</label>
-                  <input
-                    type="tel"
-                    placeholder="Enter your phone number"
-                    className="w-full px-4 py-2.5 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-indigo-400 transition"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-white/70 mb-1">Message (Optional)</label>
-                  <textarea
-                    rows={3}
-                    placeholder="Any specific requirements?"
-                    className="w-full px-4 py-2.5 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-indigo-400 transition resize-none"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-3 rounded-xl transition duration-200 cursor-pointer"
-                >
-                  Submit Request
-                </button>
-              </form>
-              <p className="text-xs text-white/40 mt-4">
-                We'll contact you shortly to schedule a personalized demo.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <PartnerCollaboratorPage />
     </>
   );
