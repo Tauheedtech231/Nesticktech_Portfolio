@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState, useRef, ReactNode } from "react";
 
 interface CinematicLoaderProps {
@@ -168,19 +169,6 @@ export default function CinematicLoader({ children }: CinematicLoaderProps) {
         }}
       />
 
-      {/* Bottom gradient for bar area */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: "220px",
-          background:
-            "linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 60%, transparent 100%)",
-        }}
-      />
-
       {/* Particle canvas */}
       <canvas
         ref={canvasRef}
@@ -192,46 +180,59 @@ export default function CinematicLoader({ children }: CinematicLoaderProps) {
         }}
       />
 
-      {/* Nestick Tech logo top-right */}
+      {/* Nestick Tech logo - Centered at top */}
       <div
-        style={{
-          position: "absolute",
-          top: "24px",
-          right: "32px",
-          display: "flex",
-          alignItems: "center",
-          gap: "4px",
-        }}
-      >
-        <span
-          style={{
-            fontSize: "clamp(18px, 3vw, 28px)",
-            fontWeight: 900,
-            letterSpacing: "0.08em",
-            color: "#fff",
-            textShadow: "0 0 20px #6366f1, 0 0 40px #8b5cf6",
-            fontFamily: "'Orbitron', sans-serif",
-            textTransform: "uppercase",
-          }}
-        >
-          NESTICK
-        </span>
-        <span
-          style={{
-            fontSize: "clamp(18px, 3vw, 28px)",
-            fontWeight: 900,
-            letterSpacing: "0.08em",
-            color: "#6366f1",
-            textShadow: "0 0 20px #6366f1, 0 0 40px #8b5cf6",
-            fontFamily: "'Orbitron', sans-serif",
-            textTransform: "uppercase",
-          }}
-        >
-          TECH
-        </span>
-      </div>
+  style={{
+    position: "absolute",
+    top: "32px",
+    left: 0,
+    right: 0,
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: "12px",
+  }}
+>
+  {/* Small Rounded Logo Image */}
+  <div style={{ position: "relative", width: "40px", height: "40px" }}>
+    <Image
+      src="/nesticklogo.jpg"
+      alt="Nestick Logo"
+      fill
+      className="object-contain rounded-full"
+      style={{ filter: "drop-shadow(0 0 10px #6366f1)" }}
+    />
+  </div>
+  
+  <span
+    style={{
+      fontSize: "clamp(20px, 4vw, 32px)",
+      fontWeight: 900,
+      letterSpacing: "0.08em",
+      color: "#fff",
+      textShadow: "0 0 20px #6366f1, 0 0 40px #8b5cf6",
+      fontFamily: "'Orbitron', sans-serif",
+      textTransform: "uppercase",
+    }}
+  >
+    NESTICK
+  </span>
+  <span
+    style={{
+      fontSize: "clamp(20px, 4vw, 32px)",
+      fontWeight: 900,
+      letterSpacing: "0.08em",
+      color: "#6366f1",
+      textShadow: "0 0 20px #6366f1, 0 0 40px #8b5cf6",
+      fontFamily: "'Orbitron', sans-serif",
+      textTransform: "uppercase",
+    }}
+  >
+    TECH
+  </span>
+</div>
 
-      {/* Central Glowing Logo */}
+      {/* Central Glowing Logo - Background element */}
       <div
         style={{
           position: "absolute",
@@ -239,13 +240,13 @@ export default function CinematicLoader({ children }: CinematicLoaderProps) {
           left: "50%",
           transform: "translate(-50%, -50%)",
           textAlign: "center",
-          opacity: 0.12,
+          opacity: 0.08,
           pointerEvents: "none",
         }}
       >
         <div
           style={{
-            fontSize: "clamp(30px, 8vw, 90px)",
+            fontSize: "clamp(60px, 15vw, 180px)",
             fontWeight: 900,
             color: "transparent",
             background: "linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7)",
@@ -259,31 +260,31 @@ export default function CinematicLoader({ children }: CinematicLoaderProps) {
         </div>
       </div>
 
-      {/* Loading bar area */}
+      {/* Loading bar area - PERFECTLY CENTERED vertically and horizontally */}
       <div
         style={{
           position: "absolute",
-          bottom: "32px",
+          top: "50%",
           left: "50%",
-          transform: "translateX(-50%)",
-          width: "min(680px, 88vw)",
+          transform: "translate(-50%, -50%)",
+          width: "min(500px, 85vw)",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          gap: "12px",
+          gap: "16px",
         }}
       >
         {/* Loading text */}
         <p
           style={{
             margin: 0,
-            fontSize: "clamp(10px, 2vw, 13px)",
+            fontSize: "clamp(11px, 2.5vw, 14px)",
             letterSpacing: "0.25em",
-            color: "rgba(255,255,255,0.72)",
+            color: "rgba(255,255,255,0.7)",
             fontWeight: 500,
             textTransform: "uppercase",
             fontFamily: "'Rajdhani', sans-serif",
-            transition: "opacity 0.3s",
+            textAlign: "center",
           }}
         >
           {loadingText}
@@ -295,9 +296,9 @@ export default function CinematicLoader({ children }: CinematicLoaderProps) {
           <div
             style={{
               width: "100%",
-              height: "6px",
-              background: "rgba(255,255,255,0.12)",
-              borderRadius: "3px",
+              height: "4px",
+              background: "rgba(255,255,255,0.1)",
+              borderRadius: "4px",
               overflow: "visible",
               position: "relative",
             }}
@@ -307,12 +308,12 @@ export default function CinematicLoader({ children }: CinematicLoaderProps) {
               style={{
                 height: "100%",
                 width: `${progress}%`,
-                borderRadius: "3px",
+                borderRadius: "4px",
                 background:
                   "linear-gradient(90deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%)",
                 backgroundSize: "200% 100%",
                 animation: "shimmer 1.4s linear infinite",
-                boxShadow: "0 0 12px #6366f1, 0 0 24px #8b5cf6aa",
+                boxShadow: "0 0 8px #6366f1, 0 0 16px #8b5cf6aa",
                 transition: "width 0.1s linear",
                 position: "relative",
               }}
@@ -321,8 +322,8 @@ export default function CinematicLoader({ children }: CinematicLoaderProps) {
               <div
                 style={{
                   position: "absolute",
-                  right: "-2px",
-                  top: "-4px",
+                  right: "-3px",
+                  top: "-5px",
                   width: "14px",
                   height: "14px",
                   borderRadius: "50%",
@@ -340,21 +341,23 @@ export default function CinematicLoader({ children }: CinematicLoaderProps) {
             style={{
               display: "flex",
               justifyContent: "space-between",
-              marginTop: "6px",
+              marginTop: "8px",
+              padding: "0 2px",
             }}
           >
             {[0, 25, 50, 75, 100].map((tick) => (
               <span
                 key={tick}
                 style={{
-                  fontSize: "9px",
+                  fontSize: "10px",
                   color:
                     progress >= tick
                       ? "rgba(139,92,246,0.9)"
-                      : "rgba(255,255,255,0.25)",
+                      : "rgba(255,255,255,0.3)",
                   letterSpacing: "0.1em",
                   fontFamily: "'Rajdhani', sans-serif",
                   transition: "color 0.3s",
+                  fontWeight: 500,
                 }}
               >
                 {tick}%
@@ -369,25 +372,25 @@ export default function CinematicLoader({ children }: CinematicLoaderProps) {
             display: "flex",
             alignItems: "baseline",
             gap: "2px",
+            marginTop: "4px",
           }}
         >
           <span
             style={{
-              fontSize: "clamp(28px, 5vw, 44px)",
+              fontSize: "clamp(32px, 6vw, 48px)",
               fontWeight: 900,
               color: "#fff",
               fontFamily: "'Orbitron', sans-serif",
               lineHeight: 1,
               textShadow: "0 0 24px #8b5cf6",
-              letterSpacing: "0.05em",
-              transition: "text-shadow 0.2s",
+              letterSpacing: "0.03em",
             }}
           >
             {Math.floor(progress)}
           </span>
           <span
             style={{
-              fontSize: "clamp(14px, 2.5vw, 20px)",
+              fontSize: "clamp(16px, 3vw, 22px)",
               fontWeight: 700,
               color: "rgba(139,92,246,0.85)",
               fontFamily: "'Orbitron', sans-serif",
