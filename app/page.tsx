@@ -12,13 +12,18 @@ import CinematicLoader from "./src/portfolio/components/CinematicLoader";
 function Page() {
   return (
     <CinematicLoader>
-      <Hero />
-      <PartnersSlider />
-      <Services />
-      <Home />
-      <ProjectsSection />
-      <TestimonialsSlider />
-      <FAQ />
+      <main className="relative w-full overflow-hidden bg-black">
+        <Hero />
+
+        <div className="relative z-10">
+          <PartnersSlider />
+          <Services />
+          <Home />
+          <ProjectsSection />
+          <TestimonialsSlider />
+          <FAQ />
+        </div>
+      </main>
     </CinematicLoader>
   );
 }

@@ -13,40 +13,71 @@ interface CinematicLoaderProps {
 export default function CinematicLoader({
   children,
 }: CinematicLoaderProps) {
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [contentVisible, setContentVisible] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
+    document.body.style.overflow = "hidden";
+
+    const timer = window.setTimeout(() => {
+      setIsLoading(false);
     }, 2800);
 
-    return () => clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+      document.body.style.overflow = "auto";
+    };
   }, []);
 
+  useEffect(() => {
+    if (!isLoading) {
+      const frame = window.requestAnimationFrame(() => {
+        setContentVisible(true);
+      });
+
+      return () => window.cancelAnimationFrame(frame);
+    }
+
+    return undefined;
+  }, [isLoading]);
+
   return (
-    <AnimatePresence mode="wait">
-      {loading ? (
-        <motion.div
-          key="loader"
-          initial={{ opacity: 1 }}
-          exit={{
-            opacity: 0,
-            transition: {
-              duration: 0.8,
-              ease: [0.4, 0, 0.2, 1],
-            },
-          }}
-          className="fixed inset-0 z-[99999] flex items-center justify-center overflow-hidden bg-black"
+    <>
+      <div
+        className={`relative transition-opacity duration-700 ease-[0.22,1,0.36,1] ${
+          contentVisible
+            ? "opacity-100"
+            : "opacity-0 pointer-events-none"
+        }`}
+      >
+        {children}
+      </div>
+
+      <AnimatePresence>
+        {isLoading && (
+          <motion.div
+            key="loader"
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 1 }}
+            exit={{
+              opacity: 0,
+              scale: 0.92,
+              y: -80,
+              transition: {
+                duration: 0.8,
+                ease: [0.22, 1, 0.36, 1],
+              },
+            }}
+            onAnimationComplete={() => {
+              if (!isLoading) {
+                setContentVisible(true);
+                document.body.style.overflow = "auto";
+              }
+            }}
+            className="fixed inset-0 z-[99999] flex items-center justify-center overflow-hidden bg-black"
         >
           {/* BACKGROUND LOGO */}
-          <motion.div 
-            className="absolute inset-0 flex items-center justify-center"
-            exit={{
-              scale: 1.5,
-              opacity: 0,
-              transition: { duration: 0.8, ease: "easeOut" }
-            }}
-          >
+          <div className="absolute inset-0 flex items-center justify-center">
             <Image
               src="/nesticktech.jpg"
               alt="background logo"
@@ -54,18 +85,12 @@ export default function CinematicLoader({
               priority
               className="object-contain opacity-[0.06] scale-[1.35]"
             />
-          </motion.div>
+          </div>
 
           {/* DARK OVERLAY */}
-          <motion.div 
-            className="absolute inset-0 bg-black/88"
-            exit={{
-              opacity: 0,
-              transition: { duration: 0.6 }
-            }}
-          />
+          <div className="absolute inset-0 bg-black/88" />
 
-          {/* SMALL PARTICLES */}
+          {/* PARTICLES */}
           <div className="particles">
             {[...Array(70)].map((_, i) => (
               <span
@@ -95,11 +120,6 @@ export default function CinematicLoader({
               repeat: Infinity,
               ease: "easeInOut",
             }}
-            exit={{
-              scale: 2,
-              opacity: 0,
-              transition: { duration: 0.6 }
-            }}
             className="absolute w-[420px] h-[420px] rounded-full bg-blue-500/10 blur-3xl"
           />
 
@@ -114,12 +134,13 @@ export default function CinematicLoader({
               opacity: 1,
             }}
             exit={{
-              scale: 0.3,
+              scale: 0.25,
               opacity: 0,
               y: -150,
+              filter: "blur(20px)",
               transition: {
-                duration: 0.9,
-                ease: [0.65, 0, 0.35, 1],
+                duration: 1,
+                ease: [0.22, 1, 0.36, 1],
               },
             }}
             transition={{
@@ -143,17 +164,7 @@ export default function CinematicLoader({
             </div>
 
             {/* CENTER LOGO */}
-            <motion.div 
-              className="absolute w-[180px] h-[180px] rounded-full overflow-hidden border-[3px] border-blue-400/70 bg-black z-20 shadow-[0_0_45px_rgba(0,153,255,0.7)]"
-              exit={{
-                scale: 0,
-                borderRadius: "50%",
-                transition: {
-                  duration: 0.7,
-                  ease: [0.65, 0, 0.35, 1]
-                }
-              }}
-            >
+            <div className="absolute w-[180px] h-[180px] rounded-full overflow-hidden border-[3px] border-blue-400/70 bg-black z-20 shadow-[0_0_45px_rgba(0,153,255,0.7)]">
               <Image
                 src="/nesticklogo.jpg"
                 alt="Nestick Logo"
@@ -161,10 +172,8 @@ export default function CinematicLoader({
                 priority
                 className="object-cover scale-110"
               />
-            </motion.div>
+            </div>
           </motion.div>
-
-         
 
           <style jsx>{`
             .loader-ring {
@@ -274,27 +283,8 @@ export default function CinematicLoader({
             }
           `}</style>
         </motion.div>
-      ) : (
-        <motion.div
-          initial={{
-            opacity: 0,
-            scale: 1.02,
-            filter: "blur(8px)",
-          }}
-          animate={{
-            opacity: 1,
-            scale: 1,
-            filter: "blur(0px)",
-          }}
-          transition={{
-            duration: 1,
-            delay: 0.1,
-            ease: [0.25, 0.46, 0.45, 0.94],
-          }}
-        >
-          {children}
-        </motion.div>
-      )}
-    </AnimatePresence>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
