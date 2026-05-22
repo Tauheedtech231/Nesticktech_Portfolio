@@ -504,7 +504,7 @@ export default function ProjectsSection() {
           style={{ zIndex: 9999 }}
         >
           <div className={`${modalBg} p-6 sm:p-8 rounded-2xl w-full max-w-md space-y-5 max-h-[90vh] overflow-y-auto relative`}>
-            <h2 className={`text-2xl sm:text-3xl font-bold sticky top-0 ${modalBg} py-2 z-10 ${modalText}`}>
+            <h2 className={`text-2xl sm:text-3xl font-bold sticky top-0 ${modalBg} py-2 z-10 ${modalText} mt-[1rem]`}>
               Request Demo
             </h2>
 
