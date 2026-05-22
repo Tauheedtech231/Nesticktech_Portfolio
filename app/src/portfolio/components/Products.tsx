@@ -72,6 +72,7 @@ export default function ProjectsSection() {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const canScroll = useRef(true);
   const scrollTimer = useRef<NodeJS.Timeout | null>(null);
+  const touchStartY = useRef(0);
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -158,15 +159,13 @@ export default function ProjectsSection() {
     }, 1000);
   };
 
+  // Handle both wheel (desktop) and touch (mobile) events
   useEffect(() => {
     if (!isContentVisible) return;
 
+    // Desktop scroll handler
     const handleWheel = (e: WheelEvent) => {
-      // If modal is open, don't change products
-      if (openModal) {
-        return;
-      }
-
+      if (openModal) return;
       if (!canScroll.current) {
         e.preventDefault();
         return;
@@ -190,9 +189,51 @@ export default function ProjectsSection() {
       }
     };
 
+    // Mobile touch start handler
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartY.current = e.touches[0].clientY;
+    };
+
+    // Mobile touch move handler
+    const handleTouchMove = (e: TouchEvent) => {
+      if (openModal) return;
+      if (!canScroll.current) {
+        e.preventDefault();
+        return;
+      }
+
+      const touchEndY = e.touches[0].clientY;
+      const deltaY = touchStartY.current - touchEndY;
+      
+      if (Math.abs(deltaY) < 50) return;
+      
+      if (deltaY > 0) {
+        if (activeIndex < projects.length - 1) {
+          e.preventDefault();
+          setActiveIndex(prev => prev + 1);
+          canScroll.current = false;
+          resetScrollAbility();
+        }
+      } else if (deltaY < 0) {
+        if (activeIndex > 0) {
+          e.preventDefault();
+          setActiveIndex(prev => prev - 1);
+          canScroll.current = false;
+          resetScrollAbility();
+        }
+      }
+      
+      touchStartY.current = touchEndY;
+    };
+
     window.addEventListener('wheel', handleWheel, { passive: false });
+    window.addEventListener('touchstart', handleTouchStart, { passive: false });
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    
     return () => {
       window.removeEventListener('wheel', handleWheel);
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
     };
   }, [activeIndex, isContentVisible, openModal]);
 
@@ -296,7 +337,6 @@ export default function ProjectsSection() {
       <div className="sticky top-0 h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-7xl mx-auto">
           
-          {/* Desktop: 2 columns | Mobile: Single Card */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 lg:gap-12 items-stretch">
             
             {/* LEFT CONTENT */}
@@ -304,23 +344,22 @@ export default function ProjectsSection() {
               ref={leftContentRef}
               className="space-y-5 md:space-y-6 lg:space-y-8"
             >
-              {/* Mobile Card - With navigation buttons */}
+              {/* Mobile Card */}
               <div className="lg:hidden">
                 <div 
                   key={project.id}
                   className={`${cardBg} backdrop-blur-sm rounded-2xl overflow-hidden border ${cardBorder}`}
                 >
-                  {/* Fixed height with object-contain to show full image */}
-                  <div className="relative w-full h-64 overflow-hidden bg-black/20">
+                  {/* Image - Full width, auto height, shows full image without cropping */}
+                  <div className="relative w-full bg-black/20">
                     <img
                       src={project.image}
                       alt={project.name}
-                      className="w-full h-full object-contain"
+                      className="w-full h-auto object-contain"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                   </div>
                   
-                  {/* Content inside card */}
                   <div className="p-5 space-y-4">
                     <span className={`inline-block px-3 py-1 text-xs rounded-full ${statusBg} ${statusText}`}>
                       {project.status}
@@ -387,7 +426,7 @@ export default function ProjectsSection() {
                 </div>
               </div>
 
-              {/* Desktop Layout - With animations */}
+              {/* Desktop Layout */}
               <div className="hidden lg:block space-y-6 md:space-y-8">
                 <motion.div
                   key={`status-${project.id}`}
@@ -448,7 +487,7 @@ export default function ProjectsSection() {
                 >
                   <button
                     onClick={() => setOpenModal(true)}
-                    className={`px-6 sm:px-8 py-3 sm:py-4 rounded-xl bg-gradient-to-r ${buttonGradient} hover:scale-[1.03] transition-all duration-300 cursor-pointer w-full sm:w-auto text-base sm:text-lg font-medium shadow-lg hover:shadow-blue-500/25 text-white`}
+                    className={`px-6 sm:px-8 py-3 sm:py-4 rounded-xl bg-gradient-to-r ${buttonGradient} hover:scale-[1.03] transition-all duration-300 cursor-pointer w-full sm:w-auto text-base sm:text-lg font-medium text-white`}
                   >
                     Request Demo
                   </button>
@@ -456,7 +495,7 @@ export default function ProjectsSection() {
               </div>
             </div>
 
-            {/* RIGHT CONTENT - Desktop only image with animations */}
+            {/* RIGHT CONTENT - Desktop only image */}
             <div 
               ref={rightContentRef}
               className="hidden lg:flex items-center justify-center"
@@ -466,12 +505,12 @@ export default function ProjectsSection() {
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.4, ease: "easeOut" }}
-                className="w-full max-w-lg mx-auto cursor-pointer transition-all duration-500 hover:scale-[1.02]"
+                className="w-full max-w-lg mx-auto"
               >
                 <img
                   src={project.image}
                   alt={project.name}
-                  className="rounded-2xl shadow-2xl w-full h-auto object-contain max-h-[70vh]"
+                  className="rounded-2xl w-full h-auto object-contain max-h-[70vh]"
                 />
               </motion.div>
             </div>
@@ -480,8 +519,8 @@ export default function ProjectsSection() {
         </div>
       </div>
 
-      {/* Progress indicator - Theme aware */}
-      {/* <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 flex gap-2">
+      {/* Progress indicator */}
+      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 flex gap-2">
         {projects.map((_, idx) => (
           <div
             key={idx}
@@ -494,9 +533,9 @@ export default function ProjectsSection() {
             }`}
           />
         ))}
-      </div> */}
+      </div>
 
-      {/* MODAL - Theme aware */}
+      {/* MODAL */}
       {openModal && (
         <div 
           ref={modalRef}
@@ -504,7 +543,7 @@ export default function ProjectsSection() {
           style={{ zIndex: 9999 }}
         >
           <div className={`${modalBg} p-6 sm:p-8 rounded-2xl w-full max-w-md space-y-5 max-h-[90vh] overflow-y-auto relative`}>
-            <h2 className={`text-2xl sm:text-3xl font-bold sticky top-0 ${modalBg} py-2 z-10 ${modalText} mt-[1rem]`}>
+            <h2 className={`text-2xl sm:text-3xl font-bold sticky top-0 ${modalBg} py-2 z-10 ${modalText}`}>
               Request Demo
             </h2>
 
