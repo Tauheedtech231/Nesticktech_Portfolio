@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 // app/consultation/page.tsx
 'use client';
 
@@ -39,7 +40,6 @@ interface FormData {
 const generateParticlePositions = (count: number, seed: number = 0.5) => {
   const positions = new Float32Array(count * 3);
   for (let i = 0; i < count; i++) {
-    // Use deterministic values based on index to avoid Math.random
     const t = (i / count) * Math.PI * 2 * seed;
     const theta = t;
     const phi = Math.acos(2 * (i / count) - 1);
@@ -53,7 +53,7 @@ const generateParticlePositions = (count: number, seed: number = 0.5) => {
 };
 
 // 3D Scene Component for Background
-const ConsultationScene = () => {
+const ConsultationScene = ({ isDark }: { isDark: boolean }) => {
   const groupRef = useRef<THREE.Group>(null);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -66,7 +66,6 @@ const ConsultationScene = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Generate connecting lines
   const lines = useMemo(() => {
     const points = [];
     for (let i = 0; i < 30; i++) {
@@ -85,21 +84,23 @@ const ConsultationScene = () => {
     }
   });
 
+  const mainColor = isDark ? '#6366F1' : '#4F46E5';
+  const secondaryColor = isDark ? '#8B5CF6' : '#7C3AED';
+  const accentColor = isDark ? '#06B6D4' : '#0891B2';
+
   return (
     <group ref={groupRef}>
-      {/* Central glowing sphere */}
       <mesh>
         <sphereGeometry args={[1.2, 32, 32]} />
         <meshPhongMaterial
-          color="#6366F1"
-          emissive="#8B5CF6"
+          color={mainColor}
+          emissive={secondaryColor}
           emissiveIntensity={0.8}
           transparent
           opacity={0.6}
         />
       </mesh>
 
-      {/* Inner wireframe sphere */}
       <mesh>
         <sphereGeometry args={[1.5, 24, 24]} />
         <meshBasicMaterial
@@ -110,26 +111,24 @@ const ConsultationScene = () => {
         />
       </mesh>
 
-      {/* Floating rings */}
       <mesh rotation={[Math.PI / 2, 0, 0]}>
         <torusGeometry args={[2.0, 0.05, 64, 200]} />
-        <meshStandardMaterial color="#6366F1" emissive="#6366F1" emissiveIntensity={0.5} />
+        <meshStandardMaterial color={mainColor} emissive={mainColor} emissiveIntensity={0.5} />
       </mesh>
       
       <mesh rotation={[Math.PI / 3, Math.PI / 4, 0]}>
         <torusGeometry args={[2.3, 0.05, 64, 200]} />
-        <meshStandardMaterial color="#8B5CF6" emissive="#8B5CF6" emissiveIntensity={0.4} />
+        <meshStandardMaterial color={secondaryColor} emissive={secondaryColor} emissiveIntensity={0.4} />
       </mesh>
 
       <mesh rotation={[Math.PI / 4, Math.PI / 2, Math.PI / 3]}>
         <torusGeometry args={[1.8, 0.05, 64, 200]} />
-        <meshStandardMaterial color="#06B6D4" emissive="#06B6D4" emissiveIntensity={0.3} />
+        <meshStandardMaterial color={accentColor} emissive={accentColor} emissiveIntensity={0.3} />
       </mesh>
 
-      {/* Connecting lines */}
       <Line
         points={lines}
-        color="#6366F1"
+        color={mainColor}
         lineWidth={1}
         transparent
         opacity={0.5}
@@ -139,7 +138,7 @@ const ConsultationScene = () => {
 };
 
 // 3D Model for Left Column with Feature Representations
-const ConsultationModel = () => {
+const ConsultationModel = ({ isDark }: { isDark: boolean }) => {
   const groupRef = useRef<THREE.Group>(null);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -152,11 +151,9 @@ const ConsultationModel = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Generate particle positions deterministically
   const particleCount = isMobile ? 150 : 300;
   const particlePositions = useMemo(() => generateParticlePositions(particleCount, 0.3), [particleCount]);
 
-  // Feature nodes representing: 30-Minute Session, Expert Advice, Flexible Scheduling, 100% Confidential
   const featureNodes = useMemo(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const nodes: any[] = [];
@@ -182,7 +179,6 @@ const ConsultationModel = () => {
     return nodes;
   }, []);
 
-  // Create connecting lines between feature nodes
   const connectionLines = useMemo(() => {
     const lines = [];
     for (let i = 0; i < featureNodes.length; i++) {
@@ -201,14 +197,16 @@ const ConsultationModel = () => {
     }
   });
 
+  const mainColor = isDark ? '#6366F1' : '#4F46E5';
+  const secondaryColor = isDark ? '#8B5CF6' : '#7C3AED';
+
   return (
     <group ref={groupRef}>
-      {/* Central core */}
       <mesh>
         <sphereGeometry args={[1.0, 48, 48]} />
         <meshPhongMaterial
-          color="#6366F1"
-          emissive="#8B5CF6"
+          color={mainColor}
+          emissive={secondaryColor}
           emissiveIntensity={0.7}
           transparent
           opacity={0.8}
@@ -216,7 +214,6 @@ const ConsultationModel = () => {
         />
       </mesh>
 
-      {/* Outer wireframe sphere */}
       <mesh>
         <sphereGeometry args={[1.8, 32, 32]} />
         <meshBasicMaterial
@@ -227,18 +224,16 @@ const ConsultationModel = () => {
         />
       </mesh>
 
-      {/* Rotating rings */}
       <mesh rotation={[Math.PI / 2, 0, 0]}>
         <torusGeometry args={[1.5, 0.04, 64, 200]} />
-        <meshStandardMaterial color="#6366F1" emissive="#6366F1" emissiveIntensity={0.5} />
+        <meshStandardMaterial color={mainColor} emissive={mainColor} emissiveIntensity={0.5} />
       </mesh>
       
       <mesh rotation={[Math.PI / 3, Math.PI / 2, 0]}>
         <torusGeometry args={[1.9, 0.04, 64, 200]} />
-        <meshStandardMaterial color="#8B5CF6" emissive="#8B5CF6" emissiveIntensity={0.4} />
+        <meshStandardMaterial color={secondaryColor} emissive={secondaryColor} emissiveIntensity={0.4} />
       </mesh>
 
-      {/* Feature nodes */}
       {featureNodes.map((node, i) => (
         <mesh key={i} position={[node.position.x, node.position.y, node.position.z]}>
           <sphereGeometry args={[0.12, 24, 24]} />
@@ -246,36 +241,33 @@ const ConsultationModel = () => {
         </mesh>
       ))}
 
-      {/* Connecting lines between feature nodes */}
       {connectionLines.map((line, i) => (
         <Line
           key={i}
           points={line}
-          color="#6366F1"
+          color={mainColor}
           lineWidth={0.8}
           transparent
           opacity={0.4}
         />
       ))}
 
-      {/* Floating particles */}
-     <points>
-  <bufferGeometry>
-    <bufferAttribute
-      attach="attributes-position"
-      args={[particlePositions, 3]} // ✅ array + itemSize yahan pass karo
-    />
-  </bufferGeometry>
-  <pointsMaterial
-    size={isMobile ? 0.04 : 0.06}
-    color="#A78BFA"
-    transparent
-    opacity={0.4}
-    blending={THREE.AdditiveBlending}
-  />
-</points>
+      <points>
+        <bufferGeometry>
+          <bufferAttribute
+            attach="attributes-position"
+            args={[particlePositions, 3]}
+          />
+        </bufferGeometry>
+        <pointsMaterial
+          size={isMobile ? 0.04 : 0.06}
+          color="#A78BFA"
+          transparent
+          opacity={0.4}
+          blending={THREE.AdditiveBlending}
+        />
+      </points>
 
-      {/* Arrows pointing to nodes */}
       {featureNodes.map((node, i) => (
         <mesh key={`arrow-${i}`} position={[node.position.x * 0.7, node.position.y * 0.7, node.position.z * 0.7]}>
           <coneGeometry args={[0.05, 0.15, 8]} />
@@ -289,8 +281,40 @@ const ConsultationModel = () => {
 const ConsultationPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const sectionRef = useRef(null);
   const [isMobile, setIsMobile] = useState(false);
+
+  // System theme detection
+  useEffect(() => {
+    const getSystemTheme = (): 'dark' | 'light' => {
+      if (typeof window !== 'undefined' && window.matchMedia) {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      return 'dark';
+    };
+
+    setTheme(getSystemTheme());
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleThemeChange = (e: MediaQueryListEvent) => {
+      setTheme(e.matches ? 'dark' : 'light');
+    };
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleThemeChange);
+    } else {
+      mediaQuery.addListener(handleThemeChange);
+    }
+
+    return () => {
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', handleThemeChange);
+      } else {
+        mediaQuery.removeListener(handleThemeChange);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -370,12 +394,30 @@ const ConsultationPage = () => {
     }, 5000);
   };
 
-  // Features data
+  // Theme-based class names
+  const isDark = theme === 'dark';
+  const bgColor = isDark ? 'bg-[#020617]' : 'bg-gray-50';
+  const textColor = isDark ? 'text-[#F8FAFC]' : 'text-gray-900';
+  const subTextColor = isDark ? 'text-[#94A3B8]' : 'text-gray-600';
+  const cardBg = isDark ? 'bg-[#0F172A]/80' : 'bg-white/80';
+  const cardBorder = isDark ? 'border-[#1E293B]' : 'border-gray-200';
+  const inputBg = isDark ? 'bg-[#020617]' : 'bg-white';
+  const inputBorder = isDark ? 'border-[#1E293B]' : 'border-gray-300';
+  const inputTextColor = isDark ? 'text-white' : 'text-gray-900';
+  const badgeBg = isDark ? 'bg-[#0F172A]' : 'bg-gray-100';
+  const badgeBorder = isDark ? 'border-[#1E293B]' : 'border-gray-200';
+  const gradientFrom = isDark ? 'from-[#6366F1]' : 'from-indigo-600';
+  const gradientTo = isDark ? 'to-[#8B5CF6]' : 'to-purple-600';
+  const overlayGradient = isDark 
+    ? 'from-[#6366F1]/5 via-transparent to-[#8B5CF6]/5'
+    : 'from-indigo-100/30 via-transparent to-purple-100/30';
+
+  // Features data with theme-aware colors
   const features = [
-    { icon: Clock, text: "30-Minute Session", color: "#6366F1", iconBg: "bg-[#6366F1]/10" },
-    { icon: MessageSquare, text: "Expert Advice", color: "#22C55E", iconBg: "bg-green-500/10" },
-    { icon: Calendar, text: "Flexible Scheduling", color: "#F59E0B", iconBg: "bg-orange-500/10" },
-    { icon: Shield, text: "100% Confidential", color: "#EF4444", iconBg: "bg-red-500/10" },
+    { icon: Clock, text: "30-Minute Session", color: "#6366F1", iconBg: isDark ? "bg-[#6366F1]/10" : "bg-indigo-100" },
+    { icon: MessageSquare, text: "Expert Advice", color: "#22C55E", iconBg: isDark ? "bg-green-500/10" : "bg-green-100" },
+    { icon: Calendar, text: "Flexible Scheduling", color: "#F59E0B", iconBg: isDark ? "bg-orange-500/10" : "bg-orange-100" },
+    { icon: Shield, text: "100% Confidential", color: "#EF4444", iconBg: isDark ? "bg-red-500/10" : "bg-red-100" },
   ];
 
   // Animation variants
@@ -441,7 +483,7 @@ const ConsultationPage = () => {
   };
 
   return (
-    <main className="min-h-screen bg-[#020617] pt-20 lg:pt-24 relative overflow-hidden">
+    <main className={`min-h-screen ${bgColor} pt-20 lg:pt-24 relative overflow-hidden`}>
       {/* Background 3D Canvas */}
       <div className="absolute inset-0 z-0 opacity-30 md:opacity-40">
         <Canvas
@@ -451,8 +493,8 @@ const ConsultationPage = () => {
         >
           <ambientLight intensity={0.5} />
           <pointLight position={[10, 10, 10]} intensity={1} />
-          <pointLight position={[-10, -10, -10]} intensity={0.5} color="#8B5CF6" />
-          <ConsultationScene />
+          <pointLight position={[-10, -10, -10]} intensity={0.5} color={isDark ? "#8B5CF6" : "#7C3AED"} />
+          <ConsultationScene isDark={isDark} />
           <OrbitControls 
             enableZoom={false} 
             enablePan={false} 
@@ -465,13 +507,13 @@ const ConsultationPage = () => {
       <section ref={sectionRef} className="relative z-10 py-12 lg:py-16 overflow-hidden">
         {/* Background decorative elements */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-[#6366F1]/5 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-72 h-72 bg-[#8B5CF6]/5 rounded-full blur-3xl" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#6366F1]/5 rounded-full blur-3xl" />
+          <div className={`absolute top-20 left-10 w-72 h-72 ${isDark ? 'bg-[#6366F1]/5' : 'bg-indigo-100/30'} rounded-full blur-3xl`} />
+          <div className={`absolute bottom-20 right-10 w-72 h-72 ${isDark ? 'bg-[#8B5CF6]/5' : 'bg-purple-100/30'} rounded-full blur-3xl`} />
+          <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] ${isDark ? 'bg-[#6366F1]/5' : 'bg-indigo-100/20'} rounded-full blur-3xl`} />
         </div>
 
         {/* Grid pattern overlay */}
-        <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-5" />
+        <div className={`absolute inset-0 bg-[url('/grid-pattern.svg')] ${isDark ? 'opacity-5' : 'opacity-10'}`} />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
@@ -485,10 +527,10 @@ const ConsultationPage = () => {
               {/* Badge */}
               <motion.div 
                 variants={fromTopVariants}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0F172A] border border-[#1E293B]"
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${badgeBg} border ${badgeBorder}`}
               >
                 <Sparkles className="w-4 h-4 text-[#6366F1]" />
-                <span className="text-sm font-medium bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">
+                <span className={`text-sm font-medium bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent`}>
                   Free Consultation
                 </span>
               </motion.div>
@@ -498,9 +540,9 @@ const ConsultationPage = () => {
                 variants={fromTopVariants}
                 className="text-4xl md:text-5xl lg:text-5xl font-bold"
               >
-                <span className="text-[#F8FAFC]">Let&apos;s Build Your</span>
+                <span className={textColor}>Let&apos;s Build Your</span>
                 <br />
-                <span className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">
+                <span className={`bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent`}>
                   Digital Future
                 </span>
               </motion.h1>
@@ -508,13 +550,13 @@ const ConsultationPage = () => {
               {/* Description */}
               <motion.p 
                 variants={fromTopVariants}
-                className="text-lg text-[#94A3B8] leading-relaxed"
+                className={`text-lg ${subTextColor} leading-relaxed`}
               >
                 Schedule a free consultation with our experts. We&apos;ll discuss your business needs, 
                 explore opportunities, and create a tailored roadmap for your digital transformation.
               </motion.p>
 
-              {/* Features Grid - No backgrounds */}
+              {/* Features Grid */}
               <motion.div 
                 variants={containerVariants}
                 className="grid grid-cols-2 gap-4 pt-4"
@@ -530,7 +572,7 @@ const ConsultationPage = () => {
                       <div className={`w-8 h-8 rounded-full ${feature.iconBg} flex items-center justify-center`}>
                         <Icon className="w-4 h-4" style={{ color: feature.color }} />
                       </div>
-                      <span className="text-sm text-[#F8FAFC]">{feature.text}</span>
+                      <span className={`text-sm ${textColor}`}>{feature.text}</span>
                     </motion.div>
                   );
                 })}
@@ -541,7 +583,7 @@ const ConsultationPage = () => {
                 variants={fromBottomVariants}
                 className="relative h-[320px] md:h-[380px] lg:h-[420px] w-full rounded-2xl overflow-hidden mt-4"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-[#6366F1]/5 via-transparent to-[#8B5CF6]/5 rounded-2xl" />
+                <div className={`absolute inset-0 bg-gradient-to-br ${overlayGradient} rounded-2xl`} />
                 <Canvas
                   camera={{ position: [0, 0, 5.5], fov: 45 }}
                   gl={{ antialias: true, alpha: true }}
@@ -549,10 +591,10 @@ const ConsultationPage = () => {
                   className="rounded-2xl"
                 >
                   <ambientLight intensity={0.6} />
-                  <pointLight position={[5, 5, 5]} intensity={1.2} color="#6366F1" />
-                  <pointLight position={[-5, -3, 4]} intensity={0.8} color="#8B5CF6" />
+                  <pointLight position={[5, 5, 5]} intensity={1.2} color={isDark ? "#6366F1" : "#4F46E5"} />
+                  <pointLight position={[-5, -3, 4]} intensity={0.8} color={isDark ? "#8B5CF6" : "#7C3AED"} />
                   <pointLight position={[0, 5, 3]} intensity={0.5} color="#06B6D4" />
-                  <ConsultationModel />
+                  <ConsultationModel isDark={isDark} />
                   <OrbitControls 
                     enableZoom={false} 
                     enablePan={false} 
@@ -570,29 +612,29 @@ const ConsultationPage = () => {
               transition={{ delay: 0.2, duration: 0.6 }}
               className="relative"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] rounded-2xl blur-xl opacity-20" />
+              <div className={`absolute inset-0 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] rounded-2xl blur-xl opacity-20`} />
               
-              <div className="relative bg-[#0F172A]/80 backdrop-blur-md border border-[#1E293B] rounded-2xl p-6 sm:p-8">
+              <div className={`relative ${cardBg} backdrop-blur-md border ${cardBorder} rounded-2xl p-6 sm:p-8`}>
                 {!isSubmitted ? (
                   <form onSubmit={handleSubmit} className="space-y-5">
-                    <h2 className="text-2xl font-bold text-white mb-6">
+                    <h2 className={`text-2xl font-bold ${textColor} mb-6`}>
                       Request Your Free Consultation
                     </h2>
 
                     {/* Full Name */}
                     <div>
-                      <label className="block text-sm font-medium text-[#94A3B8] mb-2">
+                      <label className={`block text-sm font-medium ${subTextColor} mb-2`}>
                         Full Name *
                       </label>
                       <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
+                        <User className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${subTextColor}`} />
                         <input
                           type="text"
                           name="fullName"
                           required
                           value={formData.fullName}
                           onChange={handleInputChange}
-                          className="w-full pl-10 pr-4 py-3 bg-[#020617] border border-[#1E293B] rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition-colors"
+                          className={`w-full pl-10 pr-4 py-3 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} focus:outline-none focus:border-[#6366F1] transition-colors`}
                           placeholder="Enter your full name"
                         />
                       </div>
@@ -600,18 +642,18 @@ const ConsultationPage = () => {
 
                     {/* Email */}
                     <div>
-                      <label className="block text-sm font-medium text-[#94A3B8] mb-2">
+                      <label className={`block text-sm font-medium ${subTextColor} mb-2`}>
                         Email Address *
                       </label>
                       <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
+                        <Mail className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${subTextColor}`} />
                         <input
                           type="email"
                           name="email"
                           required
                           value={formData.email}
                           onChange={handleInputChange}
-                          className="w-full pl-10 pr-4 py-3 bg-[#020617] border border-[#1E293B] rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition-colors"
+                          className={`w-full pl-10 pr-4 py-3 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} focus:outline-none focus:border-[#6366F1] transition-colors`}
                           placeholder="Enter your email"
                         />
                       </div>
@@ -619,18 +661,18 @@ const ConsultationPage = () => {
 
                     {/* Phone */}
                     <div>
-                      <label className="block text-sm font-medium text-[#94A3B8] mb-2">
+                      <label className={`block text-sm font-medium ${subTextColor} mb-2`}>
                         Phone Number *
                       </label>
                       <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
+                        <Phone className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${subTextColor}`} />
                         <input
                           type="tel"
                           name="phone"
                           required
                           value={formData.phone}
                           onChange={handleInputChange}
-                          className="w-full pl-10 pr-4 py-3 bg-[#020617] border border-[#1E293B] rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition-colors"
+                          className={`w-full pl-10 pr-4 py-3 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} focus:outline-none focus:border-[#6366F1] transition-colors`}
                           placeholder="Enter your phone number"
                         />
                       </div>
@@ -638,18 +680,18 @@ const ConsultationPage = () => {
 
                     {/* Company Name */}
                     <div>
-                      <label className="block text-sm font-medium text-[#94A3B8] mb-2">
+                      <label className={`block text-sm font-medium ${subTextColor} mb-2`}>
                         Company Name *
                       </label>
                       <div className="relative">
-                        <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
+                        <Building className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${subTextColor}`} />
                         <input
                           type="text"
                           name="companyName"
                           required
                           value={formData.companyName}
                           onChange={handleInputChange}
-                          className="w-full pl-10 pr-4 py-3 bg-[#020617] border border-[#1E293B] rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition-colors"
+                          className={`w-full pl-10 pr-4 py-3 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} focus:outline-none focus:border-[#6366F1] transition-colors`}
                           placeholder="Enter your company name"
                         />
                       </div>
@@ -657,17 +699,17 @@ const ConsultationPage = () => {
 
                     {/* Industry */}
                     <div>
-                      <label className="block text-sm font-medium text-[#94A3B8] mb-2">
+                      <label className={`block text-sm font-medium ${subTextColor} mb-2`}>
                         Industry *
                       </label>
                       <div className="relative">
-                        <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
+                        <Briefcase className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${subTextColor}`} />
                         <select
                           name="industry"
                           required
                           value={formData.industry}
                           onChange={handleInputChange}
-                          className="w-full pl-10 pr-4 py-3 bg-[#020617] border border-[#1E293B] rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition-colors appearance-none"
+                          className={`w-full pl-10 pr-4 py-3 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} focus:outline-none focus:border-[#6366F1] transition-colors appearance-none`}
                         >
                           <option value="">Select your industry</option>
                           {industries.map((industry) => (
@@ -681,17 +723,17 @@ const ConsultationPage = () => {
 
                     {/* Preferred Time Slot */}
                     <div>
-                      <label className="block text-sm font-medium text-[#94A3B8] mb-2">
+                      <label className={`block text-sm font-medium ${subTextColor} mb-2`}>
                         Preferred Time Slot *
                       </label>
                       <div className="relative">
-                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
+                        <Clock className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${subTextColor}`} />
                         <select
                           name="preferredTime"
                           required
                           value={formData.preferredTime}
                           onChange={handleInputChange}
-                          className="w-full pl-10 pr-4 py-3 bg-[#020617] border border-[#1E293B] rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition-colors appearance-none"
+                          className={`w-full pl-10 pr-4 py-3 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} focus:outline-none focus:border-[#6366F1] transition-colors appearance-none`}
                         >
                           <option value="">Select a time slot</option>
                           {timeSlots.map((slot) => (
@@ -705,17 +747,17 @@ const ConsultationPage = () => {
 
                     {/* Budget Range */}
                     <div>
-                      <label className="block text-sm font-medium text-[#94A3B8] mb-2">
+                      <label className={`block text-sm font-medium ${subTextColor} mb-2`}>
                         Budget Range *
                       </label>
                       <div className="relative">
-                        <Rocket className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
+                        <Rocket className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${subTextColor}`} />
                         <select
                           name="budget"
                           required
                           value={formData.budget}
                           onChange={handleInputChange}
-                          className="w-full pl-10 pr-4 py-3 bg-[#020617] border border-[#1E293B] rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition-colors appearance-none"
+                          className={`w-full pl-10 pr-4 py-3 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} focus:outline-none focus:border-[#6366F1] transition-colors appearance-none`}
                         >
                           <option value="">Select budget range</option>
                           {budgetRanges.map((range) => (
@@ -729,7 +771,7 @@ const ConsultationPage = () => {
 
                     {/* Project Description */}
                     <div>
-                      <label className="block text-sm font-medium text-[#94A3B8] mb-2">
+                      <label className={`block text-sm font-medium ${subTextColor} mb-2`}>
                         Project Description *
                       </label>
                       <textarea
@@ -738,7 +780,7 @@ const ConsultationPage = () => {
                         rows={4}
                         value={formData.projectDescription}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 bg-[#020617] border border-[#1E293B] rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition-colors resize-none"
+                        className={`w-full px-4 py-3 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} focus:outline-none focus:border-[#6366F1] transition-colors resize-none`}
                         placeholder="Tell us about your project, goals, and requirements..."
                       />
                     </div>
@@ -749,7 +791,7 @@ const ConsultationPage = () => {
                       disabled={isSubmitting}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className="w-full py-3 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-[#6366F1]/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      className={`w-full py-3 bg-gradient-to-r ${gradientFrom} ${gradientTo} text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-[#6366F1]/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
                     >
                       {isSubmitting ? (
                         <>
@@ -764,7 +806,7 @@ const ConsultationPage = () => {
                       )}
                     </motion.button>
 
-                    <p className="text-xs text-center text-[#94A3B8]">
+                    <p className={`text-xs text-center ${subTextColor}`}>
                       By submitting, you agree to our{' '}
                       <Link href="/privacy" className="text-[#6366F1] hover:underline">
                         Privacy Policy
@@ -781,10 +823,10 @@ const ConsultationPage = () => {
                     <div className="w-20 h-20 mx-auto mb-4 bg-green-500/10 rounded-full flex items-center justify-center">
                       <CheckCircle className="w-10 h-10 text-green-500" />
                     </div>
-                    <h3 className="text-2xl font-bold text-white mb-3">
+                    <h3 className={`text-2xl font-bold ${textColor} mb-3`}>
                       Consultation Scheduled!
                     </h3>
-                    <p className="text-[#94A3B8] mb-4">
+                    <p className={`${subTextColor} mb-4`}>
                       Thank you for booking a consultation with us. Our team will contact you shortly to confirm the details.
                     </p>
                     <p className="text-sm text-[#6366F1]">
@@ -792,7 +834,7 @@ const ConsultationPage = () => {
                     </p>
                     <button
                       onClick={() => window.location.reload()}
-                      className="mt-6 inline-flex items-center gap-2 px-6 py-2 bg-[#0F172A] border border-[#1E293B] text-white rounded-lg hover:border-[#6366F1] transition-colors"
+                      className={`mt-6 inline-flex items-center gap-2 px-6 py-2 ${badgeBg} border ${cardBorder} ${textColor} rounded-lg hover:border-[#6366F1] transition-colors`}
                     >
                       <ArrowRight className="w-4 h-4" />
                       Book Another Consultation

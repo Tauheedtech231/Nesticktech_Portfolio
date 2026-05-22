@@ -1,7 +1,7 @@
 // app/src/portfolio/components/IndustriesSection.tsx
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { GraduationCap, ShoppingBag, Building2, Rocket, Landmark, Heart } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -97,6 +97,37 @@ export default function Home() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const mobileTilesRef = useRef<(HTMLDivElement | null)[]>([]);
   const desktopTilesRef = useRef<(HTMLDivElement | null)[]>([]);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+
+  // SYSTEM THEME DETECTION - SELF-CONTAINED
+  useEffect(() => {
+    const detectSystemTheme = () => {
+      const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setTheme(isDarkMode ? 'dark' : 'light');
+    };
+
+    detectSystemTheme();
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    const handleThemeChange = (e: MediaQueryListEvent) => {
+      setTheme(e.matches ? 'dark' : 'light');
+    };
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleThemeChange);
+    } else {
+      mediaQuery.addListener(handleThemeChange);
+    }
+
+    return () => {
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', handleThemeChange);
+      } else {
+        mediaQuery.removeListener(handleThemeChange);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     // Animate mobile tiles - reduced x-axis movement to prevent overflow
@@ -172,12 +203,33 @@ export default function Home() {
     };
   }, []);
 
+  // Theme-based classes
+  const themeClasses = {
+    section: theme === 'dark' ? 'bg-[#020617]' : 'bg-[#F8FAFC]',
+    headingText: theme === 'dark' ? 'text-white' : 'text-[#0F172A]',
+    subText: theme === 'dark' ? 'text-white/40' : 'text-[#64748B]/60',
+    tileStone: theme === 'dark'
+      ? `linear-gradient(135deg, #1e1b4b 0%, #1e1a4a 50%, #172554 100%)`
+      : `linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 50%, #cbd5e1 100%)`,
+    tileGlow: theme === 'dark'
+      ? 'linear-gradient(135deg, rgba(255,255,255,0.35), rgba(255,255,255,0.05))'
+      : 'linear-gradient(135deg, rgba(0,0,0,0.15), rgba(0,0,0,0.05))',
+    iconColor: theme === 'dark' ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.6)',
+    nameColor: theme === 'dark' ? '#fff' : '#0F172A',
+    descColor: theme === 'dark' ? 'rgba(255,255,255,0.95)' : 'rgba(0,0,0,0.8)',
+    featureText: theme === 'dark' ? '#ffffff' : '#0F172A',
+    featureShadow: theme === 'dark' ? '0 1px 2px rgba(0,0,0,0.5)' : 'none',
+    overlayGradient: theme === 'dark'
+      ? 'linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 40%)'
+      : 'linear-gradient(to top, rgba(0,0,0,0.1) 0%, transparent 40%)',
+  };
+
   // Mobile tiles filtered to only show EDUCATION, E-COMMERCE, CONSTRUCTION (first 3)
   const mobileTiles = tiles.slice(0, 3);
 
   return (
     <div
-      className="min-h-screen bg-[#020617] flex flex-col items-center justify-center py-12 px-4 md:py-16 md:px-8"
+      className={`min-h-screen ${themeClasses.section} flex flex-col items-center justify-center py-12 px-4 md:py-16 md:px-8 transition-colors duration-300`}
       style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}
       ref={sectionRef}
     >
@@ -223,7 +275,7 @@ export default function Home() {
           inset: 0;
           background:
             url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.25'/%3E%3C/svg%3E"),
-            linear-gradient(135deg, #1e1b4b 0%, #1e1a4a 50%, #172554 100%);
+            var(--stone-gradient);
           background-size: 300px 300px, 100% 100%;
           border-radius: 14px;
         }
@@ -233,7 +285,7 @@ export default function Home() {
           inset: -1px;
           border-radius: 15px;
           border: 1.5px solid transparent;
-          background: linear-gradient(135deg, rgba(255,255,255,0.35), rgba(255,255,255,0.05)) border-box;
+          background: var(--glow-gradient) border-box;
           -webkit-mask:
             linear-gradient(#fff 0 0) padding-box,
             linear-gradient(#fff 0 0);
@@ -252,7 +304,7 @@ export default function Home() {
           font-weight: 700;
           font-size: 14px;
           letter-spacing: 4px;
-          color: #fff;
+          color: var(--name-color);
           text-transform: uppercase;
           transition: opacity 0.3s ease;
           z-index: 2;
@@ -285,7 +337,7 @@ export default function Home() {
           font-weight: 300;
           font-size: 12px;
           letter-spacing: 2px;
-          color: rgba(255,255,255,0.95);
+          color: var(--desc-color);
           text-transform: uppercase;
           opacity: 0;
           transition: opacity 0.3s ease;
@@ -324,7 +376,7 @@ export default function Home() {
           top: 20px;
           left: 20px;
           opacity: 0.5;
-          color: rgba(255,255,255,0.8);
+          color: var(--icon-color);
           z-index: 2;
         }
         
@@ -347,7 +399,7 @@ export default function Home() {
         .tile-content-overlay {
           position: absolute;
           inset: 0;
-          background: linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 40%);
+          background: var(--overlay-gradient);
           border-radius: 14px;
           pointer-events: none;
         }
@@ -392,11 +444,11 @@ export default function Home() {
           align-items: center;
           font-family: 'Montserrat', sans-serif;
           font-size: 13px;
-          color: #ffffff;
+          color: var(--feature-color);
           line-height: 1.4;
           font-weight: 500;
           letter-spacing: 0.5px;
-          text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+          text-shadow: var(--feature-shadow);
           white-space: nowrap;
         }
         
@@ -468,16 +520,30 @@ export default function Home() {
         }
       `}</style>
 
+      {/* Apply CSS variables for theme */}
+      <style>{`
+        .industries-section {
+          --stone-gradient: ${themeClasses.tileStone};
+          --glow-gradient: ${themeClasses.tileGlow};
+          --icon-color: ${themeClasses.iconColor};
+          --name-color: ${themeClasses.nameColor};
+          --desc-color: ${themeClasses.descColor};
+          --feature-color: ${themeClasses.featureText};
+          --feature-shadow: ${themeClasses.featureShadow};
+          --overlay-gradient: ${themeClasses.overlayGradient};
+        }
+      `}</style>
+
       {/* Heading Section */}
       <div className="text-center mb-10 md:mb-14">
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight font-serif">
+        <h1 className={`text-3xl sm:text-4xl font-bold tracking-tight font-serif ${themeClasses.headingText}`}>
           Industries{' '}
           <span className="heading-gradient">
             We Serve
           </span>
         </h1>
         <div className="w-24 h-px bg-gradient-to-r from-transparent via-[#6366F1] to-transparent mx-auto mt-6 mb-4" />
-        <p className="text-white/40 text-xs sm:text-sm tracking-[4px] sm:tracking-[6px] uppercase font-montserrat font-light">
+        <p className={`${themeClasses.subText} text-xs sm:text-sm tracking-[4px] sm:tracking-[6px] uppercase font-montserrat font-light transition-colors duration-300`}>
           Industries We Serve
         </p>
       </div>

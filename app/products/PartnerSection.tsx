@@ -1,9 +1,10 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react/no-unescaped-entities */
 'use client';
 
 import { motion, useInView } from 'framer-motion';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { 
   Handshake, 
   Send,
@@ -24,7 +25,8 @@ import {
   Globe,
   Users,
   Briefcase,
-  Star
+  Star,
+  Clock
 } from 'lucide-react';
 
 interface FormData {
@@ -51,6 +53,7 @@ export default function PartnerCollaboratorPage() {
   const sectionRef = useRef(null);
   const isInView = useInView(sectionRef, { once: true, amount: 0.1 });
   const [activeTab, setActiveTab] = useState<'partner' | 'collaborator'>('partner');
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   
   const [formData, setFormData] = useState<FormData>({
     fullName: '',
@@ -71,6 +74,37 @@ export default function PartnerCollaboratorPage() {
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+
+  // System theme detection
+  useEffect(() => {
+    const getSystemTheme = (): 'dark' | 'light' => {
+      if (typeof window !== 'undefined' && window.matchMedia) {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      return 'dark';
+    };
+
+    setTheme(getSystemTheme());
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleThemeChange = (e: MediaQueryListEvent) => {
+      setTheme(e.matches ? 'dark' : 'light');
+    };
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleThemeChange);
+    } else {
+      mediaQuery.addListener(handleThemeChange);
+    }
+
+    return () => {
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', handleThemeChange);
+      } else {
+        mediaQuery.removeListener(handleThemeChange);
+      }
+    };
+  }, []);
 
   const countries = [
     'Pakistan', 'USA', 'UK', 'Canada', 'Australia', 'UAE', 'Saudi Arabia',
@@ -106,6 +140,24 @@ export default function PartnerCollaboratorPage() {
     'Weekends only',
     'Flexible'
   ];
+
+  // Theme-based class names
+  const isDark = theme === 'dark';
+  const bgColor = isDark ? 'bg-black' : 'bg-gray-50';
+  const textColor = isDark ? 'text-white' : 'text-gray-900';
+  const subTextColor = isDark ? 'text-gray-400' : 'text-gray-600';
+  const cardBg = isDark ? 'bg-gray-900/50' : 'bg-white/80';
+  const cardBorder = isDark ? 'border-gray-800' : 'border-gray-200';
+  const inputBg = isDark ? '#0F0F0F' : '#FFFFFF';
+  const inputBorder = isDark ? '#1E293B' : '#E5E7EB';
+  const inputTextColor = isDark ? '#FFFFFF' : '#111827';
+  const buttonBg = isDark ? 'bg-blue-500' : 'bg-blue-600';
+  const buttonHoverBg = isDark ? 'hover:bg-blue-600' : 'hover:bg-blue-700';
+  const tabActiveBg = isDark ? 'bg-blue-500' : 'bg-blue-600';
+  const tabInactiveBg = isDark ? 'bg-gray-900' : 'bg-gray-100';
+  const tabInactiveText = isDark ? 'text-gray-400' : 'text-gray-500';
+  const modalBg = isDark ? 'bg-gray-900' : 'bg-white';
+  const modalBorder = isDark ? 'border-blue-500/30' : 'border-blue-300/50';
 
   const addLinkField = () => {
     if (formData.links.length < 7) {
@@ -171,7 +223,6 @@ export default function PartnerCollaboratorPage() {
       setFormData({
         fullName: '',
         email: '',
-        
         phone: '',
         country: '',
         message: '',
@@ -194,9 +245,9 @@ export default function PartnerCollaboratorPage() {
     padding: '0.75rem 1rem 0.75rem 2.5rem',
     borderRadius: '0.75rem',
     fontSize: '0.875rem',
-    backgroundColor: '#0F0F0F',
-    border: '1px solid #1E293B',
-    color: '#FFFFFF',
+    backgroundColor: inputBg,
+    border: `1px solid ${inputBorder}`,
+    color: inputTextColor,
     outline: 'none',
     transition: 'all 0.2s ease',
   };
@@ -206,9 +257,9 @@ export default function PartnerCollaboratorPage() {
     padding: '0.75rem 1rem 0.75rem 2.5rem',
     borderRadius: '0.75rem',
     fontSize: '0.875rem',
-    backgroundColor: '#0F0F0F',
-    border: '1px solid #1E293B',
-    color: '#FFFFFF',
+    backgroundColor: inputBg,
+    border: `1px solid ${inputBorder}`,
+    color: inputTextColor,
     outline: 'none',
     transition: 'all 0.2s ease',
     appearance: 'none' as const,
@@ -220,21 +271,21 @@ export default function PartnerCollaboratorPage() {
     padding: '0.75rem 1rem 0.75rem 2.5rem',
     borderRadius: '0.75rem',
     fontSize: '0.875rem',
-    backgroundColor: '#0F0F0F',
-    border: '1px solid #1E293B',
-    color: '#FFFFFF',
+    backgroundColor: inputBg,
+    border: `1px solid ${inputBorder}`,
+    color: inputTextColor,
     outline: 'none',
     transition: 'all 0.2s ease',
     resize: 'none' as const,
   };
 
   return (
-    <section ref={sectionRef} className="min-h-screen py-12 md:py-20 px-4 sm:px-6 relative overflow-hidden bg-black">
-      {/* Blue Theme Background Elements */}
+    <section ref={sectionRef} className={`min-h-screen py-12 md:py-20 px-4 sm:px-6 relative overflow-hidden ${bgColor}`}>
+      {/* Theme Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-[400px] md:w-[600px] h-[400px] md:h-[600px] rounded-full blur-3xl opacity-10 bg-blue-500" />
-        <div className="absolute bottom-0 left-0 w-[400px] md:w-[600px] h-[400px] md:h-[600px] rounded-full blur-3xl opacity-10 bg-blue-600" />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[500px] md:w-[800px] h-[500px] md:h-[800px] rounded-full blur-3xl opacity-5 bg-blue-400" />
+        <div className={`absolute top-0 right-0 w-[400px] md:w-[600px] h-[400px] md:h-[600px] rounded-full blur-3xl opacity-10 ${isDark ? 'bg-blue-500' : 'bg-blue-300'}`} />
+        <div className={`absolute bottom-0 left-0 w-[400px] md:w-[600px] h-[400px] md:h-[600px] rounded-full blur-3xl opacity-10 ${isDark ? 'bg-blue-600' : 'bg-blue-400'}`} />
+        <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[500px] md:w-[800px] h-[500px] md:h-[800px] rounded-full blur-3xl opacity-5 ${isDark ? 'bg-blue-400' : 'bg-blue-200'}`} />
       </div>
 
       <div className="max-w-6xl mx-auto relative z-10">
@@ -245,18 +296,18 @@ export default function PartnerCollaboratorPage() {
           transition={{ duration: 0.6 }}
           className="text-center mb-10 md:mb-12"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4 mx-auto w-fit bg-blue-500/10 border border-blue-500/20 cursor-pointer">
-            <Handshake className="w-4 h-4 md:w-5 md:h-5 text-blue-400" />
-            <span className="text-sm md:text-base font-medium font-sans tracking-wide text-blue-300">
+          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4 mx-auto w-fit ${isDark ? 'bg-blue-500/10 border-blue-500/20' : 'bg-blue-100 border-blue-300'} border cursor-pointer`}>
+            <Handshake className={`w-4 h-4 md:w-5 md:h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+            <span className={`text-sm md:text-base font-medium font-sans tracking-wide ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
               Join Our Network
             </span>
           </div>
           
-          <h2 className="text-3xl sm:text-4xl  font-bold mb-4 md:mb-6 font-serif tracking-tight text-white">
-            Become a <span className="text-blue-400">Partner or Collaborator</span>
+          <h2 className={`text-3xl sm:text-4xl font-bold mb-4 md:mb-6 font-serif tracking-tight ${textColor}`}>
+            Become a <span className={isDark ? 'text-blue-400' : 'text-blue-600'}>Partner or Collaborator</span>
           </h2>
           
-          <p className="text-base md:text-lg max-w-2xl mx-auto px-4 font-light tracking-wide text-gray-400">
+          <p className={`text-base md:text-lg max-w-2xl mx-auto px-4 font-light tracking-wide ${subTextColor}`}>
             Join our ecosystem of partners and collaborators to revolutionize educational portfolio management together.
           </p>
         </motion.div>
@@ -272,8 +323,8 @@ export default function PartnerCollaboratorPage() {
             onClick={() => setActiveTab('partner')}
             className={`px-6 md:px-8 py-3 md:py-4 rounded-xl font-semibold text-base md:text-lg transition-all duration-300 flex items-center gap-3 cursor-pointer ${
               activeTab === 'partner'
-                ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25 scale-105'
-                : 'bg-gray-900 text-gray-400 hover:bg-gray-800 border border-gray-800'
+                ? `${tabActiveBg} text-white shadow-lg shadow-blue-500/25 scale-105`
+                : `${tabInactiveBg} ${tabInactiveText} hover:bg-gray-800 border border-gray-800`
             }`}
           >
             <Building2 className="w-5 h-5 md:w-6 md:h-6" />
@@ -283,8 +334,8 @@ export default function PartnerCollaboratorPage() {
             onClick={() => setActiveTab('collaborator')}
             className={`px-6 md:px-8 py-3 md:py-4 rounded-xl font-semibold text-base md:text-lg transition-all duration-300 flex items-center gap-3 cursor-pointer ${
               activeTab === 'collaborator'
-                ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25 scale-105'
-                : 'bg-gray-900 text-gray-400 hover:bg-gray-800 border border-gray-800'
+                ? `${tabActiveBg} text-white shadow-lg shadow-blue-500/25 scale-105`
+                : `${tabInactiveBg} ${tabInactiveText} hover:bg-gray-800 border border-gray-800`
             }`}
           >
             <Users className="w-5 h-5 md:w-6 md:h-6" />
@@ -297,7 +348,7 @@ export default function PartnerCollaboratorPage() {
           initial={{ opacity: 0, y: 50 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.3, duration: 0.6 }}
-          className="w-full rounded-2xl md:rounded-3xl p-6 md:p-10 bg-gray-900/50 backdrop-blur-sm border border-gray-800"
+          className={`w-full rounded-2xl md:rounded-3xl p-6 md:p-10 ${cardBg} backdrop-blur-sm border ${cardBorder}`}
         >
           <div className="flex items-center justify-between mb-6 md:mb-8">
             <div className="flex items-center gap-3 md:gap-4">
@@ -308,11 +359,11 @@ export default function PartnerCollaboratorPage() {
                   <Users className="w-6 h-6 md:w-7 md:h-7 text-white" />
                 )}
               </div>
-              <h3 className="text-xl md:text-2xl font-bold font-serif tracking-tight text-white">
+              <h3 className={`text-xl md:text-2xl font-bold font-serif tracking-tight ${textColor}`}>
                 {activeTab === 'partner' ? 'Partner Application Form' : 'Collaborator Application Form'}
               </h3>
             </div>
-            <div className="text-xs md:text-sm font-sans text-gray-500">
+            <div className={`text-xs md:text-sm font-sans ${subTextColor}`}>
               * Required fields
             </div>
           </div>
@@ -321,7 +372,7 @@ export default function PartnerCollaboratorPage() {
             {/* Basic Information - 2 columns */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
               <div>
-                <label className="block text-sm md:text-base font-medium mb-2 text-gray-300">
+                <label className={`block text-sm md:text-base font-medium mb-2 ${subTextColor}`}>
                   Full Name <span className="text-blue-400">*</span>
                 </label>
                 <div className="relative">
@@ -340,7 +391,7 @@ export default function PartnerCollaboratorPage() {
               </div>
 
               <div>
-                <label className="block text-sm md:text-base font-medium mb-2 text-gray-300">
+                <label className={`block text-sm md:text-base font-medium mb-2 ${subTextColor}`}>
                   Email Address <span className="text-blue-400">*</span>
                 </label>
                 <div className="relative">
@@ -362,7 +413,7 @@ export default function PartnerCollaboratorPage() {
             {/* Contact Information - 2 columns */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
               <div>
-                <label className="block text-sm md:text-base font-medium mb-2 text-gray-300">
+                <label className={`block text-sm md:text-base font-medium mb-2 ${subTextColor}`}>
                   Phone Number <span className="text-blue-400">*</span>
                 </label>
                 <div className="relative">
@@ -381,7 +432,7 @@ export default function PartnerCollaboratorPage() {
               </div>
 
               <div>
-                <label className="block text-sm md:text-base font-medium mb-2 text-gray-300">
+                <label className={`block text-sm md:text-base font-medium mb-2 ${subTextColor}`}>
                   Country <span className="text-blue-400">*</span>
                 </label>
                 <div className="relative">
@@ -408,7 +459,7 @@ export default function PartnerCollaboratorPage() {
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
                   <div>
-                    <label className="block text-sm md:text-base font-medium mb-2 text-gray-300">
+                    <label className={`block text-sm md:text-base font-medium mb-2 ${subTextColor}`}>
                       Company/Organization Name <span className="text-blue-400">*</span>
                     </label>
                     <div className="relative">
@@ -427,7 +478,7 @@ export default function PartnerCollaboratorPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm md:text-base font-medium mb-2 text-gray-300">
+                    <label className={`block text-sm md:text-base font-medium mb-2 ${subTextColor}`}>
                       Partner Type <span className="text-blue-400">*</span>
                     </label>
                     <div className="relative">
@@ -456,7 +507,7 @@ export default function PartnerCollaboratorPage() {
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
                   <div>
-                    <label className="block text-sm md:text-base font-medium mb-2 text-gray-300">
+                    <label className={`block text-sm md:text-base font-medium mb-2 ${subTextColor}`}>
                       Area of Expertise <span className="text-blue-400">*</span>
                     </label>
                     <div className="relative">
@@ -478,11 +529,11 @@ export default function PartnerCollaboratorPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm md:text-base font-medium mb-2 text-gray-300">
+                    <label className={`block text-sm md:text-base font-medium mb-2 ${subTextColor}`}>
                       Availability <span className="text-blue-400">*</span>
                     </label>
                     <div className="relative">
-                      <ClockIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 z-10 pointer-events-none" />
+                      <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 z-10 pointer-events-none" />
                       <select
                         name="availability"
                         value={formData.availability}
@@ -504,7 +555,7 @@ export default function PartnerCollaboratorPage() {
 
             {/* Links Section */}
             <div>
-              <label className="block text-sm md:text-base font-medium mb-2 text-gray-300">
+              <label className={`block text-sm md:text-base font-medium mb-2 ${subTextColor}`}>
                 Links (Portfolio/Website/Social) - Optional (Max 7)
               </label>
               {formData.links.map((link, index) => (
@@ -545,11 +596,11 @@ export default function PartnerCollaboratorPage() {
 
             {/* CV Upload */}
             <div>
-              <label className="block text-sm md:text-base font-medium mb-2 text-gray-300">
+              <label className={`block text-sm md:text-base font-medium mb-2 ${subTextColor}`}>
                 Upload CV/Resume (Optional - Max 20MB)
               </label>
               <div 
-                className="border-2 border-dashed rounded-xl p-6 text-center cursor-pointer hover:border-blue-500 transition-colors border-gray-700 bg-black/30"
+                className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer hover:border-blue-500 transition-colors ${isDark ? 'border-gray-700 bg-black/30' : 'border-gray-300 bg-gray-50'}`}
                 onClick={() => document.getElementById('cvUpload')?.click()}
               >
                 <input
@@ -563,7 +614,7 @@ export default function PartnerCollaboratorPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3 mx-auto">
                       <FileText className="w-6 h-6 text-blue-400" />
-                      <span className="text-sm text-gray-300">{formData.cvFileName}</span>
+                      <span className={`text-sm ${subTextColor}`}>{formData.cvFileName}</span>
                     </div>
                     <button
                       type="button"
@@ -575,9 +626,9 @@ export default function PartnerCollaboratorPage() {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-2">
-                    <Upload className="w-10 h-10 text-gray-500" />
-                    <p className="text-sm text-gray-500">Click to upload or drag and drop</p>
-                    <p className="text-xs text-gray-600">PDF, DOC, DOCX, JPG, PNG up to 20MB</p>
+                    <Upload className={`w-10 h-10 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                    <p className={`text-sm ${subTextColor}`}>Click to upload or drag and drop</p>
+                    <p className={`text-xs ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>PDF, DOC, DOCX, JPG, PNG up to 20MB</p>
                   </div>
                 )}
               </div>
@@ -585,7 +636,7 @@ export default function PartnerCollaboratorPage() {
 
             {/* Message */}
             <div>
-              <label className="block text-sm md:text-base font-medium mb-2 text-gray-300">
+              <label className={`block text-sm md:text-base font-medium mb-2 ${subTextColor}`}>
                 Message / Why do you want to join? <span className="text-blue-400">*</span>
               </label>
               <div className="relative">
@@ -607,7 +658,7 @@ export default function PartnerCollaboratorPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-4 px-6 rounded-xl font-semibold text-base md:text-lg transition-all duration-300 hover:scale-105 disabled:opacity-50 flex items-center justify-center gap-3 bg-blue-500 text-white hover:bg-blue-600 cursor-pointer"
+              className={`w-full py-4 px-6 rounded-xl font-semibold text-base md:text-lg transition-all duration-300 hover:scale-105 disabled:opacity-50 flex items-center justify-center gap-3 ${buttonBg} text-white ${buttonHoverBg} cursor-pointer`}
             >
               {isSubmitting ? (
                 <>
@@ -637,15 +688,15 @@ export default function PartnerCollaboratorPage() {
 
       {/* Success Modal */}
       {showSuccessModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn p-4">
-          <div className="rounded-2xl p-8 max-w-md w-full mx-4 text-center animate-scaleIn bg-gray-900 border border-blue-500/30">
+        <div className={`fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn p-4`}>
+          <div className={`rounded-2xl p-8 max-w-md w-full mx-4 text-center animate-scaleIn ${modalBg} border ${modalBorder}`}>
             <div className="w-16 h-16 mx-auto rounded-full bg-green-500/20 flex items-center justify-center mb-4">
               <CheckCircle className="w-8 h-8 text-green-400" />
             </div>
-            <h3 className="text-xl font-bold mb-3 font-serif text-white">
+            <h3 className={`text-xl font-bold mb-3 font-serif ${textColor}`}>
               Application Submitted!
             </h3>
-            <p className="text-sm mb-5 font-light text-gray-400">
+            <p className={`text-sm mb-5 font-light ${subTextColor}`}>
               {successMessage}
             </p>
             <button
@@ -681,26 +732,5 @@ export default function PartnerCollaboratorPage() {
         }
       `}</style>
     </section>
-  );
-}
-
-// ClockIcon component
-function ClockIcon(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="12" cy="12" r="10" />
-      <polyline points="12 6 12 12 16 14" />
-    </svg>
   );
 }

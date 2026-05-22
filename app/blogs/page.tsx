@@ -26,6 +26,38 @@ export default function PublicBlogsPage() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [categories, setCategories] = useState<string[]>(['All']);
   const [sortBy, setSortBy] = useState('latest');
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+
+  // System theme detection
+  useEffect(() => {
+    const getSystemTheme = (): 'dark' | 'light' => {
+      if (typeof window !== 'undefined' && window.matchMedia) {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      return 'dark';
+    };
+
+    setTheme(getSystemTheme());
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleThemeChange = (e: MediaQueryListEvent) => {
+      setTheme(e.matches ? 'dark' : 'light');
+    };
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleThemeChange);
+    } else {
+      mediaQuery.addListener(handleThemeChange);
+    }
+
+    return () => {
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', handleThemeChange);
+      } else {
+        mediaQuery.removeListener(handleThemeChange);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     fetchBlogs();
@@ -87,36 +119,60 @@ export default function PublicBlogsPage() {
     setFilteredBlogs(filtered);
   };
 
+  // Theme-based class names
+  const isDark = theme === 'dark';
+  const bgColor = isDark ? 'bg-[#020617]' : 'bg-gray-50';
+  const textColor = isDark ? 'text-[#F8FAFC]' : 'text-gray-900';
+  const subTextColor = isDark ? 'text-[#94A3B8]' : 'text-gray-600';
+  const cardBg = isDark ? 'bg-[#0F172A]/60' : 'bg-white/80';
+  const cardBorder = isDark ? 'border-[#1E293B]' : 'border-gray-200';
+  const overlayBg = isDark ? 'bg-[#020617]/80' : 'bg-gray-900/80';
+  const badgeBg = isDark ? 'bg-[#0F172A]/60' : 'bg-gray-100/80';
+  const inputBg = isDark ? 'bg-[#020617]' : 'bg-white';
+  const inputBorder = isDark ? 'border-[#1E293B]' : 'border-gray-300';
+  const placeholderColor = isDark ? 'text-[#64748B]' : 'text-gray-400';
+  const hoverBorder = isDark ? 'hover:border-[#6366F1]/50' : 'hover:border-indigo-400/50';
+
+  // Hero section background based on theme
+  const heroImage = isDark
+    ? 'url("https://images.unsplash.com/photo-1499750310107-5fef28a66643?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80")'
+    : 'url("https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop")';
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#020617]">
-        <div className="w-8 h-8 border-2 border-[#6366F1] border-t-transparent rounded-full animate-spin" />
+      <div className={`min-h-screen flex items-center justify-center ${bgColor}`}>
+        <div className="relative">
+          <div className="w-12 h-12 border-2 border-[#6366F1] border-t-transparent rounded-full animate-spin" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Sparkles className="w-5 h-5 text-[#6366F1] animate-pulse" />
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#020617]">
+    <div className={`min-h-screen ${bgColor}`}>
       {/* Hero Section with Smooth Animation */}
       <div 
         className="relative h-[300px] mt-[1rem] md:h-[450px] bg-cover bg-center bg-fixed flex items-center overflow-hidden"
         style={{
-          backgroundImage: 'url("https://images.unsplash.com/photo-1499750310107-5fef28a66643?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80")'
+          backgroundImage: heroImage
         }}
       >
-        {/* Gradient Overlay - Blue/Purple themed like about page */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#020617]/80 via-[#020617]/80 to-[#0F172A]/80" />
+        {/* Gradient Overlay - Theme aware */}
+        <div className={`absolute inset-0 bg-gradient-to-br ${overlayBg} via-${overlayBg} to-${isDark ? '[#0F172A]/80' : 'gray-800/80'}`} />
         <div className="absolute inset-0 bg-gradient-to-r from-[#6366F1]/20 via-transparent to-[#8B5CF6]/20" />
         
         {/* Background animated elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 right-10 w-96 h-96 bg-[#6366F1]/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '8s' }} />
-          <div className="absolute bottom-20 left-10 w-96 h-96 bg-[#8B5CF6]/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '10s', animationDelay: '1s' }} />
+          <div className={`absolute top-20 right-10 w-96 h-96 ${isDark ? 'bg-[#6366F1]/5' : 'bg-indigo-200/20'} rounded-full blur-3xl animate-pulse`} style={{ animationDuration: '8s' }} />
+          <div className={`absolute bottom-20 left-10 w-96 h-96 ${isDark ? 'bg-[#8B5CF6]/5' : 'bg-purple-200/20'} rounded-full blur-3xl animate-pulse`} style={{ animationDuration: '10s', animationDelay: '1s' }} />
         </div>
 
         <div className="relative z-10 w-full text-center px-4 animate-fade-in-up">
           <div className="animate-slide-down">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4 bg-[#0F172A]/60 backdrop-blur-sm border border-[#1E293B] animate-scale-in">
+            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4 ${badgeBg} backdrop-blur-sm border ${cardBorder} animate-scale-in`}>
               <Sparkles className="w-4 h-4 text-[#6366F1]" />
               <span className="text-xs lg:text-sm font-medium font-sans tracking-wide bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent italic">
                 Our Blog
@@ -130,7 +186,7 @@ export default function PublicBlogsPage() {
               </span>
             </h1>
             
-            <p className="text-sm sm:text-base text-[#E2E8F0] max-w-2xl mx-auto font-light tracking-wide leading-relaxed bg-[#0F172A]/40 backdrop-blur-sm px-6 py-3 rounded-xl animate-slide-in-right">
+            <p className={`text-sm sm:text-base ${isDark ? 'text-[#E2E8F0]' : 'text-gray-700'} max-w-2xl mx-auto font-light tracking-wide leading-relaxed ${badgeBg} backdrop-blur-sm px-6 py-3 rounded-xl animate-slide-in-right`}>
               Discover expert insights, industry trends, and innovative ideas from our team of creative minds.
             </p>
           </div>
@@ -143,8 +199,8 @@ export default function PublicBlogsPage() {
           <div className="lg:w-80 flex-shrink-0">
             <div className="sticky top-24 space-y-6">
               {/* Search Box */}
-              <div className="bg-[#0F172A]/60 backdrop-blur-sm border border-[#1E293B] rounded-xl p-5 hover:border-[#6366F1]/50 transition-all duration-300">
-                <h3 className="text-sm lg:text-base font-semibold font-sans tracking-wide text-[#F8FAFC] mb-3 flex items-center gap-2">
+              <div className={`${cardBg} backdrop-blur-sm border ${cardBorder} rounded-xl p-5 ${hoverBorder} transition-all duration-300`}>
+                <h3 className={`text-sm lg:text-base font-semibold font-sans tracking-wide ${textColor} mb-3 flex items-center gap-2`}>
                   <Search size={18} className="text-[#6366F1]" />
                   Search Articles
                 </h3>
@@ -153,13 +209,13 @@ export default function PublicBlogsPage() {
                   placeholder="Search..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-4 py-2 bg-[#020617] border border-[#1E293B] rounded-lg text-[#E2E8F0] placeholder:text-[#64748B] focus:ring-2 focus:ring-[#6366F1] focus:border-transparent transition-all text-sm font-sans tracking-wide"
+                  className={`w-full px-4 py-2 ${inputBg} border ${inputBorder} rounded-lg ${isDark ? 'text-[#E2E8F0]' : 'text-gray-900'} ${placeholderColor} focus:ring-2 focus:ring-[#6366F1] focus:border-transparent transition-all text-sm font-sans tracking-wide`}
                 />
               </div>
 
               {/* Categories Filter */}
-              <div className="bg-[#0F172A]/60 backdrop-blur-sm border border-[#1E293B] rounded-xl p-5 hover:border-[#6366F1]/50 transition-all duration-300">
-                <h3 className="text-sm lg:text-base font-semibold font-sans tracking-wide text-[#F8FAFC] mb-3 flex items-center gap-2">
+              <div className={`${cardBg} backdrop-blur-sm border ${cardBorder} rounded-xl p-5 ${hoverBorder} transition-all duration-300`}>
+                <h3 className={`text-sm lg:text-base font-semibold font-sans tracking-wide ${textColor} mb-3 flex items-center gap-2`}>
                   <Tag size={18} className="text-[#8B5CF6]" />
                   Categories
                 </h3>
@@ -171,7 +227,7 @@ export default function PublicBlogsPage() {
                       className={`w-full text-left px-3 py-2 rounded-lg transition-all duration-300 cursor-pointer text-sm font-sans tracking-wide ${
                         selectedCategory === category
                           ? 'bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white'
-                          : 'text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#6366F1]/10'
+                          : `${subTextColor} hover:${textColor} ${isDark ? 'hover:bg-[#6366F1]/10' : 'hover:bg-indigo-50'}`
                       }`}
                     >
                       {category}
@@ -186,8 +242,8 @@ export default function PublicBlogsPage() {
               </div>
 
               {/* Sort By */}
-              <div className="bg-[#0F172A]/60 backdrop-blur-sm border border-[#1E293B] rounded-xl p-5 hover:border-[#6366F1]/50 transition-all duration-300">
-                <h3 className="text-sm lg:text-base font-semibold font-sans tracking-wide text-[#F8FAFC] mb-3 flex items-center gap-2">
+              <div className={`${cardBg} backdrop-blur-sm border ${cardBorder} rounded-xl p-5 ${hoverBorder} transition-all duration-300`}>
+                <h3 className={`text-sm lg:text-base font-semibold font-sans tracking-wide ${textColor} mb-3 flex items-center gap-2`}>
                   <Filter size={18} className="text-[#A855F7]" />
                   Sort By
                 </h3>
@@ -203,7 +259,7 @@ export default function PublicBlogsPage() {
                       className={`w-full text-left px-3 py-2 rounded-lg transition-all duration-300 cursor-pointer text-sm font-sans tracking-wide ${
                         sortBy === option.value
                           ? 'bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white'
-                          : 'text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#6366F1]/10'
+                          : `${subTextColor} hover:${textColor} ${isDark ? 'hover:bg-[#6366F1]/10' : 'hover:bg-indigo-50'}`
                       }`}
                     >
                       {option.label}
@@ -214,7 +270,7 @@ export default function PublicBlogsPage() {
 
               {/* Results Count */}
               <div className="bg-gradient-to-r from-[#6366F1]/10 to-[#8B5CF6]/10 backdrop-blur-sm rounded-xl p-4 border border-[#6366F1]/30">
-                <p className="text-xs sm:text-sm text-[#94A3B8] text-center font-sans tracking-wide">
+                <p className={`text-xs sm:text-sm ${subTextColor} text-center font-sans tracking-wide`}>
                   Found <span className="font-bold text-[#6366F1]">{filteredBlogs.length}</span> articles
                 </p>
               </div>
@@ -224,16 +280,16 @@ export default function PublicBlogsPage() {
           {/* Right side - Blog Grid */}
           <div className="flex-1">
             {filteredBlogs.length === 0 ? (
-              <div className="text-center py-20 bg-[#0F172A]/60 backdrop-blur-sm border border-[#1E293B] rounded-xl">
-                <p className="text-[#94A3B8] text-lg font-sans tracking-wide">No articles found</p>
-                <p className="text-[#64748B] text-sm mt-2">Try adjusting your search or filter</p>
+              <div className={`text-center py-20 ${cardBg} backdrop-blur-sm border ${cardBorder} rounded-xl`}>
+                <p className={`${subTextColor} text-lg font-sans tracking-wide`}>No articles found</p>
+                <p className={`${isDark ? 'text-[#64748B]' : 'text-gray-400'} text-sm mt-2`}>Try adjusting your search or filter</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {filteredBlogs.map((blog, index) => (
                   <Link key={blog.id} href={`/blogs/${blog.id}`}>
                     <div 
-                      className="group bg-[#0F172A]/60 backdrop-blur-sm border border-[#1E293B] rounded-xl overflow-hidden hover:border-[#6366F1]/50 transition-all duration-300 cursor-pointer h-full animate-fade-in-up"
+                      className={`group ${cardBg} backdrop-blur-sm border ${cardBorder} rounded-xl overflow-hidden ${hoverBorder} transition-all duration-300 cursor-pointer h-full animate-fade-in-up`}
                       style={{ animationDelay: `${index * 0.1}s` }}
                     >
                       {blog.featured_image && (
@@ -243,7 +299,7 @@ export default function PublicBlogsPage() {
                             alt={blog.title} 
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-[#020617]/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                          <div className={`absolute inset-0 bg-gradient-to-t from-${isDark ? '[#020617]/80' : 'gray-900/80'} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
                           {blog.category && (
                             <span className="absolute top-3 left-3 px-2 py-1 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] rounded-lg text-xs text-white font-sans tracking-wide">
                               {blog.category}
@@ -252,13 +308,13 @@ export default function PublicBlogsPage() {
                         </div>
                       )}
                       <div className="p-5 flex-1 flex flex-col">
-                        <h2 className="text-lg lg:text-xl font-semibold font-serif tracking-tight text-[#F8FAFC] mb-2 line-clamp-2 group-hover:text-[#6366F1] transition-colors">
+                        <h2 className={`text-lg lg:text-xl font-semibold font-serif tracking-tight ${textColor} mb-2 line-clamp-2 group-hover:text-[#6366F1] transition-colors`}>
                           {blog.title}
                         </h2>
-                        <p className="text-sm text-[#94A3B8] font-light tracking-wide line-clamp-2 mb-4">
+                        <p className={`text-sm ${subTextColor} font-light tracking-wide line-clamp-2 mb-4`}>
                           {blog.excerpt}
                         </p>
-                        <div className="flex items-center justify-between text-sm text-[#94A3B8] pt-3 border-t border-[#1E293B]">
+                        <div className={`flex items-center justify-between text-sm ${subTextColor} pt-3 border-t ${cardBorder}`}>
                           <div className="flex items-center gap-2">
                             <Calendar size={14} />
                             <span>{new Date(blog.created_at).toLocaleDateString()}</span>
@@ -268,7 +324,7 @@ export default function PublicBlogsPage() {
                               <div className="flex items-center gap-1">
                                 <Clock size={14} />
                                 <span>{blog.read_time} min</span>
-                          </div>
+                              </div>
                             )}
                             <div className="flex items-center gap-1">
                               <Eye size={14} />

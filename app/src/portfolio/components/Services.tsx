@@ -1,13 +1,13 @@
 'use client';
 
 import { motion, Variants } from 'framer-motion';
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 
 interface Service {
   id: number;
-  icon: string; // Simple emoji icon
+  icon: string;
   title: string;
   description: string;
   color: string;
@@ -16,6 +16,7 @@ interface Service {
 
 const Services = () => {
   const sectionRef = useRef<HTMLElement>(null);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
   const services: Service[] = [
     {
@@ -67,6 +68,36 @@ const Services = () => {
       gradient: 'from-[#3B82F6] to-[#60A5FA]',
     },
   ];
+
+  // SYSTEM THEME DETECTION - SELF-CONTAINED
+  useEffect(() => {
+    const detectSystemTheme = () => {
+      const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setTheme(isDarkMode ? 'dark' : 'light');
+    };
+
+    detectSystemTheme();
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    const handleThemeChange = (e: MediaQueryListEvent) => {
+      setTheme(e.matches ? 'dark' : 'light');
+    };
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleThemeChange);
+    } else {
+      mediaQuery.addListener(handleThemeChange);
+    }
+
+    return () => {
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', handleThemeChange);
+      } else {
+        mediaQuery.removeListener(handleThemeChange);
+      }
+    };
+  }, []);
 
   // Animation variants
   const containerVariants: Variants = {
@@ -144,19 +175,35 @@ const Services = () => {
     },
   };
 
+  // Theme-based classes
+  const themeClasses = {
+    section: theme === 'dark' ? 'bg-[#020617]' : 'bg-[#F8FAFC]',
+    heading: theme === 'dark' ? 'text-white' : 'text-[#0F172A]',
+    description: theme === 'dark' ? 'text-[#94A3B8]' : 'text-[#475569]',
+    cardBg: theme === 'dark' ? 'bg-[#0F172A]' : 'bg-white',
+    cardBorder: theme === 'dark' ? 'border-[#1E293B]' : 'border-[#E2E8F0]',
+    cardHoverBorder: theme === 'dark' ? 'hover:border-transparent' : 'hover:border-[#6366F1]/30',
+    badgeBg: theme === 'dark' ? 'bg-[#6366F1]/10' : 'bg-[#6366F1]/5',
+    badgeBorder: theme === 'dark' ? 'border-[#6366F1]/20' : 'border-[#6366F1]/30',
+    badgeHover: theme === 'dark' ? 'hover:border-[#6366F1] hover:bg-[#6366F1]/20' : 'hover:border-[#6366F1] hover:bg-[#6366F1]/10',
+    orbColor: theme === 'dark' ? 'bg-[#6366F1]/5' : 'bg-[#6366F1]/3',
+    orbColor2: theme === 'dark' ? 'bg-[#8B5CF6]/5' : 'bg-[#8B5CF6]/3',
+    gridOpacity: theme === 'dark' ? 'opacity-5' : 'opacity-3',
+  };
+
   return (
     <section
       ref={sectionRef}
-      className="relative py-8 sm:py-12 lg:py-12 bg-[#020617] overflow-hidden"
+      className={`relative py-8 sm:py-12 lg:py-12 ${themeClasses.section} overflow-hidden transition-colors duration-300`}
     >
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-[#6366F1]/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-72 h-72 bg-[#8B5CF6]/5 rounded-full blur-3xl" />
+        <div className={`absolute top-20 left-10 w-72 h-72 ${themeClasses.orbColor} rounded-full blur-3xl`} />
+        <div className={`absolute bottom-20 right-10 w-72 h-72 ${themeClasses.orbColor2} rounded-full blur-3xl`} />
       </div>
 
       {/* Grid pattern overlay */}
-      <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-5" />
+      <div className={`absolute inset-0 bg-[url('/grid-pattern.svg')] ${themeClasses.gridOpacity}`} />
 
       {/* Updated container with minimal margins on big screens */}
       <div className="relative max-w-7xl mx-auto px-3 sm:px-4 lg:px-3 xl:px-3 2xl:px-3">
@@ -171,15 +218,17 @@ const Services = () => {
           {/* Badge - Hero section style */}
           <motion.div 
             variants={fromLeftVariants}
-            className="inline-flex items-center gap-2 px-3 sm:px-4 py-1 sm:py-2 bg-[#6366F1]/10 border border-[#6366F1]/20 rounded-full mb-3 sm:mb-4 cursor-pointer transition-all duration-300 hover:border-[#6366F1] hover:bg-[#6366F1]/20"
+            className={`inline-flex items-center gap-2 px-3 sm:px-4 py-1 sm:py-2 ${themeClasses.badgeBg} border ${themeClasses.badgeBorder} rounded-full mb-3 sm:mb-4 cursor-pointer transition-all duration-300 ${themeClasses.badgeHover}`}
           >
-            <span className="text-xs sm:text-sm font-medium font-sans tracking-wide text-[#6366F1] italic ml-[.5rem]">Our Services</span>
+            <span className="text-xs sm:text-sm font-medium font-sans tracking-wide text-[#6366F1] italic ml-[.5rem]">
+              Our Services
+            </span>
           </motion.div>
           
           {/* Heading - Hero section style */}
           <motion.h2 
             variants={fromLeftVariants}
-            className="text-2xl sm:text-2xl lg:text-3xl font-bold font-serif tracking-tight text-white mb-2 ml-[.5rem] sm:mb-4 leading-tight"
+            className={`text-2xl sm:text-2xl lg:text-3xl font-bold font-serif tracking-tight ${themeClasses.heading} mb-2 ml-[.5rem] sm:mb-4 leading-tight transition-colors duration-300`}
           >
             Comprehensive Digital{' '}
             <span className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">
@@ -190,7 +239,7 @@ const Services = () => {
           {/* Description - Hero section style */}
           <motion.p 
             variants={fromLeftVariants}
-            className="text-sm sm:text-base ml-[.5rem] lg:text-lg text-[#94A3B8] max-w-2xl leading-relaxed font-light tracking-wide"
+            className={`text-sm sm:text-base ml-[.5rem] lg:text-lg ${themeClasses.description} max-w-2xl leading-relaxed font-light tracking-wide transition-colors duration-300`}
           >
             Complete solutions tailored for your business needs
           </motion.p>
@@ -232,7 +281,7 @@ const Services = () => {
                   />
                   
                   {/* Main Card */}
-                  <div className="relative bg-[#0F172A] border border-[#1E293B] rounded-xl p-4 sm:p-5 lg:p-6 hover:border-transparent transition-all duration-300 hover:shadow-xl hover:shadow-[#6366F1]/5 h-full flex flex-col cursor-pointer overflow-hidden">
+                  <div className={`relative ${themeClasses.cardBg} border ${themeClasses.cardBorder} rounded-xl p-4 sm:p-5 lg:p-6 ${themeClasses.cardHoverBorder} transition-all duration-300 hover:shadow-xl hover:shadow-[#6366F1]/5 h-full flex flex-col cursor-pointer overflow-hidden`}>
                     
                     {/* Icon Container */}
                     <div className="relative mb-3 sm:mb-4 flex-shrink-0">
@@ -250,12 +299,12 @@ const Services = () => {
                     </div>
 
                     {/* Title - Hero section style */}
-                    <h3 className="text-base sm:text-lg font-semibold font-sans tracking-wide text-white mb-1 sm:mb-2 group-hover:text-[#6366F1] transition-colors duration-300 flex-shrink-0">
+                    <h3 className={`text-base sm:text-lg font-semibold font-sans tracking-wide ${themeClasses.heading} mb-1 sm:mb-2 group-hover:text-[#6366F1] transition-colors duration-300 flex-shrink-0`}>
                       {service.title}
                     </h3>
 
                     {/* Description - Hero section style */}
-                    <p className="text-xs sm:text-sm text-[#94A3B8] leading-relaxed font-light tracking-wide line-clamp-3 flex-grow">
+                    <p className={`text-xs sm:text-sm ${themeClasses.description} leading-relaxed font-light tracking-wide line-clamp-3 flex-grow transition-colors duration-300`}>
                       {service.description}
                     </p>
 
@@ -264,8 +313,8 @@ const Services = () => {
                       <ArrowRight className="w-4 h-4 text-[#6366F1]" />
                     </div>
 
-                    {/* Bottom Line - Moves left to right on hover (Blue to Green) */}
-                    <div className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-[#1E293B] to-[#1E293B] group-hover:from-[#3B82F6] group-hover:to-[#22C55E] transition-all duration-500 ease-out transform scale-x-0 group-hover:scale-x-100 origin-left" />
+                    {/* Bottom Line - Moves left to right on hover */}
+                    <div className={`absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r ${theme === 'dark' ? 'from-[#1E293B] to-[#1E293B]' : 'from-[#E2E8F0] to-[#E2E8F0]'} group-hover:from-[#3B82F6] group-hover:to-[#22C55E] transition-all duration-500 ease-out transform scale-x-0 group-hover:scale-x-100 origin-left`} />
 
                     {/* Right Side Thin Gradient Line - Appears on hover */}
                     <div className="absolute top-0 right-0 w-0.5 h-0 bg-gradient-to-b from-[#3B82F6] to-[#22C55E] group-hover:h-full transition-all duration-500 ease-out origin-top" />

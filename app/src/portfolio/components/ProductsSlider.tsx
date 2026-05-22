@@ -62,6 +62,45 @@ const PartnersSlider = () => {
   const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [duplicatedPartners, setDuplicatedPartners] = useState<Partner[]>([]);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark'); // Default dark
+
+  // SYSTEM THEME DETECTION - SELF-CONTAINED
+  useEffect(() => {
+    // Function to detect system theme
+    const detectSystemTheme = () => {
+      const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setTheme(isDarkMode ? 'dark' : 'light');
+    };
+
+    // Initial detection
+    detectSystemTheme();
+
+    // Listen for system theme changes
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    // Use addEventListener for modern browsers
+    const handleThemeChange = (e: MediaQueryListEvent) => {
+      setTheme(e.matches ? 'dark' : 'light');
+    };
+
+    // Safari and older browsers fallback
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleThemeChange);
+    } else {
+     
+      mediaQuery.addListener(handleThemeChange);
+    }
+
+    // Cleanup
+    return () => {
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', handleThemeChange);
+      } else {
+     
+        mediaQuery.removeListener(handleThemeChange);
+      }
+    };
+  }, []);
 
   // Create seamless infinite loop - enough copies to fill the screen and beyond
   useEffect(() => {
@@ -92,6 +131,26 @@ const PartnersSlider = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedPartner(null);
+  };
+
+  // Theme-based classes
+  const themeClasses = {
+    section: theme === 'dark' 
+      ? 'bg-gradient-to-b from-[#0A0F1E] to-[#020617]' 
+      : 'bg-gradient-to-b from-[#F8FAFC] to-[#FFFFFF]',
+    text: theme === 'dark' ? 'text-[#F8FAFC]' : 'text-[#0F172A]',
+    textSecondary: theme === 'dark' ? 'text-[#E2E8F0]' : 'text-[#334155]',
+    textMuted: theme === 'dark' ? 'text-[#94A3B8]' : 'text-[#64748B]',
+    headingGradient: theme === 'dark'
+      ? 'from-[#F8FAFC] via-[#E2E8F0] to-[#94A3B8]'
+      : 'from-[#0F172A] via-[#1E293B] to-[#334155]',
+    border: theme === 'dark' ? 'border-[#334155]' : 'border-[#CBD5E1]',
+    cardBg: theme === 'dark' ? 'bg-[#0F172A]' : 'bg-white',
+    cardBorder: theme === 'dark' ? 'border-[#1E293B]' : 'border-[#E2E8F0]',
+    modalBg: theme === 'dark' ? 'bg-[#0F172A]' : 'bg-white',
+    modalBorder: theme === 'dark' ? 'border-[#1E293B]' : 'border-[#E2E8F0]',
+    badgeBg: theme === 'dark' ? 'bg-[#1E293B]' : 'bg-[#F1F5F9]',
+    overlay: theme === 'dark' ? 'bg-black/80' : 'bg-black/50',
   };
 
   // Animation variants
@@ -128,20 +187,20 @@ const PartnersSlider = () => {
     <>
       <section
         ref={sectionRef}
-        className="relative py-8 sm:py-10 bg-gradient-to-b from-[#0A0F1E] to-[#020617] overflow-x-clip"
+        className={`relative py-8 sm:py-10 ${themeClasses.section} overflow-x-clip transition-colors duration-300`}
       >
-        {/* Parallax Background Effect */}
+        {/* Parallax Background Effect - Dynamic based on theme */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div 
             className="absolute inset-0"
             style={{ y: bgY }}
           >
-            <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(99,102,241,0.03)_25%,rgba(99,102,241,0.03)_50%,transparent_50%,transparent_75%,rgba(99,102,241,0.03)_75%)] bg-[size:40px_40px] animate-[shift_20s_linear_infinite]" />
+            <div className={`absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,${theme === 'dark' ? 'rgba(99,102,241,0.03)' : 'rgba(99,102,241,0.02)'}_25%,${theme === 'dark' ? 'rgba(99,102,241,0.03)' : 'rgba(99,102,241,0.02)'}_50%,transparent_50%,transparent_75%,${theme === 'dark' ? 'rgba(99,102,241,0.03)' : 'rgba(99,102,241,0.02)'}_75%)] bg-[size:40px_40px] animate-[shift_20s_linear_infinite]`} />
             
-            {/* Glowing orbs */}
-            <div className="absolute top-1/4 -left-20 w-64 h-64 bg-[#6366F1]/10 rounded-full blur-3xl animate-pulse" />
-            <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-[#8B5CF6]/10 rounded-full blur-3xl animate-pulse delay-1000" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#06B6D4]/5 rounded-full blur-3xl animate-pulse delay-500" />
+            {/* Glowing orbs - reduced opacity in light mode */}
+            <div className={`absolute top-1/4 -left-20 w-64 h-64 ${theme === 'dark' ? 'bg-[#6366F1]/10' : 'bg-[#6366F1]/5'} rounded-full blur-3xl animate-pulse`} />
+            <div className={`absolute bottom-1/4 -right-20 w-80 h-80 ${theme === 'dark' ? 'bg-[#8B5CF6]/10' : 'bg-[#8B5CF6]/5'} rounded-full blur-3xl animate-pulse delay-1000`} />
+            <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 ${theme === 'dark' ? 'bg-[#06B6D4]/5' : 'bg-[#06B6D4]/3'} rounded-full blur-3xl animate-pulse delay-500`} />
           </motion.div>
         </div>
 
@@ -156,7 +215,7 @@ const PartnersSlider = () => {
           >
             <motion.h2 
               variants={fromBottomVariants}
-              className="text-xl md:text-2xl lg:text-3xl font-bold font-serif tracking-tight bg-gradient-to-r from-[#F8FAFC] via-[#E2E8F0] to-[#94A3B8] bg-clip-text text-transparent"
+              className={`text-xl md:text-2xl lg:text-3xl font-bold font-serif tracking-tight bg-gradient-to-r ${themeClasses.headingGradient} bg-clip-text text-transparent transition-colors duration-300`}
             >
               Trusted By Industry Leaders
             </motion.h2>
@@ -185,8 +244,8 @@ const PartnersSlider = () => {
                     <div className="flex flex-col items-center justify-center transition-all duration-300">
                       {/* Image Container */}
                       <div className="relative mb-1 md:mb-2">
-                        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#6366F1]/20 to-[#8B5CF6]/20 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500" />
-                        <div className="relative w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-full bg-gradient-to-br from-[#1E293B] to-[#0F172A] flex items-center justify-center border border-[#334155] group-hover:border-[#6366F1] transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl group-hover:shadow-[#6366F1]/20 overflow-hidden">
+                        <div className={`absolute inset-0 rounded-full bg-gradient-to-r from-[#6366F1]/20 to-[#8B5CF6]/20 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500`} />
+                        <div className={`relative w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-full bg-gradient-to-br ${theme === 'dark' ? 'from-[#1E293B] to-[#0F172A]' : 'from-[#E2E8F0] to-[#F1F5F9]'} flex items-center justify-center border ${themeClasses.border} group-hover:border-[#6366F1] transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl group-hover:shadow-[#6366F1]/20 overflow-hidden`}>
                           <Image
                             src={partner.image}
                             alt={partner.name}
@@ -197,8 +256,8 @@ const PartnersSlider = () => {
                         </div>
                       </div>
                       
-                      {/* Partner Name */}
-                      <span className="text-[10px] sm:text-xs md:text-sm font-medium font-sans tracking-wide text-[#E2E8F0] group-hover:text-[#6366F1] transition-colors duration-300 text-center whitespace-nowrap">
+                      {/* Partner Name - dynamic theme colors */}
+                      <span className={`text-[10px] sm:text-xs md:text-sm font-medium font-sans tracking-wide ${themeClasses.textSecondary} group-hover:text-[#6366F1] transition-colors duration-300 text-center whitespace-nowrap`}>
                         {partner.name}
                       </span>
                       
@@ -247,13 +306,13 @@ const PartnersSlider = () => {
         `}</style>
       </section>
 
-      {/* Partner Details Modal */}
+      {/* Partner Details Modal - Dynamic theme */}
       {isModalOpen && selectedPartner && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+          className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${themeClasses.overlay} backdrop-blur-sm transition-colors duration-300`}
           onClick={closeModal}
         >
           <motion.div
@@ -261,7 +320,7 @@ const PartnersSlider = () => {
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
             transition={{ type: "spring", damping: 20, stiffness: 200 }}
-            className="relative w-full max-w-2xl bg-[#0F172A] border border-[#1E293B] rounded-2xl shadow-2xl overflow-hidden"
+            className={`relative w-full max-w-2xl ${themeClasses.modalBg} border ${themeClasses.modalBorder} rounded-2xl shadow-2xl overflow-hidden transition-colors duration-300`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
@@ -273,7 +332,7 @@ const PartnersSlider = () => {
                 <X className="w-5 h-5 text-white" />
               </button>
               <div className="absolute -bottom-10 left-6">
-                <div className="relative w-20 h-20 rounded-full border-4 border-[#0F172A] overflow-hidden bg-[#1E293B]">
+                <div className={`relative w-20 h-20 rounded-full border-4 ${theme === 'dark' ? 'border-[#0F172A]' : 'border-white'} overflow-hidden ${theme === 'dark' ? 'bg-[#1E293B]' : 'bg-[#F1F5F9]'}`}>
                   <Image
                     src={selectedPartner.image}
                     alt={selectedPartner.name}
@@ -284,39 +343,39 @@ const PartnersSlider = () => {
               </div>
             </div>
 
-            {/* Modal Content */}
+            {/* Modal Content - Dynamic theme */}
             <div className="p-6 pt-12">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h3 className="text-2xl font-bold font-serif tracking-tight text-white">
+                  <h3 className={`text-2xl font-bold font-serif tracking-tight ${theme === 'dark' ? 'text-white' : 'text-[#0F172A]'} transition-colors duration-300`}>
                     {selectedPartner.name}
                   </h3>
                   <div className="flex items-center gap-3 mt-2">
                     <div className="flex items-center gap-1">
                       <Calendar className="w-3.5 h-3.5 text-[#6366F1]" />
-                      <span className="text-xs text-[#94A3B8]">Est. {selectedPartner.established}</span>
+                      <span className={`text-xs ${themeClasses.textMuted}`}>Est. {selectedPartner.established}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Users className="w-3.5 h-3.5 text-[#6366F1]" />
-                      <span className="text-xs text-[#94A3B8]">{selectedPartner.projects}+ Projects</span>
+                      <span className={`text-xs ${themeClasses.textMuted}`}>{selectedPartner.projects}+ Projects</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
-                      <span className="text-xs text-[#94A3B8]">{selectedPartner.rating}/5</span>
+                      <span className={`text-xs ${themeClasses.textMuted}`}>{selectedPartner.rating}/5</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <p className="text-[#94A3B8] leading-relaxed font-light tracking-wide mb-6">
+              <p className={`${themeClasses.textMuted} leading-relaxed font-light tracking-wide mb-6 transition-colors duration-300`}>
                 {selectedPartner.description}
               </p>
 
               <div className="flex flex-wrap gap-2 mb-6">
-                <span className="text-xs px-3 py-1.5 bg-[#1E293B] text-[#6366F1] rounded-full border border-[#6366F1]/30">
+                <span className={`text-xs px-3 py-1.5 ${themeClasses.badgeBg} text-[#6366F1] rounded-full border border-[#6366F1]/30 transition-colors duration-300`}>
                   Trusted Partner
                 </span>
-                <span className="text-xs px-3 py-1.5 bg-[#1E293B] text-[#22C55E] rounded-full border border-[#22C55E]/30">
+                <span className={`text-xs px-3 py-1.5 ${themeClasses.badgeBg} text-[#22C55E] rounded-full border border-[#22C55E]/30 transition-colors duration-300`}>
                   Verified
                 </span>
               </div>

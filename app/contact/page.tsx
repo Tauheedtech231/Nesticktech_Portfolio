@@ -1,7 +1,8 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 // app/contact/page.tsx
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, Variants } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -40,8 +41,40 @@ const ContactPage = () => {
 
   const [formStatus, setFormStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const sectionRef = useRef(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  // System theme detection
+  useEffect(() => {
+    const getSystemTheme = (): 'dark' | 'light' => {
+      if (typeof window !== 'undefined' && window.matchMedia) {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      return 'dark';
+    };
+
+    setTheme(getSystemTheme());
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleThemeChange = (e: MediaQueryListEvent) => {
+      setTheme(e.matches ? 'dark' : 'light');
+    };
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleThemeChange);
+    } else {
+      mediaQuery.addListener(handleThemeChange);
+    }
+
+    return () => {
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', handleThemeChange);
+      } else {
+        mediaQuery.removeListener(handleThemeChange);
+      }
+    };
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({
@@ -70,6 +103,27 @@ const ContactPage = () => {
       setTimeout(() => setFormStatus('idle'), 5000);
     }, 1500);
   };
+
+  // Theme-based class names
+  const isDark = theme === 'dark';
+  const bgColor = isDark ? 'bg-[#020617]' : 'bg-gray-50';
+  const textColor = isDark ? 'text-[#F8FAFC]' : 'text-gray-900';
+  const subTextColor = isDark ? 'text-[#94A3B8]' : 'text-gray-600';
+  const cardBg = isDark ? 'bg-[#0F172A]' : 'bg-white';
+  const cardBorder = isDark ? 'border-[#1E293B]' : 'border-gray-200';
+  const inputBg = isDark ? 'bg-[#020617]' : 'bg-gray-100';
+  const inputBorder = isDark ? 'border-[#1E293B]' : 'border-gray-300';
+  const inputTextColor = isDark ? 'text-[#F8FAFC]' : 'text-gray-900';
+  const badgeBg = isDark ? 'bg-[#0F172A]/80' : 'bg-white/80';
+  const badgeBorder = isDark ? 'border-[#1E293B]' : 'border-gray-200';
+  const gradientFrom = isDark ? 'from-[#6366F1]' : 'from-indigo-600';
+  const gradientTo = isDark ? 'to-[#8B5CF6]' : 'to-purple-600';
+  const successBg = isDark ? 'bg-[#22C55E]/10 border-[#22C55E]/20' : 'bg-green-100 border-green-300';
+  const successText = isDark ? 'text-[#22C55E]' : 'text-green-700';
+  const errorBg = isDark ? 'bg-[#EF4444]/10 border-[#EF4444]/20' : 'bg-red-100 border-red-300';
+  const errorText = isDark ? 'text-[#EF4444]' : 'text-red-700';
+  const featureBg = isDark ? 'bg-[#020617]' : 'bg-gray-100';
+  const featureBorder = isDark ? 'border-[#1E293B]' : 'border-gray-200';
 
   const contactInfo = [
     {
@@ -226,7 +280,7 @@ const ContactPage = () => {
   };
 
   return (
-    <main className="min-h-screen bg-[#020617] pt-20 lg:pt-24 overflow-hidden">
+    <main className={`min-h-screen ${bgColor} pt-20 lg:pt-24 overflow-hidden`}>
       {/* Hero Section with Video Background */}
       <div className="relative h-[60vh] min-h-[400px] overflow-hidden">
         {/* Background Video */}
@@ -243,7 +297,7 @@ const ContactPage = () => {
             <source src="/contact.mp4" type="video/mp4" />
           </video>
           {/* Dark Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#020617]/80 via-[#020617]/60 to-[#020617]" />
+          <div className={`absolute inset-0 bg-gradient-to-b from-${isDark ? '[#020617]/80' : 'gray-900/80'} via-${isDark ? '[#020617]/60' : 'gray-900/60'} to-${isDark ? '[#020617]' : 'gray-900'}`} />
           <div className="absolute inset-0 bg-gradient-to-r from-[#6366F1]/20 to-[#8B5CF6]/20" />
         </div>
 
@@ -254,10 +308,10 @@ const ContactPage = () => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0F172A]/80 backdrop-blur-sm border border-[#1E293B] mb-6 cursor-pointer hover:border-[#6366F1] hover:bg-[#6366F1]/10 transition-all duration-300"
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${badgeBg} backdrop-blur-sm border ${badgeBorder} mb-6 cursor-pointer hover:border-[#6366F1] hover:bg-[#6366F1]/10 transition-all duration-300`}
             >
               <Sparkles className="w-4 h-4 text-[#6366F1]" />
-              <span className="text-sm font-medium font-sans tracking-wide bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent italic">
+              <span className={`text-sm font-medium font-sans tracking-wide bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent italic`}>
                 Get in Touch
               </span>
             </motion.div>
@@ -266,7 +320,7 @@ const ContactPage = () => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-5xl md:text-5xl lg:text-5xl font-bold font-serif tracking-tight text-[#F8FAFC] mb-4"
+              className="text-5xl md:text-5xl lg:text-5xl font-bold font-serif tracking-tight text-white mb-4"
             >
               Contact{' '}
               <span className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">
@@ -278,7 +332,7 @@ const ContactPage = () => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-lg lg:text-xl text-[#94A3B8] max-w-2xl mx-auto leading-relaxed font-light tracking-wide"
+              className="text-lg lg:text-xl text-gray-200 max-w-2xl mx-auto leading-relaxed font-light tracking-wide"
             >
               Have a project in mind? We&apos;d love to hear from you. Send us a message and we&apos;ll respond as soon as possible.
             </motion.p>
@@ -298,7 +352,7 @@ const ContactPage = () => {
               </Link>
               <Link
                 href="tel:+923208423427"
-                className="px-6 py-3 bg-[#0F172A] border border-[#1E293B] text-white font-semibold font-sans tracking-wide rounded-lg hover:border-[#6366F1] hover:bg-[#6366F1]/10 transition-all duration-300 flex items-center gap-2 cursor-pointer"
+                className={`px-6 py-3 ${cardBg} border ${cardBorder} ${textColor} font-semibold font-sans tracking-wide rounded-lg hover:border-[#6366F1] hover:bg-[#6366F1]/10 transition-all duration-300 flex items-center gap-2 cursor-pointer`}
               >
                 <Phone className="w-4 h-4" />
                 Call Now
@@ -306,19 +360,17 @@ const ContactPage = () => {
             </motion.div>
           </div>
         </div>
-
-    
       </div>
 
       {/* Background decorative elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-[#6366F1]/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-72 h-72 bg-[#8B5CF6]/5 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#22C55E]/5 rounded-full blur-3xl" />
+        <div className={`absolute top-20 left-10 w-72 h-72 ${isDark ? 'bg-[#6366F1]/5' : 'bg-indigo-100/30'} rounded-full blur-3xl`} />
+        <div className={`absolute bottom-20 right-10 w-72 h-72 ${isDark ? 'bg-[#8B5CF6]/5' : 'bg-purple-100/30'} rounded-full blur-3xl`} />
+        <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] ${isDark ? 'bg-[#22C55E]/5' : 'bg-green-100/20'} rounded-full blur-3xl`} />
       </div>
 
       {/* Grid pattern overlay */}
-      <div className="fixed inset-0 bg-[url('/grid-pattern.svg')] opacity-5 pointer-events-none" />
+      <div className={`fixed inset-0 bg-[url('/grid-pattern.svg')] ${isDark ? 'opacity-5' : 'opacity-10'} pointer-events-none`} />
 
       <div id="contact-form" className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         {/* Contact Info Cards */}
@@ -341,14 +393,14 @@ const ContactPage = () => {
                 <div className={`absolute inset-0 bg-gradient-to-r ${info.gradient} rounded-xl opacity-0 group-hover:opacity-10 transition-opacity duration-500 blur-sm`} />
                 <Link
                   href={info.href}
-                  className="relative block bg-[#0F172A] border border-[#1E293B] rounded-xl p-6 hover:border-[#6366F1]/30 transition-all duration-300 cursor-pointer"
+                  className={`relative block ${cardBg} border ${cardBorder} rounded-xl p-6 hover:border-[#6366F1]/30 transition-all duration-300 cursor-pointer`}
                 >
                   <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${info.gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
                     <Icon className="w-6 h-6 text-white" />
                   </div>
-                  <h3 className="text-sm font-medium font-sans tracking-wide text-[#94A3B8] mb-1">{info.label}</h3>
-                  <p className="text-base lg:text-lg text-[#F8FAFC] font-semibold font-sans tracking-wide mb-1">{info.value}</p>
-                  <p className="text-xs text-[#94A3B8] font-light tracking-wide">{info.description}</p>
+                  <h3 className={`text-sm font-medium font-sans tracking-wide ${subTextColor} mb-1`}>{info.label}</h3>
+                  <p className={`text-base lg:text-lg ${textColor} font-semibold font-sans tracking-wide mb-1`}>{info.value}</p>
+                  <p className={`text-xs ${subTextColor} font-light tracking-wide`}>{info.description}</p>
                 </Link>
               </motion.div>
             );
@@ -357,7 +409,7 @@ const ContactPage = () => {
 
         {/* Main Content Grid */}
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
-          {/* Contact Form - Services Section Font Styles */}
+          {/* Contact Form */}
           <motion.div
             variants={fromLeftVariants}
             initial="hidden"
@@ -366,14 +418,14 @@ const ContactPage = () => {
             className="relative"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] rounded-2xl blur-xl opacity-20" />
-            <div className="relative bg-[#0F172A] border border-[#1E293B] rounded-2xl p-6 lg:p-8">
-              <h2 className="text-2xl font-bold font-serif tracking-tight text-[#F8FAFC] mb-2">Send us a Message</h2>
-              <p className="text-sm text-[#94A3B8] font-light tracking-wide mb-6">Fill out the form below and we&apos;ll get back to you shortly.</p>
+            <div className={`relative ${cardBg} border ${cardBorder} rounded-2xl p-6 lg:p-8`}>
+              <h2 className={`text-2xl font-bold font-serif tracking-tight ${textColor} mb-2`}>Send us a Message</h2>
+              <p className={`text-sm ${subTextColor} font-light tracking-wide mb-6`}>Fill out the form below and we&apos;ll get back to you shortly.</p>
               
               <form onSubmit={handleSubmit} className="space-y-5">
                 {/* Name */}
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium font-sans tracking-wide text-[#94A3B8] mb-2">
+                  <label htmlFor="name" className={`block text-sm font-medium font-sans tracking-wide ${subTextColor} mb-2`}>
                     Full Name *
                   </label>
                   <input
@@ -383,14 +435,14 @@ const ContactPage = () => {
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 bg-[#020617] border border-[#1E293B] rounded-lg text-[#F8FAFC] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#6366F1] focus:ring-1 focus:ring-[#6366F1]/20 transition-all duration-300 font-light tracking-wide"
+                    className={`w-full px-4 py-3 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} placeholder:${subTextColor} focus:outline-none focus:border-[#6366F1] focus:ring-1 focus:ring-[#6366F1]/20 transition-all duration-300 font-light tracking-wide`}
                     placeholder="Enter your full name"
                   />
                 </div>
 
                 {/* Email */}
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium font-sans tracking-wide text-[#94A3B8] mb-2">
+                  <label htmlFor="email" className={`block text-sm font-medium font-sans tracking-wide ${subTextColor} mb-2`}>
                     Email Address *
                   </label>
                   <input
@@ -400,14 +452,14 @@ const ContactPage = () => {
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 bg-[#020617] border border-[#1E293B] rounded-lg text-[#F8FAFC] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#6366F1] focus:ring-1 focus:ring-[#6366F1]/20 transition-all duration-300 font-light tracking-wide"
+                    className={`w-full px-4 py-3 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} placeholder:${subTextColor} focus:outline-none focus:border-[#6366F1] focus:ring-1 focus:ring-[#6366F1]/20 transition-all duration-300 font-light tracking-wide`}
                     placeholder="Enter your email"
                   />
                 </div>
 
                 {/* Phone */}
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium font-sans tracking-wide text-[#94A3B8] mb-2">
+                  <label htmlFor="phone" className={`block text-sm font-medium font-sans tracking-wide ${subTextColor} mb-2`}>
                     Phone Number
                   </label>
                   <input
@@ -416,14 +468,14 @@ const ContactPage = () => {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 bg-[#020617] border border-[#1E293B] rounded-lg text-[#F8FAFC] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#6366F1] focus:ring-1 focus:ring-[#6366F1]/20 transition-all duration-300 font-light tracking-wide"
+                    className={`w-full px-4 py-3 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} placeholder:${subTextColor} focus:outline-none focus:border-[#6366F1] focus:ring-1 focus:ring-[#6366F1]/20 transition-all duration-300 font-light tracking-wide`}
                     placeholder="Enter your phone number"
                   />
                 </div>
 
                 {/* Subject */}
                 <div>
-                  <label htmlFor="subject" className="block text-sm font-medium font-sans tracking-wide text-[#94A3B8] mb-2">
+                  <label htmlFor="subject" className={`block text-sm font-medium font-sans tracking-wide ${subTextColor} mb-2`}>
                     Subject *
                   </label>
                   <select
@@ -432,7 +484,7 @@ const ContactPage = () => {
                     value={formData.subject}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 bg-[#020617] border border-[#1E293B] rounded-lg text-[#F8FAFC] focus:outline-none focus:border-[#6366F1] focus:ring-1 focus:ring-[#6366F1]/20 transition-all duration-300 font-light tracking-wide cursor-pointer"
+                    className={`w-full px-4 py-3 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} focus:outline-none focus:border-[#6366F1] focus:ring-1 focus:ring-[#6366F1]/20 transition-all duration-300 font-light tracking-wide cursor-pointer`}
                   >
                     <option value="">Select a subject</option>
                     <option value="General Inquiry">General Inquiry</option>
@@ -445,7 +497,7 @@ const ContactPage = () => {
 
                 {/* Message */}
                 <div>
-                  <label htmlFor="message" className="block text-sm font-medium font-sans tracking-wide text-[#94A3B8] mb-2">
+                  <label htmlFor="message" className={`block text-sm font-medium font-sans tracking-wide ${subTextColor} mb-2`}>
                     Your Message *
                   </label>
                   <textarea
@@ -455,7 +507,7 @@ const ContactPage = () => {
                     onChange={handleChange}
                     required
                     rows={5}
-                    className="w-full px-4 py-3 bg-[#020617] border border-[#1E293B] rounded-lg text-[#F8FAFC] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#6366F1] focus:ring-1 focus:ring-[#6366F1]/20 transition-all duration-300 resize-none font-light tracking-wide"
+                    className={`w-full px-4 py-3 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} placeholder:${subTextColor} focus:outline-none focus:border-[#6366F1] focus:ring-1 focus:ring-[#6366F1]/20 transition-all duration-300 resize-none font-light tracking-wide`}
                     placeholder="Tell us about your project or inquiry..."
                   />
                 </div>
@@ -466,7 +518,7 @@ const ContactPage = () => {
                   disabled={isSubmitting}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full py-3 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-semibold font-sans tracking-wide rounded-lg hover:shadow-lg hover:shadow-[#6366F1]/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group cursor-pointer"
+                  className={`w-full py-3 bg-gradient-to-r ${gradientFrom} ${gradientTo} text-white font-semibold font-sans tracking-wide rounded-lg hover:shadow-lg hover:shadow-[#6366F1]/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group cursor-pointer`}
                 >
                   {isSubmitting ? (
                     <>
@@ -486,7 +538,7 @@ const ContactPage = () => {
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center gap-2 p-3 bg-[#22C55E]/10 border border-[#22C55E]/20 rounded-lg text-[#22C55E]"
+                    className={`flex items-center gap-2 p-3 ${successBg} rounded-lg ${successText}`}
                   >
                     <CheckCircle className="w-5 h-5" />
                     <span className="text-sm font-light tracking-wide">Message sent successfully! We&apos;ll get back to you soon.</span>
@@ -497,7 +549,7 @@ const ContactPage = () => {
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center gap-2 p-3 bg-[#EF4444]/10 border border-[#EF4444]/20 rounded-lg text-[#EF4444]"
+                    className={`flex items-center gap-2 p-3 ${errorBg} rounded-lg ${errorText}`}
                   >
                     <AlertCircle className="w-5 h-5" />
                     <span className="text-sm font-light tracking-wide">Something went wrong. Please try again.</span>
@@ -507,7 +559,7 @@ const ContactPage = () => {
             </div>
           </motion.div>
 
-          {/* Right Column - Info & Team - Services Section Font Styles */}
+          {/* Right Column - Info & Team */}
           <motion.div
             variants={fromRightVariants}
             initial="hidden"
@@ -516,17 +568,17 @@ const ContactPage = () => {
             className="space-y-6"
           >
             {/* Features Grid */}
-            <div className="bg-[#0F172A] border border-[#1E293B] rounded-2xl p-6">
-              <h3 className="text-lg font-semibold font-sans tracking-wide text-[#F8FAFC] mb-4">Why Contact Us?</h3>
+            <div className={`${cardBg} border ${cardBorder} rounded-2xl p-6`}>
+              <h3 className={`text-lg font-semibold font-sans tracking-wide ${textColor} mb-4`}>Why Contact Us?</h3>
               <div className="grid grid-cols-2 gap-3">
                 {features.map((feature, index) => {
                   const Icon = feature.icon;
                   return (
-                    <div key={index} className="flex items-center gap-2 p-2 rounded-lg bg-[#020617] border border-[#1E293B] cursor-pointer hover:border-[#6366F1]/30 transition-all duration-300">
+                    <div key={index} className={`flex items-center gap-2 p-2 rounded-lg ${featureBg} border ${featureBorder} cursor-pointer hover:border-[#6366F1]/30 transition-all duration-300`}>
                       <div className="w-8 h-8 rounded-lg bg-[#6366F1]/10 flex items-center justify-center">
                         <Icon className="w-4 h-4 text-[#6366F1]" />
                       </div>
-                      <span className="text-xs text-[#F8FAFC] font-light tracking-wide">{feature.text}</span>
+                      <span className={`text-xs ${textColor} font-light tracking-wide`}>{feature.text}</span>
                     </div>
                   );
                 })}
@@ -534,15 +586,15 @@ const ContactPage = () => {
             </div>
 
             {/* Meet the Team */}
-            <div className="bg-[#0F172A] border border-[#1E293B] rounded-2xl p-6">
+            <div className={`${cardBg} border ${cardBorder} rounded-2xl p-6`}>
               <div className="flex items-center gap-2 mb-4">
                 <Users className="w-5 h-5 text-[#6366F1]" />
-                <h3 className="text-lg font-semibold font-sans tracking-wide text-[#F8FAFC]">Meet Our Experts</h3>
+                <h3 className={`text-lg font-semibold font-sans tracking-wide ${textColor}`}>Meet Our Experts</h3>
               </div>
               
               <div className="space-y-4">
                 {teamMembers.map((member, index) => (
-                  <div key={index} className="flex items-center gap-3 group hover:bg-[#020617] p-2 rounded-lg transition-all duration-300 cursor-pointer">
+                  <div key={index} className={`flex items-center gap-3 group hover:${featureBg} p-2 rounded-lg transition-all duration-300 cursor-pointer`}>
                     <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-transparent group-hover:border-[#6366F1] transition-all duration-300">
                       <div className={`absolute inset-0 bg-gradient-to-br ${member.gradient} opacity-20`} />
                       <Image
@@ -554,10 +606,10 @@ const ContactPage = () => {
                       />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold font-sans tracking-wide text-[#F8FAFC] group-hover:text-[#6366F1] transition-colors">
+                      <p className={`text-sm font-semibold font-sans tracking-wide ${textColor} group-hover:text-[#6366F1] transition-colors`}>
                         {member.name}
                       </p>
-                      <p className="text-xs text-[#94A3B8] font-light tracking-wide">{member.role}</p>
+                      <p className={`text-xs ${subTextColor} font-light tracking-wide`}>{member.role}</p>
                       <p className="text-xs text-[#6366F1] mt-0.5 font-light tracking-wide">{member.expertise}</p>
                     </div>
                   </div>
@@ -566,10 +618,10 @@ const ContactPage = () => {
             </div>
 
             {/* Location Map */}
-            <div className="bg-[#0F172A] border border-[#1E293B] rounded-2xl p-6 overflow-hidden">
+            <div className={`${cardBg} border ${cardBorder} rounded-2xl p-6 overflow-hidden`}>
               <div className="flex items-center gap-2 mb-4">
                 <MapPin className="w-5 h-5 text-[#6366F1]" />
-                <h3 className="text-lg font-semibold font-sans tracking-wide text-[#F8FAFC]">Our Location</h3>
+                <h3 className={`text-lg font-semibold font-sans tracking-wide ${textColor}`}>Our Location</h3>
               </div>
               
               <div className="relative w-full h-48 rounded-lg overflow-hidden mb-3 group cursor-pointer">
@@ -579,11 +631,11 @@ const ContactPage = () => {
                   fill
                   className="object-cover group-hover:scale-110 transition-transform duration-500"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#020617] to-transparent" />
+                <div className={`absolute inset-0 bg-gradient-to-t from-${isDark ? '[#020617]' : 'gray-900'} to-transparent`} />
               </div>
               
-              <p className="text-sm text-[#F8FAFC] font-semibold font-sans tracking-wide mb-1">Johar Town, Lahore</p>
-              <p className="text-xs text-[#94A3B8] font-light tracking-wide leading-relaxed mb-3">
+              <p className={`text-sm ${textColor} font-semibold font-sans tracking-wide mb-1`}>Johar Town, Lahore</p>
+              <p className={`text-xs ${subTextColor} font-light tracking-wide leading-relaxed mb-3`}>
                 Located in the heart of Johar Town, easy access from main boulevard.
               </p>
               

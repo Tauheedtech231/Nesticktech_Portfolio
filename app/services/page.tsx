@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 // app/services/page.tsx
 'use client';
 
@@ -75,6 +76,7 @@ const ServicesPage = () => {
   const [selectedService, setSelectedService] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const searchRef = useRef<HTMLInputElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -86,6 +88,37 @@ const ServicesPage = () => {
     serviceRequired: '',
     projectDescription: '',
   });
+
+  // System theme detection
+  useEffect(() => {
+    const getSystemTheme = (): 'dark' | 'light' => {
+      if (typeof window !== 'undefined' && window.matchMedia) {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      return 'dark';
+    };
+
+    setTheme(getSystemTheme());
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleThemeChange = (e: MediaQueryListEvent) => {
+      setTheme(e.matches ? 'dark' : 'light');
+    };
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleThemeChange);
+    } else {
+      mediaQuery.addListener(handleThemeChange);
+    }
+
+    return () => {
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', handleThemeChange);
+      } else {
+        mediaQuery.removeListener(handleThemeChange);
+      }
+    };
+  }, []);
 
   // Memoized services data for better performance
   const allServices: Service[] = useMemo(() => [
@@ -418,6 +451,19 @@ const ServicesPage = () => {
     });
   }, [allServices, searchQuery, selectedCategory]);
 
+  // Theme-based class names
+  const isDark = theme === 'dark';
+  const bgColor = isDark ? 'bg-[#020617]' : 'bg-gray-50';
+  const textColor = isDark ? 'text-[#F8FAFC]' : 'text-gray-900';
+  const subTextColor = isDark ? 'text-[#94A3B8]' : 'text-gray-600';
+  const borderColor = isDark ? 'border-[#1E293B]' : 'border-gray-200';
+  const cardBg = isDark ? 'bg-[#0F172A]' : 'bg-white';
+  const inputBg = isDark ? 'bg-[#0F172A]' : 'bg-white';
+  const modalBg = isDark ? 'bg-[#0F172A]' : 'bg-white';
+  const modalOverlay = isDark ? 'bg-black/80' : 'bg-gray-900/80';
+  const badgeBg = isDark ? 'bg-[#0F172A]' : 'bg-gray-100';
+  const badgeBorder = isDark ? 'border-[#1E293B]' : 'border-gray-200';
+
   const handleServiceClick = useCallback((serviceTitle: string) => {
     setSelectedService(serviceTitle);
     setFormData(prev => ({ ...prev, serviceRequired: serviceTitle }));
@@ -558,7 +604,7 @@ const ServicesPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+      <div className={`min-h-screen ${bgColor} flex items-center justify-center`}>
         <div className="relative">
           <div className="w-12 h-12 border-2 border-[#6366F1] border-t-transparent rounded-full animate-spin" />
           <div className="absolute inset-0 flex items-center justify-center">
@@ -571,20 +617,22 @@ const ServicesPage = () => {
 
   return (
     <>
-      <main className="min-h-screen bg-[#020617] pt-20 lg:pt-24">
+      <main className={`min-h-screen ${bgColor} pt-20 lg:pt-24`}>
         {/* Hero Section with Smooth Animations */}
-        <section className="relative overflow-hidden border-b border-[#1E293B]">
+        <section className={`relative overflow-hidden border-b ${borderColor}`}>
           {/* Background decorative elements */}
           <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute top-20 left-10 w-72 h-72 bg-[#6366F1]/5 rounded-full blur-3xl" />
-            <div className="absolute bottom-20 right-10 w-72 h-72 bg-[#8B5CF6]/5 rounded-full blur-3xl" />
+            <div className={`absolute top-20 left-10 w-72 h-72 ${isDark ? 'bg-[#6366F1]/5' : 'bg-indigo-100'} rounded-full blur-3xl`} />
+            <div className={`absolute bottom-20 right-10 w-72 h-72 ${isDark ? 'bg-[#8B5CF6]/5' : 'bg-purple-100'} rounded-full blur-3xl`} />
           </div>
 
-          {/* Grid pattern overlay */}
-          <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-5" />
+          {/* Grid pattern overlay - only for dark mode */}
+          {isDark && (
+            <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-5" />
+          )}
           
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-            {/* Animated Intro Section - Services Section Font Styles */}
+            {/* Animated Intro Section */}
             <motion.div
               variants={introContainerVariants}
               initial="hidden"
@@ -594,30 +642,30 @@ const ServicesPage = () => {
               {/* Badge */}
               <motion.div 
                 variants={fromTopVariants}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0F172A] border border-[#1E293B] mb-4 cursor-pointer hover:border-[#6366F1] hover:bg-[#6366F1]/10 transition-all duration-300"
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${badgeBg} border ${badgeBorder} mb-4 cursor-pointer hover:border-[#6366F1] hover:bg-[#6366F1]/10 transition-all duration-300`}
               >
                 <Sparkles className="w-4 h-4 text-[#6366F1]" />
-                <span className="text-sm font-medium font-sans tracking-wide bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent italic">
+                <span className={`text-sm font-medium font-sans tracking-wide bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent italic`}>
                   Our Services
                 </span>
               </motion.div>
 
-              {/* Heading - Services section style */}
+              {/* Heading */}
               <motion.h1 
                 variants={fromTopVariants}
-                className="text-3xl md:text-4xl  font-bold font-serif tracking-tight mb-4"
+                className="text-3xl md:text-4xl font-bold font-serif tracking-tight mb-4"
               >
-                <span className="text-[#F8FAFC]">Digital </span>
+                <span className={textColor}>Digital </span>
                 <span className="bg-gradient-to-r from-[#6366F1] via-[#8B5CF6] to-[#A855F7] bg-clip-text text-transparent animate-gradient">
                   Solutions
                 </span>
-                <span className="text-[#F8FAFC]"> For Modern Business </span>
+                <span className={textColor}> For Modern Business </span>
               </motion.h1>
 
-              {/* Description - Services section style */}
+              {/* Description */}
               <motion.p 
                 variants={fromTopVariants}
-                className="text-base text-[#94A3B8] leading-relaxed max-w-2xl mx-auto mb-8 font-light tracking-wide"
+                className={`text-base ${subTextColor} leading-relaxed max-w-2xl mx-auto mb-8 font-light tracking-wide`}
               >
                 Transform your business with cutting-edge technology solutions tailored to your unique needs
               </motion.p>
@@ -627,19 +675,19 @@ const ServicesPage = () => {
                 variants={fromBottomVariants}
                 className="max-w-2xl mx-auto relative"
               >
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#94A3B8]" />
+                <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 ${subTextColor}`} />
                 <input
                   ref={searchRef}
                   type="text"
                   placeholder="Search services by name, description, or technology..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-12 py-3 bg-[#0F172A] border border-[#1E293B] rounded-xl text-[#F8FAFC] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#6366F1] focus:ring-1 focus:ring-[#6366F1]/20 transition-all duration-300 font-light tracking-wide"
+                  className={`w-full pl-12 pr-12 py-3 ${inputBg} border ${borderColor} rounded-xl ${textColor} placeholder:${subTextColor} focus:outline-none focus:border-[#6366F1] focus:ring-1 focus:ring-[#6366F1]/20 transition-all duration-300 font-light tracking-wide`}
                 />
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery('')}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#6366F1] transition-colors duration-300 cursor-pointer"
+                    className={`absolute right-4 top-1/2 -translate-y-1/2 ${subTextColor} hover:text-[#6366F1] transition-colors duration-300 cursor-pointer`}
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -658,7 +706,7 @@ const ServicesPage = () => {
                     className={`px-4 py-2 rounded-lg text-sm font-medium font-sans tracking-wide transition-all duration-300 cursor-pointer ${
                       selectedCategory === category
                         ? 'bg-[#6366F1] text-white shadow-lg shadow-[#6366F1]/25'
-                        : 'bg-[#0F172A] border border-[#1E293B] text-[#94A3B8] hover:border-[#6366F1] hover:text-[#6366F1]'
+                        : `${badgeBg} border ${borderColor} ${subTextColor} hover:border-[#6366F1] hover:text-[#6366F1]`
                     }`}
                   >
                     {category}
@@ -669,7 +717,7 @@ const ServicesPage = () => {
               {/* Results count */}
               <motion.p 
                 variants={fromBottomVariants}
-                className="text-sm text-[#94A3B8] mt-6 font-light tracking-wide"
+                className={`text-sm ${subTextColor} mt-6 font-light tracking-wide`}
               >
                 Showing {filteredServices.length} of {allServices.length} services
               </motion.p>
@@ -700,22 +748,22 @@ const ServicesPage = () => {
                       <div className={`absolute inset-0 bg-gradient-to-r ${service.gradient} rounded-xl opacity-0 group-hover:opacity-15 transition-opacity duration-500 blur-sm`} />
                       
                       {/* Card */}
-                      <div className="relative bg-[#0F172A] border border-[#1E293B] rounded-xl p-6 hover:border-[#6366F1]/30 transition-all duration-300 hover:shadow-xl hover:shadow-[#6366F1]/5 h-full flex flex-col hover:-translate-y-1 cursor-pointer">
+                      <div className={`relative ${cardBg} border ${borderColor} rounded-xl p-6 hover:border-[#6366F1]/30 transition-all duration-300 hover:shadow-xl hover:shadow-[#6366F1]/5 h-full flex flex-col hover:-translate-y-1 cursor-pointer`}>
                         {/* Header */}
                         <div className="flex items-start justify-between mb-4">
                           <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${service.gradient} flex items-center justify-center flex-shrink-0 shadow-lg transition-transform duration-300 group-hover:scale-110`}>
                             <Icon className="w-6 h-6 text-white" />
                           </div>
-                          <span className="text-xs px-2 py-1 bg-[#1E293B] text-[#94A3B8] rounded-lg border border-transparent group-hover:border-[#6366F1]/30 transition-colors duration-300 font-light tracking-wide">
+                          <span className={`text-xs px-2 py-1 ${isDark ? 'bg-[#1E293B]' : 'bg-gray-200'} ${subTextColor} rounded-lg border border-transparent group-hover:border-[#6366F1]/30 transition-colors duration-300 font-light tracking-wide`}>
                             {service.category}
                           </span>
                         </div>
 
-                        {/* Content - Services section font styles */}
-                        <h3 className="text-lg font-semibold font-sans tracking-wide text-[#F8FAFC] mb-2 group-hover:text-[#6366F1] transition-colors duration-300">
+                        {/* Content */}
+                        <h3 className={`text-lg font-semibold font-sans tracking-wide ${textColor} mb-2 group-hover:text-[#6366F1] transition-colors duration-300`}>
                           {service.title}
                         </h3>
-                        <p className="text-sm text-[#94A3B8] mb-4 line-clamp-2 font-light tracking-wide">
+                        <p className={`text-sm ${subTextColor} mb-4 line-clamp-2 font-light tracking-wide`}>
                           {service.longDescription}
                         </p>
 
@@ -725,13 +773,13 @@ const ServicesPage = () => {
                             {service.technologies.slice(0, 3).map((tech) => (
                               <span
                                 key={tech}
-                                className="text-xs px-2 py-1 bg-[#1E293B] text-[#94A3B8] rounded-lg transition-all duration-300 group-hover:bg-[#6366F1]/10 group-hover:text-[#6366F1] font-light tracking-wide"
+                                className={`text-xs px-2 py-1 ${isDark ? 'bg-[#1E293B]' : 'bg-gray-200'} ${subTextColor} rounded-lg transition-all duration-300 group-hover:bg-[#6366F1]/10 group-hover:text-[#6366F1] font-light tracking-wide`}
                               >
                                 {tech}
                               </span>
                             ))}
                             {service.technologies.length > 3 && (
-                              <span className="text-xs px-2 py-1 bg-[#1E293B] text-[#94A3B8] rounded-lg transition-all duration-300 group-hover:bg-[#6366F1]/10 group-hover:text-[#6366F1] font-light tracking-wide">
+                              <span className={`text-xs px-2 py-1 ${isDark ? 'bg-[#1E293B]' : 'bg-gray-200'} ${subTextColor} rounded-lg transition-all duration-300 group-hover:bg-[#6366F1]/10 group-hover:text-[#6366F1] font-light tracking-wide`}>
                                 +{service.technologies.length - 3}
                               </span>
                             )}
@@ -762,11 +810,11 @@ const ServicesPage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="text-center py-20"
               >
-                <div className="w-20 h-20 mx-auto mb-4 bg-[#0F172A] rounded-full flex items-center justify-center border border-[#1E293B]">
-                  <Search className="w-8 h-8 text-[#94A3B8]" />
+                <div className={`w-20 h-20 mx-auto mb-4 ${cardBg} rounded-full flex items-center justify-center border ${borderColor}`}>
+                  <Search className={`w-8 h-8 ${subTextColor}`} />
                 </div>
-                <h3 className="text-xl font-semibold font-sans tracking-wide text-[#F8FAFC] mb-2">No services found</h3>
-                <p className="text-[#94A3B8] mb-6 font-light tracking-wide">
+                <h3 className={`text-xl font-semibold font-sans tracking-wide ${textColor} mb-2`}>No services found</h3>
+                <p className={`${subTextColor} mb-6 font-light tracking-wide`}>
                   Try adjusting your search or filter to find what you&apos;re looking for.
                 </p>
                 <button
@@ -783,12 +831,12 @@ const ServicesPage = () => {
           </div>
         </section>
 
-        {/* CTA Section with Animation - Services section font styles */}
+        {/* CTA Section with Animation */}
         <motion.section 
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.6 }}
-          className="border-t border-[#1E293B] py-16 lg:py-20"
+          className={`border-t ${borderColor} py-16 lg:py-20`}
         >
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <motion.div
@@ -796,10 +844,10 @@ const ServicesPage = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.5 }}
             >
-              <h2 className="text-2xl md:text-3xl font-bold font-serif tracking-tight text-[#F8FAFC] mb-4">
+              <h2 className={`text-2xl md:text-3xl font-bold font-serif tracking-tight ${textColor} mb-4`}>
                 Ready to Transform Your Business?
               </h2>
-              <p className="text-[#94A3B8] mb-8 font-light tracking-wide">
+              <p className={`${subTextColor} mb-8 font-light tracking-wide`}>
                 Let&apos;s discuss how our services can help you achieve your business goals and drive innovation.
               </p>
               <Link
@@ -816,19 +864,19 @@ const ServicesPage = () => {
 
       {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+        <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${modalOverlay} backdrop-blur-sm animate-fade-in`}>
           <div
             ref={modalRef}
-            className="relative w-full max-w-2xl bg-[#0F172A] border border-[#1E293B] rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto animate-scale-in"
+            className={`relative w-full max-w-2xl ${modalBg} border ${borderColor} rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto animate-scale-in`}
           >
             {/* Modal Header */}
-            <div className="sticky top-0 bg-[#0F172A] border-b border-[#1E293B] px-4 sm:px-6 py-4 flex items-center justify-between z-10">
-              <h3 className="text-lg sm:text-xl font-semibold font-sans tracking-wide text-white">
+            <div className={`sticky top-0 ${modalBg} border-b ${borderColor} px-4 sm:px-6 py-4 flex items-center justify-between z-10`}>
+              <h3 className={`text-lg sm:text-xl font-semibold font-sans tracking-wide ${textColor}`}>
                 Request Consultation
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="p-1 text-[#94A3B8] hover:text-white transition-colors cursor-pointer"
+                className={`p-1 ${subTextColor} hover:${textColor} transition-colors cursor-pointer`}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -838,7 +886,7 @@ const ServicesPage = () => {
             {!isSubmitted ? (
               <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium font-sans tracking-wide text-[#94A3B8] mb-2">
+                  <label className={`block text-sm font-medium font-sans tracking-wide ${subTextColor} mb-2`}>
                     Full Name *
                   </label>
                   <input
@@ -847,13 +895,13 @@ const ServicesPage = () => {
                     required
                     value={formData.fullName}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-[#020617] border border-[#1E293B] rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition-colors font-light tracking-wide"
+                    className={`w-full px-4 py-3 ${isDark ? 'bg-[#020617]' : 'bg-gray-100'} border ${borderColor} rounded-lg ${textColor} focus:outline-none focus:border-[#6366F1] transition-colors font-light tracking-wide`}
                     placeholder="Enter your full name"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium font-sans tracking-wide text-[#94A3B8] mb-2">
+                  <label className={`block text-sm font-medium font-sans tracking-wide ${subTextColor} mb-2`}>
                     Email Address *
                   </label>
                   <input
@@ -862,13 +910,13 @@ const ServicesPage = () => {
                     required
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-[#020617] border border-[#1E293B] rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition-colors font-light tracking-wide"
+                    className={`w-full px-4 py-3 ${isDark ? 'bg-[#020617]' : 'bg-gray-100'} border ${borderColor} rounded-lg ${textColor} focus:outline-none focus:border-[#6366F1] transition-colors font-light tracking-wide`}
                     placeholder="Enter your email"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium font-sans tracking-wide text-[#94A3B8] mb-2">
+                  <label className={`block text-sm font-medium font-sans tracking-wide ${subTextColor} mb-2`}>
                     Phone Number *
                   </label>
                   <input
@@ -877,13 +925,13 @@ const ServicesPage = () => {
                     required
                     value={formData.phone}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-[#020617] border border-[#1E293B] rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition-colors font-light tracking-wide"
+                    className={`w-full px-4 py-3 ${isDark ? 'bg-[#020617]' : 'bg-gray-100'} border ${borderColor} rounded-lg ${textColor} focus:outline-none focus:border-[#6366F1] transition-colors font-light tracking-wide`}
                     placeholder="Enter your phone number"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium font-sans tracking-wide text-[#94A3B8] mb-2">
+                  <label className={`block text-sm font-medium font-sans tracking-wide ${subTextColor} mb-2`}>
                     Business Details *
                   </label>
                   <input
@@ -892,13 +940,13 @@ const ServicesPage = () => {
                     required
                     value={formData.businessDetails}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-[#020617] border border-[#1E293B] rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition-colors font-light tracking-wide"
+                    className={`w-full px-4 py-3 ${isDark ? 'bg-[#020617]' : 'bg-gray-100'} border ${borderColor} rounded-lg ${textColor} focus:outline-none focus:border-[#6366F1] transition-colors font-light tracking-wide`}
                     placeholder="Company name & industry"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium font-sans tracking-wide text-[#94A3B8] mb-2">
+                  <label className={`block text-sm font-medium font-sans tracking-wide ${subTextColor} mb-2`}>
                     Service Required *
                   </label>
                   <input
@@ -912,7 +960,7 @@ const ServicesPage = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium font-sans tracking-wide text-[#94A3B8] mb-2">
+                  <label className={`block text-sm font-medium font-sans tracking-wide ${subTextColor} mb-2`}>
                     Project Description *
                   </label>
                   <textarea
@@ -921,7 +969,7 @@ const ServicesPage = () => {
                     rows={4}
                     value={formData.projectDescription}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-[#020617] border border-[#1E293B] rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition-colors resize-none font-light tracking-wide"
+                    className={`w-full px-4 py-3 ${isDark ? 'bg-[#020617]' : 'bg-gray-100'} border ${borderColor} rounded-lg ${textColor} focus:outline-none focus:border-[#6366F1] transition-colors resize-none font-light tracking-wide`}
                     placeholder="Tell us about your project requirements..."
                   />
                 </div>
@@ -949,8 +997,8 @@ const ServicesPage = () => {
                 <div className="w-16 h-16 mx-auto mb-4 bg-green-500/10 rounded-full flex items-center justify-center animate-scale-in">
                   <CheckCircle className="w-8 h-8 text-green-500" />
                 </div>
-                <h4 className="text-xl font-semibold font-sans tracking-wide text-white mb-2">Request Submitted!</h4>
-                <p className="text-[#94A3B8] font-light tracking-wide">
+                <h4 className={`text-xl font-semibold font-sans tracking-wide ${textColor} mb-2`}>Request Submitted!</h4>
+                <p className={`${subTextColor} font-light tracking-wide`}>
                   Thank you for your interest. Our team will contact you within 24 hours.
                 </p>
               </div>

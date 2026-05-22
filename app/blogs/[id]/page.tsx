@@ -25,6 +25,38 @@ export default function SingleBlogPage() {
   const router = useRouter();
   const [blog, setBlog] = useState<Blog | null>(null);
   const [loading, setLoading] = useState(true);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+
+  // System theme detection
+  useEffect(() => {
+    const getSystemTheme = (): 'dark' | 'light' => {
+      if (typeof window !== 'undefined' && window.matchMedia) {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      return 'dark';
+    };
+
+    setTheme(getSystemTheme());
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleThemeChange = (e: MediaQueryListEvent) => {
+      setTheme(e.matches ? 'dark' : 'light');
+    };
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleThemeChange);
+    } else {
+      mediaQuery.addListener(handleThemeChange);
+    }
+
+    return () => {
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', handleThemeChange);
+      } else {
+        mediaQuery.removeListener(handleThemeChange);
+      }
+    };
+  }, []);
 
   // Animation variants
   const containerVariants: Variants = {
@@ -99,19 +131,41 @@ export default function SingleBlogPage() {
     return processed;
   };
 
+  // Theme-based class names
+  const isDark = theme === 'dark';
+  const bgColor = isDark ? 'bg-[#020617]' : 'bg-gray-50';
+  const textColor = isDark ? 'text-[#F8FAFC]' : 'text-gray-900';
+  const subTextColor = isDark ? 'text-[#94A3B8]' : 'text-gray-600';
+  const cardBg = isDark ? 'bg-[#0F172A]/40' : 'bg-white/80';
+  const cardBorder = isDark ? 'border-[#1E293B]' : 'border-gray-200';
+  const metaBg = isDark ? 'bg-[#0F172A]/60' : 'bg-gray-100/80';
+  const metaBorder = isDark ? 'border-[#1E293B]' : 'border-gray-200';
+  const buttonBg = isDark ? 'bg-[#0F172A]/60' : 'bg-white/80';
+  const buttonBorder = isDark ? 'border-[#1E293B]' : 'border-gray-300';
+  const overlayGradient = isDark ? 'from-[#020617]' : 'from-gray-900';
+  
+  // Background orb colors
+  const orb1Color = isDark ? 'bg-[#6366F1]/5' : 'bg-indigo-100/30';
+  const orb2Color = isDark ? 'bg-[#8B5CF6]/5' : 'bg-purple-100/30';
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#020617]">
-        <div className="w-8 h-8 border-2 border-[#6366F1] border-t-transparent rounded-full animate-spin" />
+      <div className={`min-h-screen flex items-center justify-center ${bgColor}`}>
+        <div className="relative">
+          <div className="w-12 h-12 border-2 border-[#6366F1] border-t-transparent rounded-full animate-spin" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-5 h-5 bg-[#6366F1] rounded-full animate-pulse" />
+          </div>
+        </div>
       </div>
     );
   }
 
   if (!blog) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#020617]">
+      <div className={`min-h-screen flex items-center justify-center ${bgColor}`}>
         <div className="text-center">
-          <p className="text-[#94A3B8] text-lg font-sans tracking-wide">Blog not found</p>
+          <p className={`${subTextColor} text-lg font-sans tracking-wide`}>Blog not found</p>
           <button
             onClick={() => router.back()}
             className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white rounded-lg hover:shadow-lg transition-all cursor-pointer"
@@ -128,11 +182,11 @@ export default function SingleBlogPage() {
   const readTime = blog.read_time || Math.ceil(blog.content.length / 1000);
 
   return (
-    <main className="min-h-screen bg-[#020617] pt-20 lg:pt-24 overflow-hidden">
+    <main className={`min-h-screen ${bgColor} pt-20 lg:pt-24 overflow-hidden`}>
       {/* Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-20 right-10 w-96 h-96 bg-[#6366F1]/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '8s' }} />
-        <div className="absolute bottom-20 left-10 w-96 h-96 bg-[#8B5CF6]/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '10s', animationDelay: '1s' }} />
+        <div className={`absolute top-20 right-10 w-96 h-96 ${orb1Color} rounded-full blur-3xl animate-pulse`} style={{ animationDuration: '8s' }} />
+        <div className={`absolute bottom-20 left-10 w-96 h-96 ${orb2Color} rounded-full blur-3xl animate-pulse`} style={{ animationDuration: '10s', animationDelay: '1s' }} />
       </div>
 
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
@@ -145,7 +199,7 @@ export default function SingleBlogPage() {
         >
           <button
             onClick={() => router.back()}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[#0F172A]/60 backdrop-blur-sm border border-[#1E293B] rounded-lg text-[#94A3B8] hover:text-[#6366F1] hover:border-[#6366F1] transition-all duration-300 cursor-pointer group"
+            className={`inline-flex items-center gap-2 px-4 py-2 ${buttonBg} backdrop-blur-sm border ${buttonBorder} rounded-lg ${subTextColor} hover:text-[#6366F1] hover:border-[#6366F1] transition-all duration-300 cursor-pointer group`}
           >
             <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
             <span className="text-sm font-sans tracking-wide">Back to Blogs</span>
@@ -157,9 +211,9 @@ export default function SingleBlogPage() {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="bg-[#0F172A]/40 backdrop-blur-sm border border-[#1E293B] rounded-2xl overflow-hidden"
+          className={`${cardBg} backdrop-blur-sm border ${cardBorder} rounded-2xl overflow-hidden`}
         >
-          {/* Featured Image - Reduced Height */}
+          {/* Featured Image */}
           {blog.featured_image && (
             <motion.div variants={itemVariants} className="relative h-48 md:h-64 overflow-hidden">
               <img 
@@ -167,7 +221,7 @@ export default function SingleBlogPage() {
                 alt={blog.title} 
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent" />
+              <div className={`absolute inset-0 bg-gradient-to-t ${overlayGradient} via-transparent to-transparent`} />
             </motion.div>
           )}
 
@@ -182,18 +236,18 @@ export default function SingleBlogPage() {
               </motion.div>
             )}
 
-            {/* Title - Reduced Font Size */}
+            {/* Title */}
             <motion.h1 
               variants={itemVariants}
-              className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold font-serif tracking-tight text-[#F8FAFC] mb-4"
+              className={`text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold font-serif tracking-tight ${textColor} mb-4`}
             >
               {blog.title}
             </motion.h1>
 
-            {/* Meta Information - Smaller Font */}
+            {/* Meta Information */}
             <motion.div 
               variants={itemVariants}
-              className="flex flex-wrap items-center gap-3 text-xs text-[#94A3B8] mb-8 pb-4 border-b border-[#1E293B]"
+              className={`flex flex-wrap items-center gap-3 text-xs ${subTextColor} mb-8 pb-4 border-b ${metaBorder}`}
             >
               <div className="flex items-center gap-1.5">
                 <Calendar size={14} className="text-[#6366F1]" />
@@ -218,14 +272,14 @@ export default function SingleBlogPage() {
             {/* Blog Content with Styled Lists and Checkboxes */}
             <motion.div 
               variants={itemVariants}
-              className="prose prose-invert prose-base max-w-none"
+              className={`prose prose-base max-w-none ${isDark ? 'prose-invert' : ''}`}
               dangerouslySetInnerHTML={{ __html: processContent(blog.content) }}
             />
 
-            {/* Navigation Footer - Smaller */}
+            {/* Navigation Footer */}
             <motion.div 
               variants={itemVariants}
-              className="mt-8 pt-6 border-t border-[#1E293B] flex justify-between items-center"
+              className={`mt-8 pt-6 border-t ${metaBorder} flex justify-between items-center`}
             >
               <button
                 onClick={() => router.back()}
@@ -246,7 +300,7 @@ export default function SingleBlogPage() {
         </motion.article>
       </div>
 
-      {/* Global Styles for Checkboxes and Lists - Smaller Font */}
+      {/* Global Styles for Checkboxes and Lists - Theme aware */}
       <style jsx global>{`
         /* Custom List Styles */
         .custom-list {
@@ -259,7 +313,7 @@ export default function SingleBlogPage() {
           position: relative;
           padding-left: 1.5rem;
           margin-bottom: 0.5rem;
-          color: #E2E8F0;
+          color: ${isDark ? '#E2E8F0' : '#374151'};
           font-family: 'Inter', sans-serif;
           font-size: 0.9rem;
           line-height: 1.5;
@@ -307,8 +361,8 @@ export default function SingleBlogPage() {
           cursor: pointer;
           accent-color: #6366F1;
           border-radius: 0.25rem;
-          border: 2px solid #1E293B;
-          background-color: #0F172A;
+          border: 2px solid ${isDark ? '#1E293B' : '#D1D5DB'};
+          background-color: ${isDark ? '#0F172A' : '#FFFFFF'};
           transition: all 0.3s ease;
         }
         
@@ -324,7 +378,7 @@ export default function SingleBlogPage() {
         
         .checkbox-label {
           flex: 1;
-          color: #E2E8F0;
+          color: ${isDark ? '#E2E8F0' : '#374151'};
           font-family: 'Inter', sans-serif;
           font-size: 0.9rem;
           line-height: 1.4;
@@ -332,11 +386,11 @@ export default function SingleBlogPage() {
         
         /* Prose custom styles */
         .prose {
-          color: #E2E8F0;
+          color: ${isDark ? '#E2E8F0' : '#374151'};
         }
         
         .prose h1, .prose h2, .prose h3, .prose h4 {
-          color: #F8FAFC;
+          color: ${isDark ? '#F8FAFC' : '#111827'};
           font-family: 'Georgia', 'Times New Roman', serif;
           font-weight: 700;
           letter-spacing: -0.02em;
@@ -357,7 +411,7 @@ export default function SingleBlogPage() {
         }
         
         .prose p {
-          color: #94A3B8;
+          color: ${isDark ? '#94A3B8' : '#6B7280'};
           font-family: 'Inter', sans-serif;
           font-size: 0.9rem;
           line-height: 1.6;
@@ -365,7 +419,7 @@ export default function SingleBlogPage() {
         }
         
         .prose strong {
-          color: #F8FAFC;
+          color: ${isDark ? '#F8FAFC' : '#111827'};
           font-weight: 600;
         }
         
@@ -385,15 +439,15 @@ export default function SingleBlogPage() {
           padding-left: 1rem;
           margin: 1rem 0;
           font-style: italic;
-          color: #94A3B8;
-          background: rgba(99, 102, 241, 0.05);
+          color: ${isDark ? '#94A3B8' : '#6B7280'};
+          background: ${isDark ? 'rgba(99, 102, 241, 0.05)' : 'rgba(99, 102, 241, 0.02)'};
           padding: 0.75rem 1rem;
           border-radius: 0.5rem;
           font-size: 0.9rem;
         }
         
         .prose code {
-          background: #0F172A;
+          background: ${isDark ? '#0F172A' : '#F3F4F6'};
           padding: 0.2rem 0.3rem;
           border-radius: 0.375rem;
           font-size: 0.8rem;
@@ -402,17 +456,17 @@ export default function SingleBlogPage() {
         }
         
         .prose pre {
-          background: #0F172A;
+          background: ${isDark ? '#0F172A' : '#F9FAFB'};
           padding: 0.75rem;
           border-radius: 0.5rem;
           overflow-x: auto;
           margin: 1rem 0;
-          border: 1px solid #1E293B;
+          border: 1px solid ${isDark ? '#1E293B' : '#E5E7EB'};
         }
         
         .prose pre code {
           background: none;
-          color: #E2E8F0;
+          color: ${isDark ? '#E2E8F0' : '#374151'};
         }
         
         .prose img {
@@ -430,19 +484,19 @@ export default function SingleBlogPage() {
         
         .prose th,
         .prose td {
-          border: 1px solid #1E293B;
+          border: 1px solid ${isDark ? '#1E293B' : '#E5E7EB'};
           padding: 0.5rem;
           text-align: left;
         }
         
         .prose th {
-          background: #0F172A;
-          color: #F8FAFC;
+          background: ${isDark ? '#0F172A' : '#F3F4F6'};
+          color: ${isDark ? '#F8FAFC' : '#111827'};
           font-weight: 600;
         }
         
         .prose td {
-          color: #94A3B8;
+          color: ${isDark ? '#94A3B8' : '#6B7280'};
         }
       `}</style>
     </main>

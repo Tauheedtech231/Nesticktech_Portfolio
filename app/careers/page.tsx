@@ -37,6 +37,7 @@ const CareersPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [formData, setFormData] = useState({
@@ -50,9 +51,54 @@ const CareersPage = () => {
     category: 'job' as 'job' | 'internship'
   });
 
+  // System theme detection
+  useEffect(() => {
+    const getSystemTheme = (): 'dark' | 'light' => {
+      if (typeof window !== 'undefined' && window.matchMedia) {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      return 'dark';
+    };
+
+    setTheme(getSystemTheme());
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleThemeChange = (e: MediaQueryListEvent) => {
+      setTheme(e.matches ? 'dark' : 'light');
+    };
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleThemeChange);
+    } else {
+      mediaQuery.addListener(handleThemeChange);
+    }
+
+    return () => {
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', handleThemeChange);
+      } else {
+        mediaQuery.removeListener(handleThemeChange);
+      }
+    };
+  }, []);
+
   const phoneNumber = "923193236529";
   const formattedPhoneNumber = `+${phoneNumber}`;
 
+  // Theme-based class names
+  const isDark = theme === 'dark';
+  const bgColor = isDark ? 'bg-[#020617]' : 'bg-gray-50';
+  const textColor = isDark ? 'text-white' : 'text-gray-900';
+  const subTextColor = isDark ? 'text-[#94A3B8]' : 'text-gray-600';
+  const cardBg = isDark ? 'bg-[#0F172A]/50' : 'bg-white/80';
+  const cardBorder = isDark ? 'border-[#1E293B]' : 'border-gray-200';
+  const inputBg = isDark ? 'bg-[#020617]' : 'bg-white';
+  const inputBorder = isDark ? 'border-[#1E293B]' : 'border-gray-300';
+  const tabBg = isDark ? 'bg-[#0F172A]' : 'bg-gray-100';
+  const tabBorder = isDark ? 'border-[#1E293B]' : 'border-gray-200';
+  const hoverBg = isDark ? 'hover:bg-[#6366F1]/10' : 'hover:bg-indigo-50';
+  const dropzoneBg = isDark ? 'bg-[#020617]/50' : 'bg-gray-50/50';
+  
   const contactOptions = [
     {
       id: 1,
@@ -62,7 +108,7 @@ const CareersPage = () => {
       action: "mailto:nesticktech@gmail.com",
       linkText: "Send Message",
       color: "from-blue-500 to-cyan-500",
-      bgHover: "hover:bg-blue-500/10",
+      bgHover: isDark ? "hover:bg-blue-500/10" : "hover:bg-blue-50",
       frontInfo: {
         stats: "24h Response",
         icon: Clock,
@@ -80,7 +126,7 @@ const CareersPage = () => {
       action: `tel:${formattedPhoneNumber}`,
       linkText: formattedPhoneNumber,
       color: "from-green-500 to-emerald-500",
-      bgHover: "hover:bg-green-500/10",
+      bgHover: isDark ? "hover:bg-green-500/10" : "hover:bg-green-50",
       frontInfo: {
         stats: "Available Now",
         icon: Shield,
@@ -98,7 +144,7 @@ const CareersPage = () => {
       action: "/contact",
       linkText: "Book Now",
       color: "from-purple-500 to-pink-500",
-      bgHover: "hover:bg-purple-500/10",
+      bgHover: isDark ? "hover:bg-purple-500/10" : "hover:bg-purple-50",
       frontInfo: {
         stats: "Free Consultation",
         icon: Sparkles,
@@ -284,77 +330,77 @@ const CareersPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#020617]">
-      {/* Hero Section with Video Background */}
-     <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden pt-24 sm:pt-28 lg:pt-32">
-  {/* Background Image */}
-  <div className="absolute inset-0 z-0">
-    <img
-      src="/career.jpg"
-      alt="Career Background"
-      className="absolute inset-0 w-full h-full object-cover"
-    />
-    <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50" />
-  </div>
+    <div className={`min-h-screen ${bgColor}`}>
+      {/* Hero Section with Image Background */}
+      <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden pt-24 sm:pt-28 lg:pt-32">
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/career.jpg"
+            alt="Career Background"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div className={`absolute inset-0 bg-gradient-to-b from-${isDark ? 'black/30' : 'gray-900/40'} via-transparent to-${isDark ? 'black/50' : 'gray-900/60'}`} />
+        </div>
 
-  <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-    >
-      <motion.span
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.2 }}
-        className="inline-flex items-center gap-2 px-4 py-2 bg-black/40 backdrop-blur-md rounded-full border border-white/30 mb-6 cursor-pointer"
-      >
-        <Sparkles className="w-4 h-4 text-white" />
-        <span className="text-sm font-medium text-white">Join Our Team</span>
-      </motion.span>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <motion.span
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className={`inline-flex items-center gap-2 px-4 py-2 ${isDark ? 'bg-black/40' : 'bg-gray-900/40'} backdrop-blur-md rounded-full border ${isDark ? 'border-white/30' : 'border-white/30'} mb-6 cursor-pointer`}
+            >
+              <Sparkles className="w-4 h-4 text-white" />
+              <span className="text-sm font-medium text-white">Join Our Team</span>
+            </motion.span>
 
-      <h1 className="text-4xl sm:text-5xl font-bold font-serif text-white mb-6 tracking-tight">
-        Shape the Future of
-        <span className="block bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-          Digital Innovation
-        </span>
-      </h1>
+            <h1 className="text-4xl sm:text-5xl font-bold font-serif text-white mb-6 tracking-tight">
+              Shape the Future of
+              <span className="block bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                Digital Innovation
+              </span>
+            </h1>
 
-      <p className="text-lg sm:text-xl text-gray-200 max-w-3xl mx-auto mb-8 font-light tracking-wide">
-        Join a team of passionate innovators building cutting-edge digital solutions for businesses worldwide
-      </p>
+            <p className="text-lg sm:text-xl text-gray-200 max-w-3xl mx-auto mb-8 font-light tracking-wide">
+              Join a team of passionate innovators building cutting-edge digital solutions for businesses worldwide
+            </p>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="flex flex-col sm:flex-row gap-4 justify-center"
-      >
-        <Link
-          href="#apply-section"
-          className="group inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-white to-gray-300 text-black font-sans rounded-xl hover:shadow-lg transition-all duration-300 cursor-pointer font-medium"
-        >
-          Apply Now
-          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-        </Link>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center"
+            >
+              <Link
+                href="#apply-section"
+                className="group inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-white to-gray-300 text-black font-sans rounded-xl hover:shadow-lg transition-all duration-300 cursor-pointer font-medium"
+              >
+                Apply Now
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
 
-        <Link
-          href="#why-join"
-          className="inline-flex items-center justify-center px-6 py-3 bg-black/40 backdrop-blur-md border border-white/30 text-white font-sans rounded-xl hover:border-white hover:bg-white/10 transition-all duration-300 cursor-pointer"
-        >
-          Learn More
-        </Link>
-      </motion.div>
-    </motion.div>
-  </div>
-</section>
+              <Link
+                href="#why-join"
+                className={`inline-flex items-center justify-center px-6 py-3 ${isDark ? 'bg-black/40' : 'bg-gray-900/40'} backdrop-blur-md border ${isDark ? 'border-white/30' : 'border-white/30'} text-white font-sans rounded-xl hover:border-white hover:bg-white/10 transition-all duration-300 cursor-pointer`}
+              >
+                Learn More
+              </Link>
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
 
       {/* Why Join Us Section */}
-      <section id="why-join" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <section id="why-join" className={`py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto ${bgColor}`}>
         <div className="grid lg:grid-cols-2 gap-12 items-start">
           <div className="relative group">
-            <div className="absolute -inset-2 bg-gradient-to-r from-[#6366F1]/20 to-[#8B5CF6]/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-500" />
-            <div className="relative rounded-2xl overflow-hidden border border-[#1E293B] group-hover:border-[#6366F1]/50 transition-all duration-500 group-hover:scale-[1.02]">
+            <div className={`absolute -inset-2 bg-gradient-to-r from-[#6366F1]/20 to-[#8B5CF6]/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-500`} />
+            <div className={`relative rounded-2xl overflow-hidden border ${cardBorder} group-hover:border-[#6366F1]/50 transition-all duration-500 group-hover:scale-[1.02]`}>
               <Image
                 src="/car.jpg"
                 alt="Why Join Nestick Tech"
@@ -362,25 +408,25 @@ const CareersPage = () => {
                 height={500}
                 className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className={`absolute inset-0 bg-gradient-to-t from-${isDark ? '[#020617]' : 'gray-900'} via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
             </div>
           </div>
 
           <div>
-            <h2 className="text-3xl sm:text-4xl font-bold font-serif text-white mb-6">
+            <h2 className={`text-3xl sm:text-4xl font-bold font-serif ${textColor} mb-6`}>
               Why Join{' '}
               <span className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">
                 Nestick Tech?
               </span>
             </h2>
             
-            <p className="text-[#94A3B8] mb-6 font-light leading-relaxed">
+            <p className={`${subTextColor} mb-6 font-light leading-relaxed`}>
               At Nestick Tech, we're not just building software — we're building the future of digital business. 
               We believe that great products come from great teams, and we're committed to creating an environment 
               where innovation thrives, creativity is celebrated, and everyone has the opportunity to grow.
             </p>
             
-            <p className="text-[#94A3B8] mb-6 font-light leading-relaxed">
+            <p className={`${subTextColor} mb-6 font-light leading-relaxed`}>
               Join us and work on cutting-edge projects with modern technologies like React, Next.js, Node.js, 
               and cloud platforms. You'll collaborate with talented professionals who are passionate about 
               delivering exceptional digital solutions.
@@ -400,14 +446,14 @@ const CareersPage = () => {
                   className="flex items-center gap-3 group cursor-pointer"
                 >
                   <CheckCircle className="w-5 h-5 text-[#6366F1] group-hover:scale-110 transition-transform" />
-                  <span className="text-[#CBD5E1] group-hover:text-white transition-colors">{point}</span>
+                  <span className={`${isDark ? 'text-[#CBD5E1]' : 'text-gray-700'} group-hover:${textColor} transition-colors`}>{point}</span>
                 </div>
               ))}
             </div>
 
-            <div className="flex items-center gap-3 p-4 bg-[#0F172A]/50 rounded-xl border border-[#1E293B] hover:border-[#6366F1]/50 transition-all duration-300 cursor-pointer group">
+            <div className={`flex items-center gap-3 p-4 ${isDark ? 'bg-[#0F172A]/50' : 'bg-gray-100/80'} rounded-xl border ${cardBorder} hover:border-[#6366F1]/50 transition-all duration-300 cursor-pointer group`}>
               <Mail className="w-5 h-5 text-[#6366F1] group-hover:scale-110 transition-transform" />
-              <span className="text-[#94A3B8] group-hover:text-white transition-colors">Contact us:</span>
+              <span className={`${subTextColor} group-hover:${textColor} transition-colors`}>Contact us:</span>
               <a href="mailto:nesticktech@gmail.com" className="text-[#6366F1] hover:underline font-medium">
                 nesticktech@gmail.com
               </a>
@@ -417,27 +463,27 @@ const CareersPage = () => {
       </section>
 
       {/* Apply Section with Form */}
-      <section id="apply-section" className="py-20 px-4 sm:px-6 lg:px-8 bg-[#0A0F1A]">
+      <section id="apply-section" className={`py-20 px-4 sm:px-6 lg:px-8 ${isDark ? 'bg-[#0A0F1A]' : 'bg-gray-100'}`}>
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-10">
-            <h2 className="text-3xl sm:text-4xl font-bold font-serif text-white mb-4">
+            <h2 className={`text-3xl sm:text-4xl font-bold font-serif ${textColor} mb-4`}>
               Apply for{' '}
               <span className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">
                 Opportunities
               </span>
             </h2>
-            <p className="text-[#94A3B8] max-w-2xl mx-auto">
+            <p className={subTextColor}>
               Choose between full-time jobs or internships and submit your application
             </p>
           </div>
 
           {/* Tabs */}
           <div className="flex justify-center mb-8">
-            <div className="inline-flex bg-[#0F172A] rounded-xl p-1 border border-[#1E293B]">
+            <div className={`inline-flex ${tabBg} rounded-xl p-1 border ${tabBorder}`}>
               <button
                 onClick={() => setActiveTab('job')}
                 className={`relative px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 cursor-pointer ${
-                  activeTab === 'job' ? 'text-white' : 'text-[#94A3B8] hover:text-white'
+                  activeTab === 'job' ? 'text-white' : subTextColor
                 }`}
               >
                 {activeTab === 'job' && (
@@ -455,7 +501,7 @@ const CareersPage = () => {
               <button
                 onClick={() => setActiveTab('internship')}
                 className={`relative px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 cursor-pointer ${
-                  activeTab === 'internship' ? 'text-white' : 'text-[#94A3B8] hover:text-white'
+                  activeTab === 'internship' ? 'text-white' : subTextColor
                 }`}
               >
                 {activeTab === 'internship' && (
@@ -479,7 +525,7 @@ const CareersPage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="bg-[#0F172A]/50 backdrop-blur-sm rounded-2xl border border-[#1E293B] p-6 sm:p-8"
+            className={`${cardBg} backdrop-blur-sm rounded-2xl border ${cardBorder} p-6 sm:p-8`}
           >
             {submitSuccess && (
               <div className="mb-6 p-4 bg-green-500/20 border border-green-500/50 rounded-xl flex items-center gap-3">
@@ -498,7 +544,7 @@ const CareersPage = () => {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="grid sm:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-medium text-[#94A3B8] mb-2">Full Name *</label>
+                  <label className={`block text-sm font-medium ${subTextColor} mb-2`}>Full Name *</label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6366F1]" />
                     <input
@@ -507,14 +553,14 @@ const CareersPage = () => {
                       required
                       value={formData.fullName}
                       onChange={handleInputChange}
-                      className="w-full pl-10 pr-4 py-2.5 bg-[#020617] border border-[#1E293B] rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition-colors cursor-pointer"
+                      className={`w-full pl-10 pr-4 py-2.5 ${inputBg} border ${inputBorder} rounded-lg ${textColor} focus:outline-none focus:border-[#6366F1] transition-colors cursor-pointer`}
                       placeholder="John Doe"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-[#94A3B8] mb-2">Email Address *</label>
+                  <label className={`block text-sm font-medium ${subTextColor} mb-2`}>Email Address *</label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6366F1]" />
                     <input
@@ -523,7 +569,7 @@ const CareersPage = () => {
                       required
                       value={formData.email}
                       onChange={handleInputChange}
-                      className="w-full pl-10 pr-4 py-2.5 bg-[#020617] border border-[#1E293B] rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition-colors cursor-pointer"
+                      className={`w-full pl-10 pr-4 py-2.5 ${inputBg} border ${inputBorder} rounded-lg ${textColor} focus:outline-none focus:border-[#6366F1] transition-colors cursor-pointer`}
                       placeholder="john@example.com"
                     />
                   </div>
@@ -532,7 +578,7 @@ const CareersPage = () => {
 
               <div className="grid sm:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-medium text-[#94A3B8] mb-2">Phone Number *</label>
+                  <label className={`block text-sm font-medium ${subTextColor} mb-2`}>Phone Number *</label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6366F1]" />
                     <input
@@ -541,14 +587,14 @@ const CareersPage = () => {
                       required
                       value={formData.phone}
                       onChange={handleInputChange}
-                      className="w-full pl-10 pr-4 py-2.5 bg-[#020617] border border-[#1E293B] rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition-colors cursor-pointer"
+                      className={`w-full pl-10 pr-4 py-2.5 ${inputBg} border ${inputBorder} rounded-lg ${textColor} focus:outline-none focus:border-[#6366F1] transition-colors cursor-pointer`}
                       placeholder="+92 300 1234567"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-[#94A3B8] mb-2">
+                  <label className={`block text-sm font-medium ${subTextColor} mb-2`}>
                     {activeTab === 'job' ? 'Position Applying For *' : 'Internship Role *'}
                   </label>
                   <div className="relative">
@@ -559,7 +605,7 @@ const CareersPage = () => {
                       required
                       value={formData.position}
                       onChange={handleInputChange}
-                      className="w-full pl-10 pr-4 py-2.5 bg-[#020617] border border-[#1E293B] rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition-colors cursor-pointer"
+                      className={`w-full pl-10 pr-4 py-2.5 ${inputBg} border ${inputBorder} rounded-lg ${textColor} focus:outline-none focus:border-[#6366F1] transition-colors cursor-pointer`}
                       placeholder={activeTab === 'job' ? "e.g., Frontend Developer" : "e.g., Frontend Intern"}
                     />
                   </div>
@@ -568,7 +614,7 @@ const CareersPage = () => {
 
               <div className="grid sm:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-medium text-[#94A3B8] mb-2">
+                  <label className={`block text-sm font-medium ${subTextColor} mb-2`}>
                     {activeTab === 'job' ? 'Years of Experience *' : 'Current Year / Semester *'}
                   </label>
                   <div className="relative">
@@ -578,7 +624,7 @@ const CareersPage = () => {
                       required
                       value={formData.experience}
                       onChange={handleInputChange}
-                      className="w-full pl-10 pr-4 py-2.5 bg-[#020617] border border-[#1E293B] rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition-colors appearance-none cursor-pointer"
+                      className={`w-full pl-10 pr-4 py-2.5 ${inputBg} border ${inputBorder} rounded-lg ${textColor} focus:outline-none focus:border-[#6366F1] transition-colors appearance-none cursor-pointer`}
                     >
                       <option value="">Select</option>
                       {activeTab === 'job' ? (
@@ -603,7 +649,7 @@ const CareersPage = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-[#94A3B8] mb-2">
+                  <label className={`block text-sm font-medium ${subTextColor} mb-2`}>
                     Portfolio / GitHub / LinkedIn URL
                   </label>
                   <div className="relative">
@@ -613,7 +659,7 @@ const CareersPage = () => {
                       name="portfolio"
                       value={formData.portfolio}
                       onChange={handleInputChange}
-                      className="w-full pl-10 pr-4 py-2.5 bg-[#020617] border border-[#1E293B] rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition-colors cursor-pointer"
+                      className={`w-full pl-10 pr-4 py-2.5 ${inputBg} border ${inputBorder} rounded-lg ${textColor} focus:outline-none focus:border-[#6366F1] transition-colors cursor-pointer`}
                       placeholder="https://github.com/yourusername"
                     />
                   </div>
@@ -622,7 +668,7 @@ const CareersPage = () => {
 
               {/* CV Upload Section */}
               <div>
-                <label className="block text-sm font-medium text-[#94A3B8] mb-2">
+                <label className={`block text-sm font-medium ${subTextColor} mb-2`}>
                   Upload CV/Resume * (PDF, DOC, DOCX, Max 5MB)
                 </label>
                 <div
@@ -633,7 +679,7 @@ const CareersPage = () => {
                   className={`relative border-2 border-dashed rounded-xl p-6 transition-all duration-300 cursor-pointer ${
                     dragActive 
                       ? 'border-[#6366F1] bg-[#6366F1]/10' 
-                      : 'border-[#1E293B] hover:border-[#6366F1] bg-[#020617]/50'
+                      : `${cardBorder} ${dropzoneBg}`
                   }`}
                   onClick={() => fileInputRef.current?.click()}
                 >
@@ -648,27 +694,27 @@ const CareersPage = () => {
                   {!selectedFile ? (
                     <div className="text-center">
                       <Upload className="w-12 h-12 text-[#6366F1] mx-auto mb-3" />
-                      <p className="text-[#94A3B8] mb-1">Drag & drop your resume here</p>
-                      <p className="text-[#64748B] text-sm">or click to browse</p>
-                      <p className="text-[#64748B] text-xs mt-2">Supports PDF, DOC, DOCX (Max 5MB)</p>
+                      <p className={subTextColor}>Drag & drop your resume here</p>
+                      <p className={`${isDark ? 'text-[#64748B]' : 'text-gray-400'} text-sm`}>or click to browse</p>
+                      <p className={`${isDark ? 'text-[#64748B]' : 'text-gray-400'} text-xs mt-2`}>Supports PDF, DOC, DOCX (Max 5MB)</p>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-between bg-[#0F172A] p-3 rounded-lg">
+                    <div className={`flex items-center justify-between ${isDark ? 'bg-[#0F172A]' : 'bg-gray-100'} p-3 rounded-lg`}>
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-[#6366F1]/20 rounded-lg flex items-center justify-center">
                           <Upload className="w-5 h-5 text-[#6366F1]" />
                         </div>
                         <div>
-                          <p className="text-white text-sm font-medium">{selectedFile.name}</p>
-                          <p className="text-[#64748B] text-xs">{(selectedFile.size / 1024).toFixed(0)} KB</p>
+                          <p className={`text-sm font-medium ${textColor}`}>{selectedFile.name}</p>
+                          <p className={`${isDark ? 'text-[#64748B]' : 'text-gray-400'} text-xs`}>{(selectedFile.size / 1024).toFixed(0)} KB</p>
                         </div>
                       </div>
                       <button
                         type="button"
                         onClick={removeFile}
-                        className="p-1 hover:bg-[#1E293B] rounded-lg transition-colors cursor-pointer"
+                        className={`p-1 ${isDark ? 'hover:bg-[#1E293B]' : 'hover:bg-gray-200'} rounded-lg transition-colors cursor-pointer`}
                       >
-                        <X className="w-5 h-5 text-[#94A3B8] hover:text-red-400" />
+                        <X className={`w-5 h-5 ${subTextColor} hover:text-red-400`} />
                       </button>
                     </div>
                   )}
@@ -676,7 +722,7 @@ const CareersPage = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[#94A3B8] mb-2">
+                <label className={`block text-sm font-medium ${subTextColor} mb-2`}>
                   Why should we hire you? *
                 </label>
                 <div className="relative">
@@ -687,7 +733,7 @@ const CareersPage = () => {
                     rows={4}
                     value={formData.message}
                     onChange={handleInputChange}
-                    className="w-full pl-10 pr-4 py-2.5 bg-[#020617] border border-[#1E293B] rounded-lg text-white focus:outline-none focus:border-[#6366F1] transition-colors resize-none cursor-pointer"
+                    className={`w-full pl-10 pr-4 py-2.5 ${inputBg} border ${inputBorder} rounded-lg ${textColor} focus:outline-none focus:border-[#6366F1] transition-colors resize-none cursor-pointer`}
                     placeholder="Tell us about your skills, experience, and why you'd be a great fit..."
                   />
                 </div>
@@ -718,7 +764,7 @@ const CareersPage = () => {
       </section>
 
       {/* Still Have Questions Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-[#020617]">
+      <section className={`py-20 px-4 sm:px-6 lg:px-8 ${bgColor}`}>
         <div className="max-w-4xl mx-auto">
           <div className="relative rounded-2xl overflow-hidden">
             <div className="absolute inset-0 z-0">
@@ -728,13 +774,13 @@ const CareersPage = () => {
                 fill
                 className="object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-br from-[#020617]/90 via-[#020617]/80 to-[#0F172A]/90" />
+              <div className={`absolute inset-0 bg-gradient-to-br from-${isDark ? '[#020617]/90' : 'gray-900/90'} via-${isDark ? '[#020617]/80' : 'gray-900/80'} to-${isDark ? '[#0F172A]/90' : 'gray-800/90'}`} />
               <div className="absolute inset-0 bg-gradient-to-r from-[#6366F1]/20 via-transparent to-[#8B5CF6]/20" />
             </div>
 
             <div className="relative z-10 px-6 py-8 lg:px-10 lg:py-12">
               <div className="text-center mb-8 lg:mb-10">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#0F172A]/80 backdrop-blur-sm border border-[#6366F1]/20 rounded-full mb-4 cursor-pointer hover:border-[#6366F1] hover:bg-[#6366F1]/20 transition-all duration-300">
+                <div className={`inline-flex items-center gap-2 px-4 py-2 ${isDark ? 'bg-[#0F172A]/80' : 'bg-white/10'} backdrop-blur-sm border border-[#6366F1]/20 rounded-full mb-4 cursor-pointer hover:border-[#6366F1] hover:bg-[#6366F1]/20 transition-all duration-300`}>
                   <HelpCircle className="w-4 h-4 text-[#6366F1]" />
                   <span className="text-xs font-medium font-sans tracking-wide text-[#6366F1] italic">
                     WE&apos;RE HERE TO HELP
@@ -761,15 +807,14 @@ const CareersPage = () => {
                       onMouseEnter={() => setFlippedCard(option.id)}
                       onMouseLeave={() => setFlippedCard(null)}
                     >
-                      <div
-                        className={`relative w-full h-full transition-all duration-500 transform-style-3d ${
+                      <div                        className={`relative w-full h-full transition-all duration-500 transform-style-3d ${
                           flippedCard === option.id ? 'rotate-y-180' : ''
                         }`}
                       >
                         {/* Front Side */}
                         <div className="absolute w-full h-full backface-hidden">
                           <Link href={option.action} className="block h-full">
-                            <div className={`h-full bg-[#0F172A]/80 backdrop-blur-md border border-[#1E293B] rounded-xl p-6 text-center transition-all duration-300 ${option.bgHover} hover:border-[#6366F1]/50 hover:shadow-lg hover:shadow-[#6366F1]/10 cursor-pointer`}>
+                            <div className={`h-full ${isDark ? 'bg-[#0F172A]/80' : 'bg-white/10'} backdrop-blur-md border ${cardBorder} rounded-xl p-6 text-center transition-all duration-300 ${option.bgHover} hover:border-[#6366F1]/50 hover:shadow-lg hover:shadow-[#6366F1]/10 cursor-pointer`}>
                               <div className="relative mb-4">
                                 <div className={`absolute inset-0 bg-gradient-to-r ${option.color} rounded-full blur-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300`} />
                                 <div className={`relative w-14 h-14 mx-auto bg-gradient-to-br ${option.color} rounded-full flex items-center justify-center shadow-lg`}>
@@ -777,7 +822,7 @@ const CareersPage = () => {
                                 </div>
                               </div>
                               
-                              <h4 className="text-white font-semibold font-sans tracking-wide text-lg lg:text-xl mb-2">
+                              <h4 className={`text-white font-semibold font-sans tracking-wide text-lg lg:text-xl mb-2`}>
                                 {option.title}
                               </h4>
                               

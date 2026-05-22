@@ -83,6 +83,7 @@ const TOTAL_STEPS = products.length * IMAGES_PER_PRODUCT;
 export default function CinematicShowcase() {
   const sectionRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   
   // EXISTING SCROLL LOGIC - COMPLETELY UNCHANGED
   const [activeProductIndex, setActiveProductIndex] = useState(0);
@@ -94,6 +95,55 @@ export default function CinematicShowcase() {
   
   const isMountedRef = useRef(true);
   const rafRef = useRef<number | null>(null);
+
+  // System theme detection
+  useEffect(() => {
+    const getSystemTheme = (): 'dark' | 'light' => {
+      if (typeof window !== 'undefined' && window.matchMedia) {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      return 'dark';
+    };
+
+    setTheme(getSystemTheme());
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleThemeChange = (e: MediaQueryListEvent) => {
+      setTheme(e.matches ? 'dark' : 'light');
+    };
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleThemeChange);
+    } else {
+      mediaQuery.addListener(handleThemeChange);
+    }
+
+    return () => {
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', handleThemeChange);
+      } else {
+        mediaQuery.removeListener(handleThemeChange);
+      }
+    };
+  }, []);
+
+  // Theme-based class names
+  const isDark = theme === 'dark';
+  const overlayBg = isDark ? 'bg-black/50' : 'bg-white/20';
+  const indicatorBg = isDark ? 'bg-black/40' : 'bg-black';
+  const indicatorText = isDark ? 'text-white/50' : 'text-white/70';
+  const modalBg = isDark ? 'bg-gradient-to-br from-gray-900 to-gray-800' : 'bg-gradient-to-br from-gray-100 to-gray-200';
+  const modalBorder = isDark ? 'border-white/10' : 'border-gray-300';
+  const modalText = isDark ? 'text-white' : 'text-gray-900';
+  const modalSubText = isDark ? 'text-white/60' : 'text-gray-600';
+  const inputBg = isDark ? 'bg-white/10' : 'bg-gray-200';
+  const inputBorder = isDark ? 'border-white/20' : 'border-gray-400';
+  const inputText = isDark ? 'text-white' : 'text-gray-900';
+  const placeholderColor = isDark ? 'placeholder-white/40' : 'placeholder-gray-500';
+  
+  // Badge styling - BLACK background with WHITE text for both modes
+  const badgeBg = 'bg-black';
+  const badgeText = 'text-white/70';
 
   // Update background color when product changes
   useEffect(() => {
@@ -151,7 +201,7 @@ export default function CinematicShowcase() {
     };
   }, []);
 
-  // PREMIUM CINEMATIC INTRO ANIMATION
+  // PREMIUM CINEMATIC INTRO ANIMATION - COMPLETELY UNCHANGED
   useEffect(() => {
     if (!contentRef.current) return;
     
@@ -239,14 +289,14 @@ export default function CinematicShowcase() {
           {/* BACKGROUND - DURING INTRO: PURE BLACK ONLY, NOTHING ELSE */}
           {/* AFTER INTRO: GRADIENT + BLURRED IMAGE */}
           <div className="absolute inset-0 -z-10">
-            {/* Base black background - always there */}
-            <div className="absolute inset-0 bg-black" />
+            {/* Base background - theme aware */}
+            <div className={`absolute inset-0 ${isDark ? 'bg-black' : 'bg-gray-100'}`} />
             
             {/* Gradient background - only visible after cinematic completes */}
             {cinematicComplete && (
               <>
                 <div className={`absolute inset-0 bg-gradient-to-br ${currentBgColor} transition-opacity duration-1000 opacity-100`} />
-                <div className="absolute inset-0 bg-black/50" />
+                <div className={`absolute inset-0 ${overlayBg}`} />
               </>
             )}
           </div>
@@ -254,7 +304,7 @@ export default function CinematicShowcase() {
           {/* Blurred background product image - ONLY after intro completes */}
           {cinematicComplete && (
             <div className="absolute inset-0 opacity-30 pointer-events-none">
-              <div className="absolute inset-0 bg-black/40 backdrop-blur-3xl" />
+              <div className={`absolute inset-0 ${isDark ? 'bg-black/40' : 'bg-white/40'} backdrop-blur-3xl`} />
               <Image
                 src={currentImageUrl}
                 alt="background"
@@ -316,7 +366,8 @@ export default function CinematicShowcase() {
                   })}
                 </div>
                 
-                <div className="mt-6 text-xs text-white/50 bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm">
+                {/* Badge - BLACK background with WHITE text */}
+                <div className={`mt-6 text-xs ${badgeText} ${badgeBg} px-3 py-1 rounded-full backdrop-blur-sm border ${isDark ? 'border-white/10' : 'border-white/20'}`}>
                   {!cinematicComplete ? (
                     <span className="inline-flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-white/60 animate-pulse" />
@@ -353,10 +404,10 @@ export default function CinematicShowcase() {
                           <div className="text-sm text-indigo-400">
                             0{pIdx + 1} — PRODUCT
                           </div>
-                          <div className="mt-2 inline-block px-2 py-1 text-xs rounded-full bg-indigo-500/20 text-indigo-300">
-                            {product.status}
-                          </div>
-                          <h2 className={`mt-3 text-3xl md:text-4xl font-bold transition-all duration-500 ${
+                       <div className="mt-2 inline-block px-2 py-1 text-xs rounded-full bg-black text-white border border-white/20">
+  {product.status}
+</div>
+                          <h2 className={`mt-3 text-3xl md:text-4xl font-bold transition-all duration-500 text-white ${
                             !isActive && 'blur-[2px] opacity-50'
                           }`}>
                             {product.title}
@@ -402,10 +453,10 @@ export default function CinematicShowcase() {
                         <div className="md:col-span-1 flex flex-col items-end gap-4">
                           <button 
                             onClick={() => openModal(product)}
-                            className={`rounded-xl px-6 py-3 text-black font-medium transition-all duration-300 ${
+                            className={`rounded-xl px-6 py-3 font-medium transition-all duration-300 ${
                               cinematicComplete 
-                                ? 'bg-white cursor-pointer hover:scale-105 hover:shadow-xl' 
-                                : 'bg-white/40 cursor-not-allowed'
+                                ? `bg-white ${isDark ? 'text-black' : 'text-gray-900'} cursor-pointer hover:scale-105 hover:shadow-xl` 
+                                : 'bg-white/40 text-white/40 cursor-not-allowed'
                             }`}
                             disabled={!cinematicComplete}
                           >
@@ -464,7 +515,8 @@ export default function CinematicShowcase() {
                     })}
                   </div>
                   
-                  <div className="mt-2 text-[10px] text-white/50 bg-black/40 px-2 py-0.5 rounded-full backdrop-blur-sm">
+                  {/* Mobile Badge - BLACK background with WHITE text */}
+                  <div className={`mt-2 text-[10px] ${badgeText} ${badgeBg} px-2 py-0.5 rounded-full backdrop-blur-sm border ${isDark ? 'border-white/10' : 'border-white/20'}`}>
                     {!cinematicComplete ? (
                       <span className="inline-flex items-center gap-1">
                         <span className="w-1 h-1 rounded-full bg-white/60 animate-pulse" />
@@ -569,7 +621,7 @@ export default function CinematicShowcase() {
         </div>
       </section>
 
-      {/* Modal - unchanged */}
+      {/* Modal - Theme aware */}
       <AnimatePresence>
         {isModalOpen && selectedProduct && (
           <motion.div
@@ -580,14 +632,14 @@ export default function CinematicShowcase() {
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+              className={`absolute inset-0 ${isDark ? 'bg-black/80' : 'bg-gray-900/80'} backdrop-blur-sm`}
               onClick={closeModal}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             />
             <motion.div
-              className="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl max-w-md w-full max-h-[85vh] overflow-y-auto p-5 shadow-2xl border border-white/10"
+              className={`relative ${modalBg} rounded-2xl max-w-md w-full max-h-[85vh] overflow-y-auto p-5 shadow-2xl border ${modalBorder}`}
               onClick={(e) => e.stopPropagation()}
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -596,7 +648,7 @@ export default function CinematicShowcase() {
             >
               <button
                 onClick={closeModal}
-                className="absolute top-4 right-4 text-white/60 hover:text-white transition cursor-pointer"
+                className={`absolute top-4 right-4 ${modalSubText} hover:${modalText} transition cursor-pointer`}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -604,43 +656,43 @@ export default function CinematicShowcase() {
                 <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-indigo-500/20 flex items-center justify-center">
                   {selectedProduct.icon}
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-2">
+                <h3 className={`text-2xl font-bold ${modalText} mb-2`}>
                   Request Demo - {selectedProduct.title}
                 </h3>
-                <p className="text-white/60 mb-5 text-sm">
+                <p className={`${modalSubText} mb-5 text-sm`}>
                   Fill out the form below and our team will get back to you within 24 hours.
                 </p>
                 <form className="space-y-3 text-left" onSubmit={(e) => e.preventDefault()}>
                   <div>
-                    <label className="block text-sm text-white/70 mb-1">Full Name</label>
+                    <label className={`block text-sm ${modalSubText} mb-1`}>Full Name</label>
                     <input
                       type="text"
                       placeholder="Enter your name"
-                      className="w-full px-4 py-2.5 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-indigo-400 transition"
+                      className={`w-full px-4 py-2.5 rounded-lg ${inputBg} border ${inputBorder} ${inputText} ${placeholderColor} focus:outline-none focus:border-indigo-400 transition`}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm text-white/70 mb-1">Email Address</label>
+                    <label className={`block text-sm ${modalSubText} mb-1`}>Email Address</label>
                     <input
                       type="email"
                       placeholder="Enter your email"
-                      className="w-full px-4 py-2.5 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-indigo-400 transition"
+                      className={`w-full px-4 py-2.5 rounded-lg ${inputBg} border ${inputBorder} ${inputText} ${placeholderColor} focus:outline-none focus:border-indigo-400 transition`}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm text-white/70 mb-1">Phone Number</label>
+                    <label className={`block text-sm ${modalSubText} mb-1`}>Phone Number</label>
                     <input
                       type="tel"
                       placeholder="Enter your phone number"
-                      className="w-full px-4 py-2.5 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-indigo-400 transition"
+                      className={`w-full px-4 py-2.5 rounded-lg ${inputBg} border ${inputBorder} ${inputText} ${placeholderColor} focus:outline-none focus:border-indigo-400 transition`}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm text-white/70 mb-1">Message (Optional)</label>
+                    <label className={`block text-sm ${modalSubText} mb-1`}>Message (Optional)</label>
                     <textarea
                       rows={3}
                       placeholder="Any specific requirements?"
-                      className="w-full px-4 py-2.5 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-indigo-400 transition resize-none"
+                      className={`w-full px-4 py-2.5 rounded-lg ${inputBg} border ${inputBorder} ${inputText} ${placeholderColor} focus:outline-none focus:border-indigo-400 transition resize-none`}
                     />
                   </div>
                   <motion.button
@@ -652,7 +704,7 @@ export default function CinematicShowcase() {
                     Submit Request
                   </motion.button>
                 </form>
-                <p className="text-xs text-white/40 mt-4">
+                <p className={`text-xs ${modalSubText} mt-4`}>
                   We'll contact you shortly to schedule a personalized demo.
                 </p>
               </div>

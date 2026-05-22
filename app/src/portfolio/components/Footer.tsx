@@ -59,6 +59,23 @@ interface FooterSettings {
   social_handle: string;
 }
 
+// Shimmer Component
+const FooterShimmer = ({ isDark }: { isDark: boolean }) => {
+  return (
+    <footer className={`relative ${isDark ? 'bg-[#020617] border-[#1E293B]' : 'bg-gray-50 border-gray-200'} border-t py-12`}>
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="animate-pulse">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className={`lg:col-span-${i === 1 ? 4 : i === 2 ? 3 : i === 3 ? 3 : 2} h-64 ${isDark ? 'bg-gray-800' : 'bg-gray-200'} rounded-xl`} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
 const Footer = () => {
   const currentYear = new Date().getFullYear();
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -70,6 +87,38 @@ const Footer = () => {
     social_handle: 'nesticktech'
   });
   const [loading, setLoading] = useState(true);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+
+  // System theme detection
+  useEffect(() => {
+    const getSystemTheme = (): 'dark' | 'light' => {
+      if (typeof window !== 'undefined' && window.matchMedia) {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      return 'dark';
+    };
+
+    setTheme(getSystemTheme());
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleThemeChange = (e: MediaQueryListEvent) => {
+      setTheme(e.matches ? 'dark' : 'light');
+    };
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleThemeChange);
+    } else {
+      mediaQuery.addListener(handleThemeChange);
+    }
+
+    return () => {
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', handleThemeChange);
+      } else {
+        mediaQuery.removeListener(handleThemeChange);
+      }
+    };
+  }, []);
 
   // Services Links (Can also be made dynamic)
   const services = [
@@ -145,28 +194,43 @@ const Footer = () => {
     },
   };
 
+  // Theme-based class names
+  const isDark = theme === 'dark';
+  const bgColor = isDark ? 'bg-[#020617]' : 'bg-gray-50';
+  const borderColor = isDark ? 'border-[#1E293B]' : 'border-gray-200';
+  const textColor = isDark ? 'text-[#F8FAFC]' : 'text-gray-900';
+  const subTextColor = isDark ? 'text-[#94A3B8]' : 'text-gray-600';
+  const cardBg = isDark ? 'bg-[#0F172A]/50' : 'bg-white/80';
+  const cardBorder = isDark ? 'border-[#1E293B]' : 'border-gray-200';
+  const gradientFrom = isDark ? 'from-[#6366F1]' : 'from-indigo-500';
+  const gradientTo = isDark ? 'to-[#8B5CF6]' : 'to-purple-500';
+  const logoGradient = isDark ? 'from-[#F8FAFC] to-[#94A3B8]' : 'from-gray-900 to-gray-600';
+  
+  // Hover colors for social links
+  const getSocialHoverColor = (socialColor: string) => {
+    if (!isDark) {
+      // In light mode, use darker/more vibrant colors
+      return socialColor.replace('text-[', 'text-[');
+    }
+    return socialColor;
+  };
+
   if (loading) {
-    return (
-      <footer className="relative bg-[#020617] border-t border-[#1E293B] py-12">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="animate-pulse">
-            <div className="h-40 bg-gray-800 rounded-xl" />
-          </div>
-        </div>
-      </footer>
-    );
+    return <FooterShimmer isDark={isDark} />;
   }
 
   return (
-    <footer className="relative bg-[#020617] border-t border-[#1E293B] overflow-hidden">
+    <footer className={`relative ${bgColor} border-t ${borderColor} overflow-hidden`}>
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#6366F1]/5 rounded-full blur-3xl opacity-50" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#8B5CF6]/5 rounded-full blur-3xl opacity-50" />
+        <div className={`absolute -top-40 -right-40 w-80 h-80 ${isDark ? 'bg-[#6366F1]/5' : 'bg-indigo-100'} rounded-full blur-3xl opacity-50`} />
+        <div className={`absolute -bottom-40 -left-40 w-80 h-80 ${isDark ? 'bg-[#8B5CF6]/5' : 'bg-purple-100'} rounded-full blur-3xl opacity-50`} />
       </div>
 
-      {/* Grid pattern overlay */}
-      <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-5" />
+      {/* Grid pattern overlay - only for dark mode */}
+      {isDark && (
+        <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-5" />
+      )}
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 lg:pt-16 pb-6">
         {/* Main Footer Content */}
@@ -182,7 +246,7 @@ const Footer = () => {
             {/* Logo */}
             <Link href="/" className="inline-block group mb-4 cursor-pointer">
               <div className="flex items-center gap-2">
-                <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center">
+                <div className={`relative w-10 h-10 rounded-lg overflow-hidden bg-gradient-to-br ${gradientFrom} ${gradientTo} flex items-center justify-center`}>
                   <Image
                     src="/nesticklogo.jpg"
                     alt="Nestick Tech Logo"
@@ -191,19 +255,19 @@ const Footer = () => {
                     className="object-cover"
                   />
                 </div>
-                <span className="text-xl lg:text-2xl font-bold font-serif tracking-tight bg-gradient-to-r from-[#F8FAFC] to-[#94A3B8] bg-clip-text text-transparent">
+                <span className={`text-xl lg:text-2xl font-bold font-serif tracking-tight bg-gradient-to-r ${logoGradient} bg-clip-text text-transparent`}>
                   Nestick Tech
                 </span>
               </div>
             </Link>
             
             {/* CEO Message - Dynamic */}
-            <div className="mb-4 p-4 bg-[#0F172A]/50 rounded-xl border border-[#1E293B]">
-              <p className="text-[#94A3B8] text-xs font-light tracking-wide italic leading-relaxed mb-2">
+            <div className={`mb-4 p-4 ${cardBg} rounded-xl border ${cardBorder}`}>
+              <p className={`${subTextColor} text-xs font-light tracking-wide italic leading-relaxed mb-2`}>
                 &quot;{settings.ceo_message}&quot;
               </p>
-              <p className="text-[#F8FAFC] text-xs font-semibold font-sans tracking-wide">— {settings.ceo_name}</p>
-              <p className="text-[#6366F1] text-[10px] font-medium font-sans tracking-wide mt-1">{settings.ceo_title}</p>
+              <p className={`${textColor} text-xs font-semibold font-sans tracking-wide mb-1`}>— {settings.ceo_name}</p>
+              <p className="text-[#6366F1] text-[10px] font-medium font-sans tracking-wide">{settings.ceo_title}</p>
             </div>
 
             {/* Contact Info - Dynamic from database */}
@@ -215,7 +279,7 @@ const Footer = () => {
                     key={contact.id}
                     href={contact.url || '#'}
                     target={contact.type === 'location' ? "_blank" : undefined}
-                    className="flex items-center gap-2 text-[#94A3B8] hover:text-[#6366F1] transition-colors duration-200 group cursor-pointer"
+                    className={`${subTextColor} hover:text-[#6366F1] transition-colors duration-200 group cursor-pointer flex items-center gap-2`}
                   >
                     <Icon className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
                     <span className="text-xs font-light tracking-wide">{contact.value}</span>
@@ -229,14 +293,14 @@ const Footer = () => {
           <motion.div variants={itemVariants} className="lg:col-span-3">
             <div className="flex items-center gap-2 mb-3">
               <Code className="w-4 h-4 text-[#6366F1]" />
-              <h3 className="text-[#F8FAFC] font-semibold font-sans tracking-wide text-base">Our Services</h3>
+              <h3 className={`${textColor} font-semibold font-sans tracking-wide text-base`}>Our Services</h3>
             </div>
             <ul className="space-y-1.5">
               {services.map((service) => (
                 <li key={service.name}>
                   <Link
                     href={service.href}
-                    className="text-[#94A3B8] hover:text-[#6366F1] text-xs font-light tracking-wide transition-colors duration-200 inline-flex items-center gap-1 group cursor-pointer"
+                    className={`${subTextColor} hover:text-[#6366F1] text-xs font-light tracking-wide transition-colors duration-200 inline-flex items-center gap-1 group cursor-pointer`}
                   >
                     <ArrowRight className="w-2.5 h-2.5 opacity-0 -ml-3 group-hover:opacity-100 group-hover:ml-0 transition-all duration-200" />
                     {service.name}
@@ -250,14 +314,14 @@ const Footer = () => {
           <motion.div variants={itemVariants} className="lg:col-span-3">
             <div className="flex items-center gap-2 mb-3">
               <ShoppingBag className="w-4 h-4 text-[#22C55E]" />
-              <h3 className="text-[#F8FAFC] font-semibold font-sans tracking-wide text-base">Our Products</h3>
+              <h3 className={`${textColor} font-semibold font-sans tracking-wide text-base`}>Our Products</h3>
             </div>
             <ul className="space-y-1.5">
               {products.map((product) => (
                 <li key={product.name}>
                   <Link
                     href={product.href}
-                    className="text-[#94A3B8] hover:text-[#6366F1] text-xs font-light tracking-wide transition-colors duration-200 inline-flex items-center gap-1 group cursor-pointer"
+                    className={`${subTextColor} hover:text-[#6366F1] text-xs font-light tracking-wide transition-colors duration-200 inline-flex items-center gap-1 group cursor-pointer`}
                   >
                     <ArrowRight className="w-2.5 h-2.5 opacity-0 -ml-3 group-hover:opacity-100 group-hover:ml-0 transition-all duration-200" />
                     {product.name}
@@ -271,7 +335,7 @@ const Footer = () => {
           <motion.div variants={itemVariants} className="lg:col-span-2">
             <div className="flex items-center gap-2 mb-3">
               <Sparkles className="w-4 h-4 text-[#F59E0B]" />
-              <h3 className="text-[#F8FAFC] font-semibold font-sans tracking-wide text-base">Connect</h3>
+              <h3 className={`${textColor} font-semibold font-sans tracking-wide text-base`}>Connect</h3>
             </div>
             
             {/* Social Links - Dynamic from database */}
@@ -284,7 +348,7 @@ const Footer = () => {
                     href={social.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`w-9 h-9 rounded-lg bg-[#0F172A] border border-[#1E293B] flex items-center justify-center text-[#94A3B8] hover:text-[${social.color}] hover:border-[#6366F1] transition-all duration-200 group cursor-pointer`}
+                    className={`w-9 h-9 rounded-lg ${isDark ? 'bg-[#0F172A] border-[#1E293B]' : 'bg-white border-gray-200'} border flex items-center justify-center ${subTextColor} hover:text-[${social.color}] hover:border-[#6366F1] transition-all duration-200 group cursor-pointer`}
                     aria-label={social.platform}
                   >
                     <Icon className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
@@ -294,7 +358,7 @@ const Footer = () => {
             </div>
             
             {/* Social handles */}
-            <p className="text-xs text-[#94A3B8] font-light tracking-wide">Follow us for updates</p>
+            <p className={`text-xs ${subTextColor} font-light tracking-wide`}>Follow us for updates</p>
             <p className="text-[10px] text-[#6366F1] font-medium tracking-wide mt-1">@{settings.social_handle}</p>
           </motion.div>
         </motion.div>
@@ -305,13 +369,13 @@ const Footer = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.2, duration: 0.3 }}
-          className="mt-10 pt-4 border-t border-[#1E293B]"
+          className={`mt-10 pt-4 border-t ${borderColor}`}
         >
           <div className="flex flex-col md:flex-row justify-between items-center gap-3">
-            <p className="text-[#94A3B8] text-xs font-light tracking-wide text-center md:text-left">
+            <p className={`${subTextColor} text-xs font-light tracking-wide text-center md:text-left`}>
               © {currentYear} Nestick Tech. All rights reserved.
             </p>
-            <p className="text-[#94A3B8] text-xs font-light tracking-wide flex items-center gap-1">
+            <p className={`${subTextColor} text-xs font-light tracking-wide flex items-center gap-1`}>
               Made with <Heart className="w-3 h-3 text-[#EF4444] fill-[#EF4444] animate-pulse" /> in Lahore, Pakistan
             </p>
             <Link 

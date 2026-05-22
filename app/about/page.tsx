@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable react/no-unescaped-entities */
 // app/about/page.tsx
 'use client';
@@ -30,6 +31,39 @@ import Hero from './BlackHole';
 import { useEffect, useState } from 'react';
 
 const AboutPage = () => {
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+
+  // System theme detection
+  useEffect(() => {
+    const getSystemTheme = (): 'dark' | 'light' => {
+      if (typeof window !== 'undefined' && window.matchMedia) {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      return 'dark';
+    };
+
+    setTheme(getSystemTheme());
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleThemeChange = (e: MediaQueryListEvent) => {
+      setTheme(e.matches ? 'dark' : 'light');
+    };
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleThemeChange);
+    } else {
+      mediaQuery.addListener(handleThemeChange);
+    }
+
+    return () => {
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', handleThemeChange);
+      } else {
+        mediaQuery.removeListener(handleThemeChange);
+      }
+    };
+  }, []);
+
   // Team members data with parent-child relationships
   const teamMembers = [
     {
@@ -135,6 +169,34 @@ const AboutPage = () => {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Theme-based class names
+  const isDark = theme === 'dark';
+  
+  // Card text colors - WHITE in both modes for cards
+  const cardTextColor = 'text-white';
+  const cardSubTextColor = isDark ? 'text-[#94A3B8]' : 'text-gray-200';
+  
+  // Other text colors
+  const textColor = isDark ? 'text-[#F8FAFC]' : 'text-gray-900';
+  const subTextColor = isDark ? 'text-[#94A3B8]' : 'text-gray-600';
+  
+  // Card backgrounds - semi-transparent dark for both modes to make white text readable
+  const cardBg = isDark ? 'bg-black/80' : 'bg-black/60';
+  const cardBorder = isDark ? 'border-[#1E293B]' : 'border-gray-700';
+  
+  const inputBg = isDark ? 'bg-black/50' : 'bg-white';
+  const inputBorder = isDark ? 'border-[#1E293B]' : 'border-gray-300';
+  const inputTextColor = isDark ? 'text-white' : 'text-gray-900';
+  const inputPlaceholderColor = isDark ? 'placeholder:text-[#64748B]' : 'placeholder:text-gray-400';
+  
+  // Dark overlay on images
+  const overlayGradient = isDark 
+    ? 'from-[#0F172A]/95 via-[#0F172A]/90 to-[#0F172A]/95'
+    : 'from-black/70 via-black/60 to-black/70';
+  
+  const teamSectionBg = isDark ? 'bg-black' : 'bg-gray-50';
+  const mainBg = isDark ? 'bg-black' : 'bg-white';
 
   // Toggle expand/collapse on mobile
   const toggleNode = (id: number) => {
@@ -254,13 +316,13 @@ const AboutPage = () => {
           whileHover={{ y: -4 }}
         >
           <div className={`bg-gradient-to-r ${node.avatarColor} p-[2px] rounded-xl transition-all duration-300 group-hover:shadow-lg cursor-pointer`}>
-            <div className="bg-black/80 backdrop-blur-sm rounded-xl p-3 md:p-4 min-w-[160px] md:min-w-[200px] cursor-pointer">
+            <div className={`${cardBg} backdrop-blur-sm rounded-xl p-3 md:p-4 min-w-[160px] md:min-w-[200px] cursor-pointer`}>
               <div className="flex items-center gap-3 cursor-pointer">
                 <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br ${node.avatarColor} flex items-center justify-center border-2 flex-shrink-0 cursor-pointer`} style={{ borderColor: node.color }}>
                   <span className="text-base md:text-lg font-bold text-white cursor-pointer">{node.avatar}</span>
                 </div>
                 <div className="flex-1 min-w-0 cursor-pointer">
-                  <p className="text-sm md:text-base font-semibold font-sans tracking-wide text-[#F8FAFC] truncate cursor-pointer">{node.name}</p>
+                  <p className={`text-sm md:text-base font-semibold font-sans tracking-wide ${cardTextColor} truncate cursor-pointer`}>{node.name}</p>
                   <p className="text-[10px] md:text-xs font-light tracking-wide truncate cursor-pointer" style={{ color: node.color }}>{node.role}</p>
                 </div>
               </div>
@@ -329,20 +391,20 @@ const AboutPage = () => {
             className={`bg-gradient-to-r ${node.avatarColor} p-[2px] rounded-xl transition-all duration-300 hover:shadow-lg w-full cursor-pointer`}
             onClick={() => hasChildren && toggleNode(node.id)}
           >
-            <div className="bg-black/80 backdrop-blur-sm rounded-xl p-3 w-full cursor-pointer">
+            <div className={`${cardBg} backdrop-blur-sm rounded-xl p-3 w-full cursor-pointer`}>
               <div className="flex items-center justify-between gap-3 cursor-pointer">
                 <div className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer">
                   <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${node.avatarColor} flex items-center justify-center border-2 flex-shrink-0 cursor-pointer`} style={{ borderColor: node.color }}>
                     <span className="text-base font-bold text-white cursor-pointer">{node.avatar}</span>
                   </div>
                   <div className="flex-1 min-w-0 cursor-pointer">
-                    <p className="text-sm font-semibold font-sans tracking-wide text-[#F8FAFC] truncate cursor-pointer">{node.name}</p>
+                    <p className={`text-sm font-semibold font-sans tracking-wide ${cardTextColor} truncate cursor-pointer`}>{node.name}</p>
                     <p className="text-[10px] font-light tracking-wide truncate cursor-pointer" style={{ color: node.color }}>{node.role}</p>
                   </div>
                 </div>
                 {hasChildren && (
                   <ChevronDown 
-                    className={`w-4 h-4 text-[#94A3B8] transition-transform duration-300 flex-shrink-0 cursor-pointer ${isExpanded ? 'rotate-180' : ''}`}
+                    className={`w-4 h-4 ${cardSubTextColor} transition-transform duration-300 flex-shrink-0 cursor-pointer ${isExpanded ? 'rotate-180' : ''}`}
                   />
                 )}
               </div>
@@ -362,7 +424,7 @@ const AboutPage = () => {
   const rootNode = teamMembers.find(member => member.parentId === null);
 
   return (
-    <main className="min-h-screen bg-black overflow-hidden relative">
+    <main className={`min-h-screen ${mainBg} overflow-hidden relative`}>
       {/* Hero Component */}
       <Hero />
 
@@ -370,26 +432,35 @@ const AboutPage = () => {
       <div className="relative z-10 w-full px-4 sm:px-6 lg:px-8 pb-8 lg:pb-12 pt-0">
         
         {/* Team Structure */}
-        <div className="relative rounded-2xl overflow-hidden mb-8 lg:mb-12">
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover"
-          >
-            <source src="/encryption-bg.webm" type="video/webm" />
-          </video>
+        <div className={`relative rounded-2xl overflow-hidden mb-8 lg:mb-12 ${teamSectionBg}`}>
+          {/* Video background only in dark mode */}
+          {isDark && (
+            <>
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="absolute inset-0 w-full h-full object-cover"
+              >
+                <source src="/encryption-bg.webm" type="video/webm" />
+              </video>
+              <div className="absolute inset-0 bg-black/50" />
+            </>
+          )}
           
-          <div className="absolute inset-0 bg-black/50" />
+          {/* Light mode gradient background - light gray */}
+          {!isDark && (
+            <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200" />
+          )}
           
-          <div className="relative z-10 py-6 sm:py-8 lg:py-12 px-4 sm:px-6">
+          <div className={`relative z-10 py-6 sm:py-8 lg:py-12 px-4 sm:px-6 ${!isDark ? 'bg-white/30' : ''}`}>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
             >
-              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold font-serif tracking-tight text-[#F8FAFC] text-center mb-4 sm:mb-6 lg:mb-8">
+              <h2 className={`text-xl sm:text-2xl lg:text-3xl font-bold font-serif tracking-tight ${textColor} text-center mb-4 sm:mb-6 lg:mb-8`}>
                 Our{' '}
                 <span className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">
                   Team Structure
@@ -415,196 +486,197 @@ const AboutPage = () => {
         </div>
 
         {/* Get in Touch Section with Cards */}
-   <motion.div
-  initial={{ y: 30, opacity: 0 }}
-  animate={{ y: 0, opacity: 1 }}
-  transition={{ delay: 0.5 }}
-  className="mt-8 lg:mt-12 w-full"
->
-  <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold font-serif tracking-tight text-[#F8FAFC] text-center mb-6 sm:mb-8">
-    Let's{' '}
-    <span className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">
-      Build Something Great
-    </span>
-    <span className="text-[#F8FAFC]"> Together</span>
-  </h2>
-  
-  <div className="grid md:grid-cols-2 gap-6 w-full max-w-full mx-auto px-4">
-    
-    {/* Left Side - Info Card with Background Image */}
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: 0.4 }}
-      className="
-        relative
-        overflow-hidden
-        pt-12
-        px-5
-        pb-8
-        w-full
-        rounded-xl
-        border border-[#1E293B]
-        backdrop-blur-md
-        hover:border-[#6366F1]/30
-        hover:shadow-xl
-        hover:shadow-[#6366F1]/5
-        transition-all
-        duration-500
-        cursor-pointer
-        will-change-transform
-        min-h-[400px]
-      "
-    >
-      {/* Background Image */}
-      <div className="absolute inset-0 z-0">
-        <Image
-          src="https://images.unsplash.com/photo-1553877522-43269d4ea984?q=80&w=2070&auto=format&fit=crop"
-          alt="Background"
-          fill
-          className="object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0F172A]/95 via-[#0F172A]/90 to-[#0F172A]/95" />
-      </div>
-      
-      {/* Glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-44 h-44 bg-[#6366F1]/10 blur-3xl rounded-full z-0" />
-      
-      <div className="relative z-10">
-        <h3 className="text-xl font-semibold tracking-wide text-[#F8FAFC] mb-6 text-center">
-          Contact Information
-        </h3>
-        
-        <div className="space-y-4">
-          {infoItems.map((item, index) => {
-            const Icon = item.icon;
-            return (
-              <Link
-                key={index}
-                href={item.href || '#'}
-                className="flex items-start gap-3 group cursor-pointer"
-              >
-                <span 
-                  className="w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0"
-                  style={{ backgroundColor: item.color }}
+        <motion.div
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="mt-8 lg:mt-12 w-full"
+        >
+          <h2 className={`text-xl sm:text-2xl lg:text-3xl font-bold font-serif tracking-tight ${textColor} text-center mb-6 sm:mb-8`}>
+            Let's{' '}
+            <span className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">
+              Build Something Great
+            </span>
+            <span className={textColor}> Together</span>
+          </h2>
+          
+          <div className="grid md:grid-cols-2 gap-6 w-full max-w-full mx-auto px-4">
+            
+            {/* Left Side - Info Card with Background Image */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 }}
+              className="
+                relative
+                overflow-hidden
+                pt-12
+                px-5
+                pb-8
+                w-full
+                rounded-xl
+                border border-[#1E293B]
+                backdrop-blur-md
+                hover:border-[#6366F1]/30
+                hover:shadow-xl
+                hover:shadow-[#6366F1]/5
+                transition-all
+                duration-500
+                cursor-pointer
+                will-change-transform
+                min-h-[400px]
+              "
+            >
+              {/* Background Image */}
+              <div className="absolute inset-0 z-0">
+                <Image
+                  src="https://images.unsplash.com/photo-1553877522-43269d4ea984?q=80&w=2070&auto=format&fit=crop"
+                  alt="Background"
+                  fill
+                  className="object-cover"
                 />
-                <div className="flex-1">
-                  <p className="text-xs text-[#94A3B8] group-hover:text-[#6366F1] transition-colors">
-                    {item.label}
-                  </p>
-                  <p className="text-sm text-[#CBD5E1] font-medium">
-                    {item.value}
-                  </p>
+                <div className={`absolute inset-0 bg-gradient-to-br ${overlayGradient}`} />
+              </div>
+              
+              {/* Glow */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-44 h-44 bg-[#6366F1]/10 blur-3xl rounded-full z-0" />
+              
+              <div className="relative z-10">
+                <h3 className={`text-xl font-semibold tracking-wide ${cardTextColor} mb-6 text-center`}>
+                  Contact Information
+                </h3>
+                
+                <div className="space-y-4">
+                  {infoItems.map((item, index) => {
+                    const Icon = item.icon;
+                    return (
+                      <Link
+                        key={index}
+                        href={item.href || '#'}
+                        className="flex items-start gap-3 group cursor-pointer"
+                      >
+                        <span 
+                          className="w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0"
+                          style={{ backgroundColor: item.color }}
+                        />
+                        <div className="flex-1">
+                          <p className={`text-xs ${cardSubTextColor} group-hover:text-[#6366F1] transition-colors`}>
+                            {item.label}
+                          </p>
+                          <p className={`text-sm ${cardTextColor} font-medium`}>
+                            {item.value}
+                          </p>
+                        </div>
+                      </Link>
+                    );
+                  })}
                 </div>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
-    </motion.div>
+              </div>
+            </motion.div>
 
-    {/* Right Side - Form Card with Background Image */}
-    <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: 0.6 }}
-      className="
-        relative
-        overflow-hidden
-        pt-12
-        px-5
-        pb-8
-        w-full
-        rounded-xl
-        border border-[#1E293B]
-        backdrop-blur-md
-        hover:border-[#6366F1]/30
-        hover:shadow-xl
-        hover:shadow-[#6366F1]/5
-        transition-all
-        duration-500
-        will-change-transform
-        min-h-[400px]
-      "
-    >
-      {/* Background Image */}
-      <div className="absolute inset-0 z-0">
-        <Image
-          src="https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=2070&auto=format&fit=crop"
-          alt="Background"
-          fill
-          className="object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0F172A]/95 via-[#0F172A]/90 to-[#0F172A]/95" />
-      </div>
-      
-      {/* Glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-44 h-44 bg-[#6366F1]/10 blur-3xl rounded-full z-0" />
-      
-      <div className="relative z-10">
-        <h3 className="text-xl font-semibold tracking-wide text-[#F8FAFC] mb-6 text-center">
-          Send us a Message
-        </h3>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-[#94A3B8] text-xs sm:text-sm mb-2">
-              Your Name
-            </label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              required
-              className="w-full px-4 py-2.5 bg-black/50 border border-[#1E293B] rounded-lg text-white text-sm focus:outline-none focus:border-[#6366F1] transition-colors cursor-text"
-              placeholder="John Doe"
-            />
+            {/* Right Side - Form Card with Background Image */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.6 }}
+              className="
+                relative
+                overflow-hidden
+                pt-12
+                px-5
+                pb-8
+                w-full
+                rounded-xl
+                border border-[#1E293B]
+                backdrop-blur-md
+                hover:border-[#6366F1]/30
+                hover:shadow-xl
+                hover:shadow-[#6366F1]/5
+                transition-all
+                duration-500
+                cursor-pointer
+                will-change-transform
+                min-h-[400px]
+              "
+            >
+              {/* Background Image */}
+              <div className="absolute inset-0 z-0">
+                <Image
+                  src="https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=2070&auto=format&fit=crop"
+                  alt="Background"
+                  fill
+                  className="object-cover"
+                />
+                <div className={`absolute inset-0 bg-gradient-to-br ${overlayGradient}`} />
+              </div>
+              
+              {/* Glow */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-44 h-44 bg-[#6366F1]/10 blur-3xl rounded-full z-0" />
+              
+              <div className="relative z-10">
+                <h3 className={`text-xl font-semibold tracking-wide ${cardTextColor} mb-6 text-center`}>
+                  Send us a Message
+                </h3>
+                
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <label className={`block ${cardSubTextColor} text-xs sm:text-sm mb-2`}>
+                      Your Name
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      required
+                      className={`w-full px-4 py-2.5 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} ${inputPlaceholderColor} text-sm focus:outline-none focus:border-[#6366F1] transition-colors cursor-text`}
+                      placeholder="John Doe"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className={`block ${cardSubTextColor} text-xs sm:text-sm mb-2`}>
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      required
+                      className={`w-full px-4 py-2.5 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} ${inputPlaceholderColor} text-sm focus:outline-none focus:border-[#6366F1] transition-colors cursor-text`}
+                      placeholder="john@example.com"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className={`block ${cardSubTextColor} text-xs sm:text-sm mb-2`}>
+                      Message
+                    </label>
+                    <textarea
+                      name="message"
+                      value={formData.message}
+                      onChange={handleInputChange}
+                      required
+                      rows={4}
+                      className={`w-full px-4 py-2.5 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} ${inputPlaceholderColor} text-sm focus:outline-none focus:border-[#6366F1] transition-colors resize-none cursor-text`}
+                      placeholder="Tell us about your project..."
+                    />
+                  </div>
+                  
+                  <button
+                    type="submit"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-semibold font-sans tracking-wide rounded-lg hover:shadow-lg hover:shadow-[#6366F1]/25 transition-all duration-300 group cursor-pointer text-sm sm:text-base"
+                  >
+                    <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    Send Message
+                    <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </form>
+              </div>
+            </motion.div>
           </div>
-          
-          <div>
-            <label className="block text-[#94A3B8] text-xs sm:text-sm mb-2">
-              Email Address
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              required
-              className="w-full px-4 py-2.5 bg-black/50 border border-[#1E293B] rounded-lg text-white text-sm focus:outline-none focus:border-[#6366F1] transition-colors cursor-text"
-              placeholder="john@example.com"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-[#94A3B8] text-xs sm:text-sm mb-2">
-              Message
-            </label>
-            <textarea
-              name="message"
-              value={formData.message}
-              onChange={handleInputChange}
-              required
-              rows={4}
-              className="w-full px-4 py-2.5 bg-black/50 border border-[#1E293B] rounded-lg text-white text-sm focus:outline-none focus:border-[#6366F1] transition-colors resize-none cursor-text"
-              placeholder="Tell us about your project..."
-            />
-          </div>
-          
-          <button
-            type="submit"
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-semibold font-sans tracking-wide rounded-lg hover:shadow-lg hover:shadow-[#6366F1]/25 transition-all duration-300 group cursor-pointer text-sm sm:text-base"
-          >
-            <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            Send Message
-            <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform" />
-          </button>
-        </form>
-      </div>
-    </motion.div>
-  </div>
-</motion.div>
+        </motion.div>
       </div>
     </main>
   );
