@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
@@ -8,6 +9,8 @@ import {
   Store,
   X,
   Send,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 interface FormData {
@@ -66,6 +69,7 @@ export default function ProjectsSection() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [openModal, setOpenModal] = useState(false);
   const [isContentVisible, setIsContentVisible] = useState(false);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const canScroll = useRef(true);
   const scrollTimer = useRef<NodeJS.Timeout | null>(null);
 
@@ -76,6 +80,37 @@ export default function ProjectsSection() {
     useCase: "",
     contactNumber: "",
   });
+
+  // System theme detection
+  useEffect(() => {
+    const getSystemTheme = (): 'dark' | 'light' => {
+      if (typeof window !== 'undefined' && window.matchMedia) {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      return 'dark';
+    };
+
+    setTheme(getSystemTheme());
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleThemeChange = (e: MediaQueryListEvent) => {
+      setTheme(e.matches ? 'dark' : 'light');
+    };
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleThemeChange);
+    } else {
+      mediaQuery.addListener(handleThemeChange);
+    }
+
+    return () => {
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', handleThemeChange);
+      } else {
+        mediaQuery.removeListener(handleThemeChange);
+      }
+    };
+  }, []);
 
   // Check if both left and right content are fully visible
   useEffect(() => {
@@ -161,6 +196,45 @@ export default function ProjectsSection() {
     };
   }, [activeIndex, isContentVisible, openModal]);
 
+  // Navigation functions
+  const goToNext = () => {
+    if (activeIndex < projects.length - 1) {
+      setActiveIndex(prev => prev + 1);
+    }
+  };
+
+  const goToPrev = () => {
+    if (activeIndex > 0) {
+      setActiveIndex(prev => prev - 1);
+    }
+  };
+
+  // Theme-based class names
+  const isDark = theme === 'dark';
+  const bgColor = isDark ? 'bg-[#020617]' : 'bg-gray-50';
+  const textColor = isDark ? 'text-white' : 'text-gray-900';
+  const subTextColor = isDark ? 'text-[#94A3B8]' : 'text-gray-600';
+  const cardBg = isDark ? 'bg-white/5' : 'bg-black/5';
+  const cardBorder = isDark ? 'border-white/10' : 'border-gray-200';
+  const statusBg = isDark ? 'bg-blue-500/20' : 'bg-blue-100';
+  const statusText = isDark ? 'text-blue-300' : 'text-blue-700';
+  const iconColor = isDark ? 'text-blue-400' : 'text-blue-600';
+  const descColor = isDark ? 'text-gray-400' : 'text-gray-600';
+  const tagBg = isDark ? 'bg-white/10' : 'bg-gray-200';
+  const tagBorder = isDark ? 'border-white/10' : 'border-gray-300';
+  const tagText = isDark ? 'text-white/80' : 'text-gray-700';
+  const buttonGradient = isDark 
+    ? 'from-blue-500 to-indigo-600' 
+    : 'from-blue-600 to-indigo-700';
+  const modalBg = isDark ? 'bg-[#0f172a]' : 'bg-white';
+  const modalText = isDark ? 'text-white' : 'text-gray-900';
+  const inputBg = isDark ? 'bg-black/30' : 'bg-gray-100';
+  const inputBorder = isDark ? 'border-white/10' : 'border-gray-300';
+  const inputText = isDark ? 'text-white' : 'text-gray-900';
+  const progressActive = isDark ? 'bg-blue-500' : 'bg-blue-600';
+  const progressViewed = isDark ? 'bg-blue-500/50' : 'bg-blue-600/50';
+  const progressInactive = isDark ? 'bg-white/20' : 'bg-gray-300';
+
   const project = projects[activeIndex];
   const Icon = project.icon;
 
@@ -181,7 +255,7 @@ export default function ProjectsSection() {
   };
 
   return (
-    <section ref={sectionRef} className="min-h-screen bg-[#020617] text-white">
+    <section ref={sectionRef} className={`min-h-screen ${bgColor} ${textColor}`}>
       
       {/* HEADER */}
       <motion.div
@@ -199,7 +273,7 @@ export default function ProjectsSection() {
         </motion.div>
 
         <motion.h1
-          className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold font-serif tracking-tight text-white leading-tight"
+          className={`text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold font-serif tracking-tight ${textColor} leading-tight`}
         >
           Explore Our{" "}
           <span className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">
@@ -208,7 +282,7 @@ export default function ProjectsSection() {
         </motion.h1>
 
         <motion.p
-          className="mt-3 text-xs sm:text-sm md:text-base text-[#94A3B8] leading-relaxed font-light max-w-xl"
+          className={`mt-3 text-xs sm:text-sm md:text-base ${subTextColor} leading-relaxed font-light max-w-xl`}
         >
           Discover powerful in-house solutions crafted to solve real business challenges efficiently.
         </motion.p>
@@ -230,11 +304,11 @@ export default function ProjectsSection() {
               ref={leftContentRef}
               className="space-y-5 md:space-y-6 lg:space-y-8"
             >
-              {/* Mobile Card - No animations, just direct render */}
+              {/* Mobile Card - With navigation buttons */}
               <div className="lg:hidden">
                 <div 
                   key={project.id}
-                  className="bg-white/5 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/10"
+                  className={`${cardBg} backdrop-blur-sm rounded-2xl overflow-hidden border ${cardBorder}`}
                 >
                   {/* Fixed height with object-contain to show full image */}
                   <div className="relative w-full h-64 overflow-hidden bg-black/20">
@@ -248,18 +322,18 @@ export default function ProjectsSection() {
                   
                   {/* Content inside card */}
                   <div className="p-5 space-y-4">
-                    <span className="inline-block px-3 py-1 text-xs rounded-full bg-blue-500/20 text-blue-300">
+                    <span className={`inline-block px-3 py-1 text-xs rounded-full ${statusBg} ${statusText}`}>
                       {project.status}
                     </span>
 
                     <div className="flex items-center gap-3">
-                      <Icon className="text-blue-400 w-6 h-6 flex-shrink-0" />
-                      <h2 className="text-xl sm:text-2xl font-bold break-words leading-tight">
+                      <Icon className={`${iconColor} w-6 h-6 flex-shrink-0`} />
+                      <h2 className={`text-xl sm:text-2xl font-bold break-words leading-tight ${textColor}`}>
                         {project.name}
                       </h2>
                     </div>
 
-                    <p className="text-gray-300 text-sm leading-relaxed">
+                    <p className={`${descColor} text-sm leading-relaxed`}>
                       {project.shortDescription}
                     </p>
 
@@ -267,7 +341,7 @@ export default function ProjectsSection() {
                       {project.tags.map((tag, i) => (
                         <span
                           key={i}
-                          className="px-2 py-1 text-xs bg-white/10 rounded-full border border-white/10"
+                          className={`px-2 py-1 text-xs ${tagBg} rounded-full border ${tagBorder} ${tagText}`}
                         >
                           {tag}
                         </span>
@@ -276,10 +350,39 @@ export default function ProjectsSection() {
 
                     <button
                       onClick={() => setOpenModal(true)}
-                      className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 hover:scale-[1.02] transition-all duration-300 font-medium text-sm"
+                      className={`w-full py-3 rounded-xl bg-gradient-to-r ${buttonGradient} hover:scale-[1.02] transition-all duration-300 font-medium text-sm text-white`}
                     >
                       Request Demo
                     </button>
+
+                    {/* Mobile Navigation Buttons */}
+                    <div className="flex gap-3 pt-2">
+                      <button
+                        onClick={goToPrev}
+                        disabled={activeIndex === 0}
+                        className={`flex-1 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 ${
+                          activeIndex === 0 
+                            ? 'bg-white/10 text-white/30 cursor-not-allowed' 
+                            : `bg-white/10 hover:bg-white/20 ${textColor}`
+                        }`}
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        <span className="text-sm font-medium">Previous</span>
+                      </button>
+                      
+                      <button
+                        onClick={goToNext}
+                        disabled={activeIndex === projects.length - 1}
+                        className={`flex-1 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 ${
+                          activeIndex === projects.length - 1 
+                            ? 'bg-white/10 text-white/30 cursor-not-allowed' 
+                            : `bg-gradient-to-r ${buttonGradient} text-white`
+                        }`}
+                      >
+                        <span className="text-sm font-medium">Next</span>
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -292,7 +395,7 @@ export default function ProjectsSection() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.4, ease: "easeOut" }}
                 >
-                  <span className="px-3 py-1.5 text-xs sm:text-sm rounded-full bg-white/10 border border-white/20 w-fit cursor-pointer hover:bg-white/20 transition-all duration-300">
+                  <span className={`px-3 py-1.5 text-xs sm:text-sm rounded-full ${tagBg} border ${tagBorder} w-fit cursor-pointer hover:bg-white/20 transition-all duration-300 ${tagText}`}>
                     {project.status}
                   </span>
                 </motion.div>
@@ -304,8 +407,8 @@ export default function ProjectsSection() {
                   transition={{ duration: 0.4, ease: "easeOut", delay: 0.05 }}
                   className="flex items-center gap-3"
                 >
-                  <Icon className="text-blue-400 w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0" />
-                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold break-words leading-tight">
+                  <Icon className={`${iconColor} w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0`} />
+                  <h2 className={`text-2xl sm:text-3xl md:text-4xl font-bold break-words leading-tight ${textColor}`}>
                     {project.name}
                   </h2>
                 </motion.div>
@@ -315,7 +418,7 @@ export default function ProjectsSection() {
                   initial={{ opacity: 0, x: -50 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.4, ease: "easeOut", delay: 0.1 }}
-                  className="text-gray-400 text-base sm:text-lg md:text-xl leading-relaxed"
+                  className={`${descColor} text-base sm:text-lg md:text-xl leading-relaxed`}
                 >
                   {project.shortDescription}
                 </motion.p>
@@ -330,7 +433,7 @@ export default function ProjectsSection() {
                   {project.tags.map((tag, i) => (
                     <span
                       key={i}
-                      className="px-3 py-1.5 text-xs sm:text-sm bg-white/10 rounded-full border border-white/10 cursor-pointer hover:bg-white/20 hover:border-white/30 transition-all duration-300"
+                      className={`px-3 py-1.5 text-xs sm:text-sm ${tagBg} rounded-full border ${tagBorder} cursor-pointer hover:bg-white/20 hover:border-white/30 transition-all duration-300 ${tagText}`}
                     >
                       {tag}
                     </span>
@@ -345,7 +448,7 @@ export default function ProjectsSection() {
                 >
                   <button
                     onClick={() => setOpenModal(true)}
-                    className="px-6 sm:px-8 py-3 sm:py-4 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 hover:scale-[1.03] transition-all duration-300 cursor-pointer w-full sm:w-auto text-base sm:text-lg font-medium shadow-lg hover:shadow-blue-500/25"
+                    className={`px-6 sm:px-8 py-3 sm:py-4 rounded-xl bg-gradient-to-r ${buttonGradient} hover:scale-[1.03] transition-all duration-300 cursor-pointer w-full sm:w-auto text-base sm:text-lg font-medium shadow-lg hover:shadow-blue-500/25 text-white`}
                   >
                     Request Demo
                   </button>
@@ -377,31 +480,31 @@ export default function ProjectsSection() {
         </div>
       </div>
 
-      {/* Progress indicator */}
+      {/* Progress indicator - Theme aware */}
       {/* <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 flex gap-2">
         {projects.map((_, idx) => (
           <div
             key={idx}
             className={`h-1.5 rounded-full transition-all duration-300 ${
               idx === activeIndex 
-                ? 'w-8 bg-blue-500' 
+                ? `w-8 ${progressActive}` 
                 : idx < activeIndex 
-                ? 'w-4 bg-blue-500/50' 
-                : 'w-4 bg-white/20'
+                ? `w-4 ${progressViewed}` 
+                : `w-4 ${progressInactive}`
             }`}
           />
         ))}
       </div> */}
 
-      {/* MODAL - Fixed heading and scroll issue */}
+      {/* MODAL - Theme aware */}
       {openModal && (
         <div 
           ref={modalRef}
           className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
           style={{ zIndex: 9999 }}
         >
-          <div className="bg-[#0f172a] p-6 sm:p-8 rounded-2xl w-full max-w-md space-y-5 max-h-[90vh] overflow-y-auto relative">
-            <h2 className="text-2xl sm:text-3xl font-bold sticky top-0 bg-[#0f172a] py-2 z-10">
+          <div className={`${modalBg} p-6 sm:p-8 rounded-2xl w-full max-w-md space-y-5 max-h-[90vh] overflow-y-auto relative`}>
+            <h2 className={`text-2xl sm:text-3xl font-bold sticky top-0 ${modalBg} py-2 z-10 ${modalText}`}>
               Request Demo
             </h2>
 
@@ -410,7 +513,7 @@ export default function ProjectsSection() {
               placeholder="Your Name"
               value={formData.name}
               onChange={handleChange}
-              className="w-full p-3 sm:p-4 rounded-lg bg-black/30 border border-white/10 focus:border-blue-500 outline-none transition-colors text-base sm:text-lg"
+              className={`w-full p-3 sm:p-4 rounded-lg ${inputBg} border ${inputBorder} ${inputText} focus:outline-none focus:border-blue-500 transition-colors text-base sm:text-lg placeholder:text-gray-500`}
             />
 
             <input
@@ -418,7 +521,7 @@ export default function ProjectsSection() {
               placeholder="Company Name"
               value={formData.companyName}
               onChange={handleChange}
-              className="w-full p-3 sm:p-4 rounded-lg bg-black/30 border border-white/10 focus:border-blue-500 outline-none transition-colors text-base sm:text-lg"
+              className={`w-full p-3 sm:p-4 rounded-lg ${inputBg} border ${inputBorder} ${inputText} focus:outline-none focus:border-blue-500 transition-colors text-base sm:text-lg placeholder:text-gray-500`}
             />
 
             <input
@@ -426,7 +529,7 @@ export default function ProjectsSection() {
               placeholder="Product Interest"
               value={formData.productInterest}
               onChange={handleChange}
-              className="w-full p-3 sm:p-4 rounded-lg bg-black/30 border border-white/10 focus:border-blue-500 outline-none transition-colors text-base sm:text-lg"
+              className={`w-full p-3 sm:p-4 rounded-lg ${inputBg} border ${inputBorder} ${inputText} focus:outline-none focus:border-blue-500 transition-colors text-base sm:text-lg placeholder:text-gray-500`}
             />
 
             <textarea
@@ -435,7 +538,7 @@ export default function ProjectsSection() {
               value={formData.useCase}
               onChange={handleChange}
               rows={3}
-              className="w-full p-3 sm:p-4 rounded-lg bg-black/30 border border-white/10 focus:border-blue-500 outline-none transition-colors text-base sm:text-lg resize-vertical"
+              className={`w-full p-3 sm:p-4 rounded-lg ${inputBg} border ${inputBorder} ${inputText} focus:outline-none focus:border-blue-500 transition-colors text-base sm:text-lg resize-vertical placeholder:text-gray-500`}
             />
 
             <input
@@ -443,19 +546,19 @@ export default function ProjectsSection() {
               placeholder="Contact Number"
               value={formData.contactNumber}
               onChange={handleChange}
-              className="w-full p-3 sm:p-4 rounded-lg bg-black/30 border border-white/10 focus:border-blue-500 outline-none transition-colors text-base sm:text-lg"
+              className={`w-full p-3 sm:p-4 rounded-lg ${inputBg} border ${inputBorder} ${inputText} focus:outline-none focus:border-blue-500 transition-colors text-base sm:text-lg placeholder:text-gray-500`}
             />
 
             <button 
               onClick={handleSubmit}
-              className="w-full py-3 sm:py-4 bg-blue-600 rounded-lg hover:bg-blue-700 transition-all duration-300 cursor-pointer hover:scale-[1.02] font-medium text-base sm:text-lg"
+              className={`w-full py-3 sm:py-4 bg-gradient-to-r ${buttonGradient} rounded-lg hover:opacity-90 transition-all duration-300 cursor-pointer hover:scale-[1.02] font-medium text-base sm:text-lg text-white`}
             >
               Submit
             </button>
 
             <button
               onClick={() => setOpenModal(false)}
-              className="text-sm sm:text-base text-gray-400 text-center w-full hover:text-gray-300 transition-colors cursor-pointer pt-2"
+              className={`text-sm sm:text-base ${subTextColor} text-center w-full hover:${textColor} transition-colors cursor-pointer pt-2`}
             >
               Close
             </button>
