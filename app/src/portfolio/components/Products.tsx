@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 "use client";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import {
   Building2,
@@ -70,8 +70,10 @@ export default function ProjectsSection() {
   const [openModal, setOpenModal] = useState(false);
   const [isContentVisible, setIsContentVisible] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
-  const canScroll = useRef(true);
-  const scrollTimer = useRef<NodeJS.Timeout | null>(null);
+  const [viewedProducts, setViewedProducts] = useState<number[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
+  const isAnimating = useRef(false);
+  const lastScrollTime = useRef(0);
   const touchStartY = useRef(0);
 
   const [formData, setFormData] = useState<FormData>({
@@ -81,6 +83,16 @@ export default function ProjectsSection() {
     useCase: "",
     contactNumber: "",
   });
+
+  // Check if mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // System theme detection
   useEffect(() => {
@@ -113,6 +125,36 @@ export default function ProjectsSection() {
     };
   }, []);
 
+  // Mark all products as viewed when user scrolls past the section
+  useEffect(() => {
+    const checkIfScrolledPast = () => {
+      if (!sectionRef.current) return;
+      const rect = sectionRef.current.getBoundingClientRect();
+      if (rect.bottom < 0) {
+        const allIndices = projects.map((_, idx) => idx);
+        const newViewed = [...viewedProducts];
+        allIndices.forEach(idx => {
+          if (!newViewed.includes(idx)) {
+            newViewed.push(idx);
+          }
+        });
+        if (newViewed.length !== viewedProducts.length) {
+          setViewedProducts(newViewed);
+        }
+      }
+    };
+
+    window.addEventListener('scroll', checkIfScrolledPast);
+    return () => window.removeEventListener('scroll', checkIfScrolledPast);
+  }, [viewedProducts]);
+
+  // Mark current product as viewed
+  useEffect(() => {
+    if (activeIndex >= 0 && !viewedProducts.includes(activeIndex)) {
+      setViewedProducts(prev => [...prev, activeIndex]);
+    }
+  }, [activeIndex]);
+
   // Check if both left and right content are fully visible
   useEffect(() => {
     const checkVisibility = () => {
@@ -138,35 +180,25 @@ export default function ProjectsSection() {
     };
   }, [activeIndex]);
 
-  // Cleanup timer on unmount
-  useEffect(() => {
-    return () => {
-      if (scrollTimer.current) {
-        clearTimeout(scrollTimer.current);
-      }
-    };
-  }, []);
-
-  // Function to reset scroll ability after 1 second
-  const resetScrollAbility = () => {
-    if (scrollTimer.current) {
-      clearTimeout(scrollTimer.current);
-    }
-    
-    scrollTimer.current = setTimeout(() => {
-      canScroll.current = true;
-      scrollTimer.current = null;
-    }, 1000);
-  };
-
-  // Handle both wheel (desktop) and touch (mobile) events
+  // Handle scroll events - NO DELAY ON MOBILE
   useEffect(() => {
     if (!isContentVisible) return;
 
-    // Desktop scroll handler
     const handleWheel = (e: WheelEvent) => {
       if (openModal) return;
-      if (!canScroll.current) {
+      
+      const now = Date.now();
+      if (now - lastScrollTime.current < 800) {
+        e.preventDefault();
+        return;
+      }
+      
+      if (isAnimating.current) {
+        e.preventDefault();
+        return;
+      }
+
+      if (!viewedProducts.includes(activeIndex)) {
         e.preventDefault();
         return;
       }
@@ -174,56 +206,64 @@ export default function ProjectsSection() {
       if (e.deltaY > 0) {
         if (activeIndex < projects.length - 1) {
           e.preventDefault();
+          isAnimating.current = true;
+          lastScrollTime.current = now;
           setActiveIndex(prev => prev + 1);
-          canScroll.current = false;
-          resetScrollAbility();
+          setTimeout(() => {
+            isAnimating.current = false;
+          }, 500);
         }
       } 
       else if (e.deltaY < 0) {
         if (activeIndex > 0) {
           e.preventDefault();
+          isAnimating.current = true;
+          lastScrollTime.current = now;
           setActiveIndex(prev => prev - 1);
-          canScroll.current = false;
-          resetScrollAbility();
+          setTimeout(() => {
+            isAnimating.current = false;
+          }, 500);
         }
       }
     };
 
-    // Mobile touch start handler
     const handleTouchStart = (e: TouchEvent) => {
       touchStartY.current = e.touches[0].clientY;
     };
 
-    // Mobile touch move handler
     const handleTouchMove = (e: TouchEvent) => {
       if (openModal) return;
-      if (!canScroll.current) {
+      if (isAnimating.current) return;
+      
+      const touchCurrentY = e.touches[0].clientY;
+      const deltaY = touchStartY.current - touchCurrentY;
+      
+      // Allow smooth touch scroll without blocking
+      if (Math.abs(deltaY) < 30) return;
+      
+      if (!viewedProducts.includes(activeIndex)) {
         e.preventDefault();
         return;
       }
-
-      const touchEndY = e.touches[0].clientY;
-      const deltaY = touchStartY.current - touchEndY;
       
-      if (Math.abs(deltaY) < 50) return;
-      
-      if (deltaY > 0) {
-        if (activeIndex < projects.length - 1) {
-          e.preventDefault();
-          setActiveIndex(prev => prev + 1);
-          canScroll.current = false;
-          resetScrollAbility();
-        }
-      } else if (deltaY < 0) {
-        if (activeIndex > 0) {
-          e.preventDefault();
-          setActiveIndex(prev => prev - 1);
-          canScroll.current = false;
-          resetScrollAbility();
-        }
+      if (deltaY > 0 && activeIndex < projects.length - 1) {
+        e.preventDefault();
+        isAnimating.current = true;
+        setActiveIndex(prev => prev + 1);
+        setTimeout(() => {
+          isAnimating.current = false;
+        }, 300);
+      } else if (deltaY < 0 && activeIndex > 0) {
+        e.preventDefault();
+        isAnimating.current = true;
+        setActiveIndex(prev => prev - 1);
+        setTimeout(() => {
+          isAnimating.current = false;
+        }, 300);
       }
       
-      touchStartY.current = touchEndY;
+      // Reset touch start for continuous swiping
+      touchStartY.current = touchCurrentY;
     };
 
     window.addEventListener('wheel', handleWheel, { passive: false });
@@ -235,10 +275,11 @@ export default function ProjectsSection() {
       window.removeEventListener('touchstart', handleTouchStart);
       window.removeEventListener('touchmove', handleTouchMove);
     };
-  }, [activeIndex, isContentVisible, openModal]);
+  }, [activeIndex, isContentVisible, openModal, viewedProducts]);
 
   // Navigation functions
   const goToNext = () => {
+    if (!viewedProducts.includes(activeIndex)) return;
     if (activeIndex < projects.length - 1) {
       setActiveIndex(prev => prev + 1);
     }
@@ -248,6 +289,13 @@ export default function ProjectsSection() {
     if (activeIndex > 0) {
       setActiveIndex(prev => prev - 1);
     }
+  };
+
+  // Smooth fade animation variants
+  const fadeVariants:Variants = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1, transition: { duration: 0.3, ease: "easeOut" } },
+    exit: { opacity: 0, transition: { duration: 0.2 } }
   };
 
   // Theme-based class names
@@ -344,86 +392,91 @@ export default function ProjectsSection() {
               ref={leftContentRef}
               className="space-y-5 md:space-y-6 lg:space-y-8"
             >
-              {/* Mobile Card */}
+              {/* Mobile Card - With fade animation */}
               <div className="lg:hidden">
-                <div 
-                  key={project.id}
-                  className={`${cardBg} backdrop-blur-sm rounded-2xl overflow-hidden border ${cardBorder}`}
-                >
-                  {/* Image - Full width, auto height, shows full image without cropping */}
-                  <div className="relative w-full bg-black/20">
-                    <img
-                      src={project.image}
-                      alt={project.name}
-                      className="w-full h-auto object-contain"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                  </div>
-                  
-                  <div className="p-5 space-y-4">
-                    <span className={`inline-block px-3 py-1 text-xs rounded-full ${statusBg} ${statusText}`}>
-                      {project.status}
-                    </span>
-
-                    <div className="flex items-center gap-3">
-                      <Icon className={`${iconColor} w-6 h-6 flex-shrink-0`} />
-                      <h2 className={`text-xl sm:text-2xl font-bold break-words leading-tight ${textColor}`}>
-                        {project.name}
-                      </h2>
+                <AnimatePresence mode="wait">
+                  <motion.div 
+                    key={project.id}
+                    variants={fadeVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    className={`${cardBg} backdrop-blur-sm rounded-2xl overflow-hidden border ${cardBorder}`}
+                  >
+                    <div className="relative w-full bg-black/20 rounded-t-2xl overflow-hidden">
+                      <img
+                        src={project.image}
+                        alt={project.name}
+                        className="w-full h-auto object-contain rounded-t-2xl"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent rounded-t-2xl" />
                     </div>
+                    
+                    <div className="p-5 space-y-4">
+                      <span className={`inline-block px-3 py-1 text-xs rounded-full ${statusBg} ${statusText}`}>
+                        {project.status}
+                      </span>
 
-                    <p className={`${descColor} text-sm leading-relaxed`}>
-                      {project.shortDescription}
-                    </p>
+                      <div className="flex items-center gap-3">
+                        <Icon className={`${iconColor} w-6 h-6 flex-shrink-0`} />
+                        <h2 className={`text-xl sm:text-2xl font-bold break-words leading-tight ${textColor}`}>
+                          {project.name}
+                        </h2>
+                      </div>
 
-                    <div className="flex flex-wrap gap-2">
-                      {project.tags.map((tag, i) => (
-                        <span
-                          key={i}
-                          className={`px-2 py-1 text-xs ${tagBg} rounded-full border ${tagBorder} ${tagText}`}
+                      <p className={`${descColor} text-sm leading-relaxed`}>
+                        {project.shortDescription}
+                      </p>
+
+                      <div className="flex flex-wrap gap-2">
+                        {project.tags.map((tag, i) => (
+                          <span
+                            key={i}
+                            className={`px-2 py-1 text-xs ${tagBg} rounded-full border ${tagBorder} ${tagText}`}
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+
+                      <button
+                        onClick={() => setOpenModal(true)}
+                        className={`w-full py-3 rounded-xl bg-gradient-to-r ${buttonGradient} hover:scale-[1.02] transition-all duration-300 font-medium text-sm text-white`}
+                      >
+                        Request Demo
+                      </button>
+
+                      {/* Mobile Navigation Buttons */}
+                      <div className="flex gap-3 pt-2">
+                        <button
+                          onClick={goToPrev}
+                          disabled={activeIndex === 0}
+                          className={`flex-1 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 ${
+                            activeIndex === 0 
+                              ? 'bg-white/10 text-white/30 cursor-not-allowed' 
+                              : `bg-white/10 hover:bg-white/20 ${textColor}`
+                          }`}
                         >
-                          {tag}
-                        </span>
-                      ))}
+                          <ChevronLeft className="w-4 h-4" />
+                          <span className="text-sm font-medium">Previous</span>
+                        </button>
+                        
+                        <button
+                          onClick={goToNext}
+                          disabled={!viewedProducts.includes(activeIndex) || activeIndex === projects.length - 1}
+                          className={`flex-1 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 ${
+                            !viewedProducts.includes(activeIndex) || activeIndex === projects.length - 1
+                              ? 'bg-white/10 text-white/30 cursor-not-allowed' 
+                              : `bg-gradient-to-r ${buttonGradient} text-white`
+                          }`}
+                        >
+                          <span className="text-sm font-medium">Next</span>
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
-
-                    <button
-                      onClick={() => setOpenModal(true)}
-                      className={`w-full py-3 rounded-xl bg-gradient-to-r ${buttonGradient} hover:scale-[1.02] transition-all duration-300 font-medium text-sm text-white`}
-                    >
-                      Request Demo
-                    </button>
-
-                    {/* Mobile Navigation Buttons */}
-                    <div className="flex gap-3 pt-2">
-                      <button
-                        onClick={goToPrev}
-                        disabled={activeIndex === 0}
-                        className={`flex-1 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 ${
-                          activeIndex === 0 
-                            ? 'bg-white/10 text-white/30 cursor-not-allowed' 
-                            : `bg-white/10 hover:bg-white/20 ${textColor}`
-                        }`}
-                      >
-                        <ChevronLeft className="w-4 h-4" />
-                        <span className="text-sm font-medium">Previous</span>
-                      </button>
-                      
-                      <button
-                        onClick={goToNext}
-                        disabled={activeIndex === projects.length - 1}
-                        className={`flex-1 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 ${
-                          activeIndex === projects.length - 1 
-                            ? 'bg-white/10 text-white/30 cursor-not-allowed' 
-                            : `bg-gradient-to-r ${buttonGradient} text-white`
-                        }`}
-                      >
-                        <span className="text-sm font-medium">Next</span>
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                  </motion.div>
+                </AnimatePresence>
               </div>
 
               {/* Desktop Layout */}
