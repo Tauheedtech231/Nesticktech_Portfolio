@@ -75,6 +75,7 @@ export default function ProjectsSection() {
   const isAnimating = useRef(false);
   const lastScrollTime = useRef(0);
   const touchStartY = useRef(0);
+  const touchStartTime = useRef(0);
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -180,7 +181,7 @@ export default function ProjectsSection() {
     };
   }, [activeIndex]);
 
-  // Handle scroll events - NO DELAY ON MOBILE
+  // Handle scroll events - FIXED FOR MOBILE
   useEffect(() => {
     if (!isContentVisible) return;
 
@@ -227,33 +228,43 @@ export default function ProjectsSection() {
       }
     };
 
+    // FIXED: Better touch handling for real mobile devices
     const handleTouchStart = (e: TouchEvent) => {
-      touchStartY.current = e.touches[0].clientY;
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
       if (openModal) return;
       if (isAnimating.current) return;
       
-      const touchCurrentY = e.touches[0].clientY;
-      const deltaY = touchStartY.current - touchCurrentY;
+      touchStartY.current = e.touches[0].clientY;
+      touchStartTime.current = Date.now();
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (openModal) return;
+      if (isAnimating.current) return;
       
-      // Allow smooth touch scroll without blocking
-      if (Math.abs(deltaY) < 30) return;
+      const touchEndY = e.changedTouches[0].clientY;
+      const deltaY = touchStartY.current - touchEndY;
+      const deltaTime = Date.now() - touchStartTime.current;
+      
+      // Check if it's a valid swipe (distance > 50px and time < 300ms)
+      if (Math.abs(deltaY) < 50) return;
+      if (deltaTime > 300) return;
       
       if (!viewedProducts.includes(activeIndex)) {
         e.preventDefault();
         return;
       }
       
-      if (deltaY > 0 && activeIndex < projects.length - 1) {
+      // Swipe up (deltaY positive) - Next product
+      if (deltaY > 50 && activeIndex < projects.length - 1) {
         e.preventDefault();
         isAnimating.current = true;
         setActiveIndex(prev => prev + 1);
         setTimeout(() => {
           isAnimating.current = false;
         }, 300);
-      } else if (deltaY < 0 && activeIndex > 0) {
+      } 
+      // Swipe down (deltaY negative) - Previous product
+      else if (deltaY < -50 && activeIndex > 0) {
         e.preventDefault();
         isAnimating.current = true;
         setActiveIndex(prev => prev - 1);
@@ -261,19 +272,17 @@ export default function ProjectsSection() {
           isAnimating.current = false;
         }, 300);
       }
-      
-      // Reset touch start for continuous swiping
-      touchStartY.current = touchCurrentY;
     };
 
+    // Add touch event listeners with proper options
     window.addEventListener('wheel', handleWheel, { passive: false });
-    window.addEventListener('touchstart', handleTouchStart, { passive: false });
-    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd, { passive: false });
     
     return () => {
       window.removeEventListener('wheel', handleWheel);
       window.removeEventListener('touchstart', handleTouchStart);
-      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
     };
   }, [activeIndex, isContentVisible, openModal, viewedProducts]);
 
@@ -553,19 +562,15 @@ export default function ProjectsSection() {
               ref={rightContentRef}
               className="hidden lg:flex items-center justify-center"
             >
-              <motion.div
-                key={`img-${project.id}`}
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
-                className="w-full max-w-lg mx-auto"
-              >
+              <div className={`w-full mx-auto ${
+                project.name === "Neezamiya" ? 'max-w-sm' : 'max-w-lg'
+              }`}>
                 <img
                   src={project.image}
                   alt={project.name}
                   className="rounded-2xl w-full h-auto object-contain max-h-[70vh]"
                 />
-              </motion.div>
+              </div>
             </div>
 
           </div>
