@@ -173,30 +173,33 @@ const AboutPage = () => {
   // Theme-based class names
   const isDark = theme === 'dark';
   
-  // Card text colors - WHITE in both modes for cards
-  const cardTextColor = 'text-white';
-  const cardSubTextColor = isDark ? 'text-[#94A3B8]' : 'text-gray-200';
+  // Card text colors
+  const cardTextColor = isDark ? 'text-white' : 'text-gray-900';
+  const cardSubTextColor = isDark ? 'text-[#94A3B8]' : 'text-gray-500';
   
   // Other text colors
   const textColor = isDark ? 'text-[#F8FAFC]' : 'text-gray-900';
   const subTextColor = isDark ? 'text-[#94A3B8]' : 'text-gray-600';
   
-  // Card backgrounds - semi-transparent dark for both modes to make white text readable
-  const cardBg = isDark ? 'bg-black/80' : 'bg-black/60';
-  const cardBorder = isDark ? 'border-[#1E293B]' : 'border-gray-700';
+  // Card backgrounds - dark in dark mode, white/light in light mode
+  const cardBg = isDark ? 'bg-black/80' : 'bg-white/80';
+  const cardBorder = isDark ? 'border-[#1E293B]' : 'border-gray-200';
   
   const inputBg = isDark ? 'bg-black/50' : 'bg-white';
   const inputBorder = isDark ? 'border-[#1E293B]' : 'border-gray-300';
   const inputTextColor = isDark ? 'text-white' : 'text-gray-900';
   const inputPlaceholderColor = isDark ? 'placeholder:text-[#64748B]' : 'placeholder:text-gray-400';
   
-  // Dark overlay on images
+  // Overlay for images - dark in both modes but different opacity
   const overlayGradient = isDark 
     ? 'from-[#0F172A]/95 via-[#0F172A]/90 to-[#0F172A]/95'
-    : 'from-black/70 via-black/60 to-black/70';
+    : 'from-white/80 via-white/70 to-white/80';
   
   const teamSectionBg = isDark ? 'bg-black' : 'bg-gray-50';
   const mainBg = isDark ? 'bg-black' : 'bg-white';
+
+  // Video overlay - dark in dark mode, light in light mode
+  const videoOverlay = isDark ? 'bg-black/60' : 'bg-white/90';
 
   // Toggle expand/collapse on mobile
   const toggleNode = (id: number) => {
@@ -433,34 +436,27 @@ const AboutPage = () => {
         
         {/* Team Structure */}
         <div className={`relative rounded-2xl overflow-hidden mb-8 lg:mb-12 ${teamSectionBg}`}>
-          {/* Video background only in dark mode */}
-          {isDark && (
-            <>
-              <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="absolute inset-0 w-full h-full object-cover"
-              >
-                <source src="/encryption-bg.webm" type="video/webm" />
-              </video>
-              <div className="absolute inset-0 bg-black/50" />
-            </>
-          )}
+          {/* Video background - visible in both modes */}
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+          >
+            <source src="/encryption-bg.webm" type="video/webm" />
+          </video>
           
-          {/* Light mode gradient background - light gray */}
-          {!isDark && (
-            <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200" />
-          )}
+          {/* Theme-based overlay - black for dark mode, white/light for light mode */}
+          <div className={`absolute inset-0 ${videoOverlay}`} />
           
-          <div className={`relative z-10 py-6 sm:py-8 lg:py-12 px-4 sm:px-6 ${!isDark ? 'bg-white/30' : ''}`}>
+          <div className={`relative z-10 py-6 sm:py-8 lg:py-12 px-4 sm:px-6`}>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
             >
-              <h2 className={`text-xl sm:text-2xl lg:text-3xl font-bold font-serif tracking-tight ${textColor} text-center mb-4 sm:mb-6 lg:mb-8`}>
+              <h2 className={`text-xl sm:text-2xl lg:text-3xl font-bold font-serif tracking-tight text-center mb-4 sm:mb-6 lg:mb-8 ${textColor}`}>
                 Our{' '}
                 <span className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">
                   Team Structure
@@ -502,12 +498,12 @@ const AboutPage = () => {
           
           <div className="grid md:grid-cols-2 gap-6 w-full max-w-full mx-auto px-4">
             
-            {/* Left Side - Info Card with Background Image */}
+            {/* Left Side - Info Card */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.4 }}
-              className="
+              className={`
                 relative
                 overflow-hidden
                 pt-12
@@ -515,17 +511,20 @@ const AboutPage = () => {
                 pb-8
                 w-full
                 rounded-xl
-                border border-[#1E293B]
+                border
+                ${cardBorder}
                 backdrop-blur-md
                 hover:border-[#6366F1]/30
                 hover:shadow-xl
-                hover:shadow-[#6366F1]/5
                 transition-all
                 duration-500
                 cursor-pointer
                 will-change-transform
                 min-h-[400px]
-              "
+              `}
+              style={{
+                backgroundColor: isDark ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.8)'
+              }}
             >
               {/* Background Image */}
               <div className="absolute inset-0 z-0">
@@ -574,12 +573,12 @@ const AboutPage = () => {
               </div>
             </motion.div>
 
-            {/* Right Side - Form Card with Background Image */}
+            {/* Right Side - Form Card */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.6 }}
-              className="
+              className={`
                 relative
                 overflow-hidden
                 pt-12
@@ -587,17 +586,20 @@ const AboutPage = () => {
                 pb-8
                 w-full
                 rounded-xl
-                border border-[#1E293B]
+                border
+                ${cardBorder}
                 backdrop-blur-md
                 hover:border-[#6366F1]/30
                 hover:shadow-xl
-                hover:shadow-[#6366F1]/5
                 transition-all
                 duration-500
                 cursor-pointer
                 will-change-transform
                 min-h-[400px]
-              "
+              `}
+              style={{
+                backgroundColor: isDark ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.8)'
+              }}
             >
               {/* Background Image */}
               <div className="absolute inset-0 z-0">

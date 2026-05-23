@@ -353,7 +353,7 @@ export default function ProjectsSection() {
   };
 
   return (
-    <section ref={sectionRef} className={`min-h-screen ${bgColor} ${textColor}`}>
+    <section ref={sectionRef} className={`min-h-screen ${bgColor} ${textColor} `}>
       
       {/* HEADER */}
       <motion.div
@@ -578,7 +578,7 @@ export default function ProjectsSection() {
       </div>
 
       {/* Progress indicator */}
-      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 flex gap-2">
+      {/* <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 flex gap-2">
         {projects.map((_, idx) => (
           <div
             key={idx}
@@ -591,7 +591,7 @@ export default function ProjectsSection() {
             }`}
           />
         ))}
-      </div>
+      </div> */}
 
       {/* MODAL */}
       {openModal && (

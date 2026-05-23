@@ -82,10 +82,10 @@ export default function Hero() {
 
       {/* Overlay - Dark overlay for dark mode to make text readable, light overlay for light mode */}
       {isDark && (
-        <div className="absolute inset-0 bg-black/50" />
+        <div className="absolute inset-0 bg-black/10 " />
       )}
       {!isDark && (
-        <div className="absolute inset-0 bg-white/30" />
+        <div className="absolute inset-0 bg-black-10 " />
       )}
 
       {/* Content */}

@@ -12,7 +12,6 @@ import {
   MapPin, 
   Github, 
   Linkedin, 
-  Twitter, 
   Instagram,
   ArrowRight,
   Heart,
@@ -24,11 +23,10 @@ import {
   Sparkles
 } from 'lucide-react';
 
-// Map icon names to components
+// Map icon names to components (Twitter removed)
 const iconMap: Record<string, any> = {
   Github: Github,
   Linkedin: Linkedin,
-  Twitter: Twitter,
   Instagram: Instagram,
   Mail: Mail,
   Phone: Phone,
@@ -158,6 +156,9 @@ const Footer = () => {
     }
   };
 
+  // Filter out Twitter from social links
+  const filteredSocialLinks = socialLinks.filter(link => link.platform !== 'Twitter');
+
   // Get icon component for contact type
   const getContactIcon = (type: string) => {
     switch(type) {
@@ -206,15 +207,6 @@ const Footer = () => {
   const gradientTo = isDark ? 'to-[#8B5CF6]' : 'to-purple-500';
   const logoGradient = isDark ? 'from-[#F8FAFC] to-[#94A3B8]' : 'from-gray-900 to-gray-600';
   
-  // Hover colors for social links
-  const getSocialHoverColor = (socialColor: string) => {
-    if (!isDark) {
-      // In light mode, use darker/more vibrant colors
-      return socialColor.replace('text-[', 'text-[');
-    }
-    return socialColor;
-  };
-
   if (loading) {
     return <FooterShimmer isDark={isDark} />;
   }
@@ -243,21 +235,18 @@ const Footer = () => {
         >
           {/* Company Info - Logo and CEO Message */}
           <motion.div variants={itemVariants} className="lg:col-span-4">
-            {/* Logo */}
-            <Link href="/" className="inline-block group mb-4 cursor-pointer">
-              <div className="flex items-center gap-2">
-                <div className={`relative w-10 h-10 rounded-lg overflow-hidden bg-gradient-to-br ${gradientFrom} ${gradientTo} flex items-center justify-center`}>
+            {/* Logo - More rounded (full circle), centered */}
+            <Link href="/" className="inline-block group mb-4 cursor-pointer w-full flex justify-center">
+              <div className="flex items-center justify-center">
+                <div className={`relative w-32 h-32 rounded-full overflow-hidden bg-gradient-to-br ${gradientFrom} ${gradientTo} flex items-center justify-center shadow-lg transition-transform group-hover:scale-105 duration-300`}>
                   <Image
                     src="/nesticklogo.jpg"
                     alt="Nestick Tech Logo"
-                    width={40}
-                    height={40}
+                    width={128}
+                    height={128}
                     className="object-cover"
                   />
                 </div>
-                <span className={`text-xl lg:text-2xl font-bold font-serif tracking-tight bg-gradient-to-r ${logoGradient} bg-clip-text text-transparent`}>
-                  Nestick Tech
-                </span>
               </div>
             </Link>
             
@@ -268,24 +257,6 @@ const Footer = () => {
               </p>
               <p className={`${textColor} text-xs font-semibold font-sans tracking-wide mb-1`}>— {settings.ceo_name}</p>
               <p className="text-[#6366F1] text-[10px] font-medium font-sans tracking-wide">{settings.ceo_title}</p>
-            </div>
-
-            {/* Contact Info - Dynamic from database */}
-            <div className="space-y-2">
-              {contacts.map((contact) => {
-                const Icon = getContactIcon(contact.type);
-                return (
-                  <Link
-                    key={contact.id}
-                    href={contact.url || '#'}
-                    target={contact.type === 'location' ? "_blank" : undefined}
-                    className={`${subTextColor} hover:text-[#6366F1] transition-colors duration-200 group cursor-pointer flex items-center gap-2`}
-                  >
-                    <Icon className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-                    <span className="text-xs font-light tracking-wide">{contact.value}</span>
-                  </Link>
-                );
-              })}
             </div>
           </motion.div>
 
@@ -331,16 +302,16 @@ const Footer = () => {
             </ul>
           </motion.div>
 
-          {/* Social & Connect */}
+          {/* Social & Connect - With Contact Info moved here */}
           <motion.div variants={itemVariants} className="lg:col-span-2">
             <div className="flex items-center gap-2 mb-3">
               <Sparkles className="w-4 h-4 text-[#F59E0B]" />
               <h3 className={`${textColor} font-semibold font-sans tracking-wide text-base`}>Connect</h3>
             </div>
             
-            {/* Social Links - Dynamic from database */}
+            {/* Social Links - Twitter removed */}
             <div className="flex flex-wrap gap-2 mb-4">
-              {socialLinks.map((social) => {
+              {filteredSocialLinks.map((social) => {
                 const Icon = iconMap[social.icon_name] || Github;
                 return (
                   <Link
@@ -357,9 +328,23 @@ const Footer = () => {
               })}
             </div>
             
-            {/* Social handles */}
-            <p className={`text-xs ${subTextColor} font-light tracking-wide`}>Follow us for updates</p>
-            <p className="text-[10px] text-[#6366F1] font-medium tracking-wide mt-1">@{settings.social_handle}</p>
+            {/* Contact Info - No border line above */}
+            <div className="space-y-2">
+              {contacts.map((contact) => {
+                const Icon = getContactIcon(contact.type);
+                return (
+                  <Link
+                    key={contact.id}
+                    href={contact.url || '#'}
+                    target={contact.type === 'location' ? "_blank" : undefined}
+                    className={`${subTextColor} hover:text-[#6366F1] transition-colors duration-200 group cursor-pointer flex items-center gap-2`}
+                  >
+                    <Icon className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                    <span className="text-xs font-light tracking-wide">{contact.value}</span>
+                  </Link>
+                );
+              })}
+            </div>
           </motion.div>
         </motion.div>
 
@@ -376,7 +361,7 @@ const Footer = () => {
               © {currentYear} Nestick Tech. All rights reserved.
             </p>
             <p className={`${subTextColor} text-xs font-light tracking-wide flex items-center gap-1`}>
-              Made with <Heart className="w-3 h-3 text-[#EF4444] fill-[#EF4444] animate-pulse" /> in Lahore, Pakistan
+              Built By Tauheed
             </p>
             <Link 
               href="/contact" 

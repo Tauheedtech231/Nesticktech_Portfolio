@@ -193,7 +193,7 @@ const TechStackPage = () => {
       {/* Light mode background pattern */}
       {!isDark && (
         <div className="absolute inset-0 w-full h-full">
-          <div className="absolute inset-0 bg-gradient-to-br from-gray-100 via-gray-50 to-gray-200" />
+          <div className="absolute inset-0 bg-white/90" />
           <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-5" />
         </div>
       )}
