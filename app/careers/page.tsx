@@ -115,7 +115,7 @@ const CareersPage = () => {
       },
       backInfo: {
         email: "nesticktech@gmail.com",
-        support: "support@nesticktech.com",
+        support: "info@nesticktech.com",
       },
     },
     {
@@ -732,154 +732,146 @@ const CareersPage = () => {
       </section>
 
       {/* Still Have Questions Section */}
-      <section className={`py-20 px-4 sm:px-6 lg:px-8 ${bgColor}`}>
-        <div className="max-w-4xl mx-auto">
-          <div className="relative rounded-2xl overflow-hidden">
-            <div className="absolute inset-0 z-0">
-              <Image
-                src="/car.jpg"
-                alt="Still Have Questions"
-                fill
-                className="object-cover"
-              />
-              <div className={`absolute inset-0 bg-gradient-to-br from-${isDark ? '[#020617]/90' : 'gray-900/90'} via-${isDark ? '[#020617]/80' : 'gray-900/80'} to-${isDark ? '[#0F172A]/90' : 'gray-800/90'}`} />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#6366F1]/20 via-transparent to-[#8B5CF6]/20" />
-            </div>
+<section className={`py-20 px-4 sm:px-6 lg:px-8 ${bgColor}`}>
+  <div className="max-w-4xl mx-auto">
+    <div className="relative rounded-2xl overflow-hidden">
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/car.jpg"
+          alt="Still Have Questions"
+          fill
+          className="object-cover"
+        />
+        <div className={`absolute inset-0 bg-gradient-to-br from-${isDark ? '[#020617]/90' : 'gray-900/90'} via-${isDark ? '[#020617]/80' : 'gray-900/80'} to-${isDark ? '[#0F172A]/90' : 'gray-800/90'}`} />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#6366F1]/20 via-transparent to-[#8B5CF6]/20" />
+      </div>
 
-            <div className="relative z-10 px-6 py-8 lg:px-10 lg:py-12">
-              <div className="text-center mb-8 lg:mb-10">
-                <div className={`inline-flex items-center gap-2 px-4 py-2 ${isDark ? 'bg-[#0F172A]/80' : 'bg-white/10'} backdrop-blur-sm border border-[#6366F1]/20 rounded-full mb-4 cursor-pointer hover:border-[#6366F1] hover:bg-[#6366F1]/20 transition-all duration-300`}>
-                  <HelpCircle className="w-4 h-4 text-[#6366F1]" />
-                  <span className="text-xs font-medium font-sans tracking-wide text-[#6366F1] italic">
-                    WE&apos;RE HERE TO HELP
-                  </span>
-                </div>
-                
-                <h3 className="text-2xl lg:text-3xl font-bold font-serif tracking-tight bg-gradient-to-r from-[#F8FAFC] to-[#94A3B8] bg-clip-text text-transparent mb-3">
-                  Still Have Questions?
-                </h3>
-                
-                <p className="text-[#94A3B8] text-sm lg:text-base max-w-md mx-auto font-light tracking-wide">
-                  Can't find what you're looking for? Our team is ready to assist you.
-                </p>
-              </div>
+      <div className="relative z-10 px-6 py-8 lg:px-10 lg:py-12">
+        <div className="text-center mb-8 lg:mb-10">
+          <div className={`inline-flex items-center gap-2 px-4 py-2 ${isDark ? 'bg-[#0F172A]/80' : 'bg-white/10'} backdrop-blur-sm border border-[#6366F1]/20 rounded-full mb-4 cursor-pointer hover:border-[#6366F1] hover:bg-[#6366F1]/20 transition-all duration-300`}>
+            <HelpCircle className="w-4 h-4 text-[#6366F1]" />
+            <span className="text-xs font-medium font-sans tracking-wide text-[#6366F1] italic">
+              WE&apos;RE HERE TO HELP
+            </span>
+          </div>
+          
+          <h3 className="text-2xl lg:text-3xl font-bold font-serif tracking-tight bg-gradient-to-r from-[#F8FAFC] to-[#94A3B8] bg-clip-text text-transparent mb-3">
+            Still Have Questions?
+          </h3>
+          
+          <p className="text-[#94A3B8] text-sm lg:text-base max-w-md mx-auto font-light tracking-wide">
+            Can't find what you're looking for? Our team is ready to assist you.
+          </p>
+        </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-                {contactOptions.map((option) => {
-                  const Icon = option.icon;
-                  const FrontStatIcon = option.frontInfo.icon;
-                  return (
-                    <div
-                      key={option.id}
-                      className="relative h-[280px] perspective-1000 cursor-pointer group"
-                      onMouseEnter={() => setFlippedCard(option.id)}
-                      onMouseLeave={() => setFlippedCard(null)}
-                    >
-                      <div                        className={`relative w-full h-full transition-all duration-500 transform-style-3d ${
-                          flippedCard === option.id ? 'rotate-y-180' : ''
-                        }`}
-                      >
-                        {/* Front Side */}
-                        <div className="absolute w-full h-full backface-hidden">
-                          <Link href={option.action} className="block h-full">
-                            <div className={`h-full ${isDark ? 'bg-[#0F172A]/80' : 'bg-white/10'} backdrop-blur-md border ${cardBorder} rounded-xl p-6 text-center transition-all duration-300 ${option.bgHover} hover:border-[#6366F1]/50 hover:shadow-lg hover:shadow-[#6366F1]/10 cursor-pointer`}>
-                              <div className="relative mb-4">
-                                <div className={`absolute inset-0 bg-gradient-to-r ${option.color} rounded-full blur-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300`} />
-                                <div className={`relative w-14 h-14 mx-auto bg-gradient-to-br ${option.color} rounded-full flex items-center justify-center shadow-lg`}>
-                                  <Icon className="w-7 h-7 text-white" />
-                                </div>
-                              </div>
-                              
-                              <h4 className={`text-white font-semibold font-sans tracking-wide text-lg lg:text-xl mb-2`}>
-                                {option.title}
-                              </h4>
-                              
-                              <p className="text-[#94A3B8] text-sm mb-3 font-light tracking-wide">
-                                {option.description}
-                              </p>
-                              
-                              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#6366F1]/10 rounded-full mb-3">
-                                <FrontStatIcon className="w-3.5 h-3.5 text-[#6366F1]" />
-                                <span className="text-[#6366F1] text-xs font-medium font-sans tracking-wide">
-                                  {option.frontInfo.stats}
-                                </span>
-                              </div>
-                              
-                              <div className="inline-flex items-center gap-1 text-[#6366F1] text-sm font-medium font-sans tracking-wide group-hover:gap-2 transition-all duration-300">
-                                <span>{option.linkText}</span>
-                                <ArrowRight className="w-4 h-4" />
-                              </div>
-                            </div>
-                          </Link>
-                        </div>
-
-                        {/* Back Side */}
-                        <div className="absolute w-full h-full backface-hidden rotate-y-180">
-                          <div className={`h-full bg-gradient-to-br ${option.color} rounded-xl p-6 text-center flex flex-col items-center justify-center border border-white/20 shadow-xl`}>
-                            <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mb-4">
-                              <Icon className="w-7 h-7 text-white" />
-                            </div>
-                            
-                            <h4 className="text-white font-bold font-sans tracking-wide text-xl mb-3">
-                              {option.title}
-                            </h4>
-                            
-                            {option.id === 1 && (
-                              <div className="space-y-2">
-                                <p className="text-white/90 text-sm font-light tracking-wide">
-                                  {option.backInfo.email}
-                                </p>
-                                <p className="text-white/80 text-xs font-light tracking-wide">
-                                  {option.backInfo.support}
-                                </p>
-                              </div>
-                            )}
-                            
-                            {option.id === 2 && (
-                              <div className="space-y-2">
-                                <p className="text-white text-lg font-mono font-bold">
-                                  {option.backInfo.primary}
-                                </p>
-                                <p className="text-white/80 text-xs flex items-center gap-1 justify-center font-light tracking-wide">
-                                  Click to call
-                                </p>
-                                <p className="text-white/70 text-xs mt-2 font-light tracking-wide">
-                                  Available on WhatsApp
-                                </p>
-                              </div>
-                            )}
-                            
-                            {option.id === 3 && (
-                              <div className="space-y-2">
-                                <p className="text-white/90 text-sm font-light tracking-wide">
-                                  {option.backInfo.duration}
-                                </p>
-                                <p className="text-white/80 text-xs font-light tracking-wide">
-                                  {option.backInfo.availability}
-                                </p>
-                              </div>
-                            )}
-                            
-                            <Link href={option.action}>
-                              <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-all duration-300 cursor-pointer">
-                                <span className="text-white text-sm font-medium font-sans tracking-wide">
-                                  {option.id === 2 ? 'Call Now' : 'Get Started'}
-                                </span>
-                                <ArrowRight className="w-4 h-4 text-white" />
-                              </div>
-                            </Link>
-                          </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+          {contactOptions.map((option) => {
+            const Icon = option.icon;
+            const FrontStatIcon = option.frontInfo.icon;
+            return (
+              <div
+                key={option.id}
+                className="relative h-[280px] perspective-1000 cursor-pointer group"
+              >
+                <div className={`relative w-full h-full transition-all duration-700 transform-style-3d group-hover:rotate-y-180`}>
+                  {/* Front Side - Default visible with black background */}
+                  <div className="absolute w-full h-full backface-hidden">
+                    <div className={`h-full bg-black/60 backdrop-blur-md border ${cardBorder} rounded-xl p-6 text-center transition-all duration-300 hover:border-[#6366F1]/50 cursor-pointer`}>
+                      <div className="relative mb-4">
+                        <div className={`absolute inset-0 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] rounded-full blur-xl opacity-20`} />
+                        <div className={`relative w-14 h-14 mx-auto bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-full flex items-center justify-center shadow-lg`}>
+                          <Icon className="w-7 h-7 text-white" />
                         </div>
                       </div>
+                      
+                      <h4 className="text-white font-semibold font-sans tracking-wide text-lg lg:text-xl mb-2">
+                        {option.title}
+                      </h4>
+                      
+                      <p className="text-[#94A3B8] text-sm mb-3 font-light tracking-wide">
+                        {option.description}
+                      </p>
+                      
+                      <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#6366F1]/10 rounded-full mb-3">
+                        <FrontStatIcon className="w-3.5 h-3.5 text-[#6366F1]" />
+                        <span className="text-[#6366F1] text-xs font-medium font-sans tracking-wide">
+                          {option.frontInfo.stats}
+                        </span>
+                      </div>
+                      
+                      <div className="inline-flex items-center gap-1 text-[#6366F1] text-sm font-medium font-sans tracking-wide group-hover:gap-2 transition-all duration-300">
+                        <span>Hover to flip</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </div>
                     </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+                  </div>
 
+                  {/* Back Side - Shows on hover with BLUE background for all cards */}
+                  <div className="absolute w-full h-full backface-hidden rotate-y-180">
+                    <div className={`h-full bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-xl p-6 text-center flex flex-col items-center justify-center border border-white/20 shadow-xl`}>
+                      <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mb-4">
+                        <Icon className="w-7 h-7 text-white" />
+                      </div>
+                      
+                      <h4 className="text-white font-bold font-sans tracking-wide text-xl mb-3">
+                        {option.title}
+                      </h4>
+                      
+                      {option.id === 1 && (
+                        <div className="space-y-2">
+                          <p className="text-white/90 text-sm font-light tracking-wide">
+                            {option.backInfo.email}
+                          </p>
+                          <p className="text-white/80 text-xs font-light tracking-wide">
+                            {option.backInfo.support}
+                          </p>
+                        </div>
+                      )}
+                      
+                      {option.id === 2 && (
+                        <div className="space-y-2">
+                          <p className="text-white text-lg font-mono font-bold">
+                            {option.backInfo.primary}
+                          </p>
+                          <p className="text-white/80 text-xs flex items-center gap-1 justify-center font-light tracking-wide">
+                            Click to call
+                          </p>
+                          <p className="text-white/70 text-xs mt-2 font-light tracking-wide">
+                            Available on WhatsApp
+                          </p>
+                        </div>
+                      )}
+                      
+                      {option.id === 3 && (
+                        <div className="space-y-2">
+                          <p className="text-white/90 text-sm font-light tracking-wide">
+                            {option.backInfo.duration}
+                          </p>
+                          <p className="text-white/80 text-xs font-light tracking-wide">
+                            {option.backInfo.availability}
+                          </p>
+                        </div>
+                      )}
+                      
+                      <Link href={option.action}>
+                        <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-all duration-300 cursor-pointer">
+                          <span className="text-white text-sm font-medium font-sans tracking-wide">
+                            {option.id === 2 ? 'Call Now' : 'Get Started'}
+                          </span>
+                          <ArrowRight className="w-4 h-4 text-white" />
+                        </div>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
       <style jsx>{`
         .perspective-1000 {
           perspective: 1000px;

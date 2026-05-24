@@ -30,7 +30,7 @@ const projects = [
     status: "Live",
     tags: ["Education", "LMS", "School Management"],
     icon: Building2,
-    image: '/neezamiya.jpg'
+    image: '/nlogo.png'
   },
   {
     id: 2,
@@ -563,7 +563,7 @@ export default function ProjectsSection() {
               className="hidden lg:flex items-center justify-center"
             >
               <div className={`w-full mx-auto ${
-                project.name === "Neezamiya" ? 'max-w-sm' : 'max-w-lg'
+                project.name === "Neezamiya" ? 'max-w-lg' : 'max-w-lg'
               }`}>
                 <img
                   src={project.image}
