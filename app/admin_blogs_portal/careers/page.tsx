@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 // app/admin_blogs_portal/careers/page.tsx
 'use client';
 
@@ -24,9 +25,25 @@ import {
   AlertCircle,
   Send,
   X,
-  FileArchive
+  FileArchive,
+  Filter,
+  FileSpreadsheet,
+  FileJson,
+  Printer,
+  CalendarRange,
+  DollarSign,
+  MapPin,
+  Building,
+  TrendingUp,
+  FilterX,
+  ChevronDown,
+  ChevronUp,
+  FileDown,
+  Sheet
 } from 'lucide-react';
-import Link from 'next/link';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface Application {
   id: number;
@@ -47,6 +64,7 @@ interface Application {
 
 type StatusFilter = 'all' | 'pending' | 'reviewed' | 'shortlisted' | 'rejected';
 type CategoryFilter = 'all' | 'job' | 'internship';
+type DateFilter = 'all' | 'today' | 'week' | 'month' | 'custom';
 
 export default function CareersPage() {
   const [applications, setApplications] = useState<Application[]>([]);
@@ -56,6 +74,11 @@ export default function CareersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
+  const [positionFilter, setPositionFilter] = useState<string>('all');
+  const [dateFilter, setDateFilter] = useState<DateFilter>('all');
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
@@ -64,6 +87,8 @@ export default function CareersPage() {
   const [emailSubject, setEmailSubject] = useState('');
   const [emailMessage, setEmailMessage] = useState('');
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [exporting, setExporting] = useState<string | null>(null);
+  const [uniquePositions, setUniquePositions] = useState<string[]>([]);
   const [stats, setStats] = useState({
     total: 0,
     pending: 0,
@@ -80,7 +105,7 @@ export default function CareersPage() {
 
   useEffect(() => {
     filterApplications();
-  }, [searchTerm, statusFilter, categoryFilter, applications]);
+  }, [searchTerm, statusFilter, categoryFilter, positionFilter, dateFilter, customStartDate, customEndDate, applications]);
 
   const fetchApplications = async () => {
     setRefreshing(true);
@@ -90,6 +115,9 @@ export default function CareersPage() {
       if (data.success) {
         setApplications(data.data);
         setStats(data.stats);
+        // Extract unique positions
+        const positions = [...new Set(data.data.map((app: Application) => app.position))] as string[];
+        setUniquePositions(positions);
       }
     } catch (error) {
       console.error('Error fetching applications:', error);
@@ -102,23 +130,269 @@ export default function CareersPage() {
   const filterApplications = () => {
     let filtered = [...applications];
     
+    // Status filter
     if (statusFilter !== 'all') {
       filtered = filtered.filter(app => app.status === statusFilter);
     }
     
+    // Category filter
     if (categoryFilter !== 'all') {
       filtered = filtered.filter(app => app.category === categoryFilter);
     }
     
+    // Position filter
+    if (positionFilter !== 'all') {
+      filtered = filtered.filter(app => app.position === positionFilter);
+    }
+    
+    // Date filter
+    if (dateFilter !== 'all') {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      
+      filtered = filtered.filter(app => {
+        const appDate = new Date(app.created_at);
+        
+        if (dateFilter === 'today') {
+          const appDateOnly = new Date(appDate.getFullYear(), appDate.getMonth(), appDate.getDate());
+          return appDateOnly.getTime() === today.getTime();
+        } else if (dateFilter === 'week') {
+          const weekAgo = new Date(today);
+          weekAgo.setDate(today.getDate() - 7);
+          return appDate >= weekAgo;
+        } else if (dateFilter === 'month') {
+          const monthAgo = new Date(today);
+          monthAgo.setMonth(today.getMonth() - 1);
+          return appDate >= monthAgo;
+        } else if (dateFilter === 'custom' && customStartDate && customEndDate) {
+          const start = new Date(customStartDate);
+          const end = new Date(customEndDate);
+          end.setHours(23, 59, 59);
+          return appDate >= start && appDate <= end;
+        }
+        return true;
+      });
+    }
+    
+    // Search filter
     if (searchTerm) {
       filtered = filtered.filter(app => 
         app.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         app.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        app.position.toLowerCase().includes(searchTerm.toLowerCase())
+        app.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        app.phone.includes(searchTerm)
       );
     }
     
     setFilteredApps(filtered);
+  };
+
+  const clearAllFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('all');
+    setCategoryFilter('all');
+    setPositionFilter('all');
+    setDateFilter('all');
+    setCustomStartDate('');
+    setCustomEndDate('');
+  };
+
+  const exportToCSV = () => {
+    setExporting('csv');
+    try {
+      const headers = ['ID', 'Full Name', 'Email', 'Phone', 'Position', 'Category', 'Experience', 'Status', 'Applied Date', 'Portfolio', 'Message'];
+      const csvData = filteredApps.map(app => [
+        app.id,
+        app.full_name,
+        app.email,
+        app.phone,
+        app.position,
+        app.category === 'job' ? 'Full-Time Job' : 'Internship',
+        app.experience,
+        app.status,
+        new Date(app.created_at).toLocaleString(),
+        app.portfolio || 'N/A',
+        app.message.replace(/,/g, ' ').replace(/\n/g, ' ')
+      ]);
+      
+      const csvContent = [headers, ...csvData].map(row => row.join(',')).join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.href = url;
+      link.setAttribute('download', `applications_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+      alert('Failed to export CSV');
+    } finally {
+      setExporting(null);
+    }
+  };
+
+  const exportToExcel = () => {
+    setExporting('excel');
+    try {
+      const exportData = filteredApps.map(app => ({
+        'ID': app.id,
+        'Full Name': app.full_name,
+        'Email': app.email,
+        'Phone': app.phone,
+        'Position': app.position,
+        'Category': app.category === 'job' ? 'Full-Time Job' : 'Internship',
+        'Experience': app.experience,
+        'Status': app.status,
+        'Applied Date': new Date(app.created_at).toLocaleString(),
+        'Portfolio': app.portfolio || 'N/A',
+        'Message': app.message
+      }));
+      
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Applications');
+      
+      // Add summary sheet
+      const summaryData = [
+        { 'Metric': 'Total Applications', 'Value': filteredApps.length },
+        { 'Metric': 'Pending', 'Value': filteredApps.filter(a => a.status === 'pending').length },
+        { 'Metric': 'Reviewed', 'Value': filteredApps.filter(a => a.status === 'reviewed').length },
+        { 'Metric': 'Shortlisted', 'Value': filteredApps.filter(a => a.status === 'shortlisted').length },
+        { 'Metric': 'Rejected', 'Value': filteredApps.filter(a => a.status === 'rejected').length },
+        { 'Metric': 'Jobs', 'Value': filteredApps.filter(a => a.category === 'job').length },
+        { 'Metric': 'Internships', 'Value': filteredApps.filter(a => a.category === 'internship').length },
+        { 'Metric': 'Export Date', 'Value': new Date().toLocaleString() }
+      ];
+      const summarySheet = XLSX.utils.json_to_sheet(summaryData);
+      XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
+      
+      XLSX.writeFile(workbook, `applications_${new Date().toISOString().split('T')[0]}.xlsx`);
+    } catch (error) {
+      console.error('Error exporting Excel:', error);
+      alert('Failed to export Excel');
+    } finally {
+      setExporting(null);
+    }
+  };
+
+  const exportToPDF = () => {
+    setExporting('pdf');
+    try {
+      const doc = new jsPDF('landscape');
+      
+      // Add header
+      doc.setFontSize(18);
+      doc.setTextColor(59, 130, 246);
+      doc.text('Nestick Tech - Applications Report', 14, 20);
+      
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
+      doc.text(`Total Applications: ${filteredApps.length}`, 14, 36);
+      
+      // Add filter info
+      let filterText = 'Filters Applied: ';
+      if (statusFilter !== 'all') filterText += `Status: ${statusFilter}, `;
+      if (categoryFilter !== 'all') filterText += `Category: ${categoryFilter}, `;
+      if (positionFilter !== 'all') filterText += `Position: ${positionFilter}, `;
+      if (dateFilter !== 'all') filterText += `Date: ${dateFilter}`;
+      if (filterText === 'Filters Applied: ') filterText = 'No filters applied';
+      
+      doc.setFontSize(9);
+      doc.text(filterText, 14, 42);
+      
+      // Prepare table data
+      const tableData = filteredApps.map(app => [
+        app.id.toString(),
+        app.full_name,
+        app.email,
+        app.phone,
+        app.position,
+        app.category === 'job' ? 'Job' : 'Intern',
+        app.experience,
+        app.status,
+        new Date(app.created_at).toLocaleDateString()
+      ]);
+      
+      autoTable(doc, {
+        head: [['ID', 'Name', 'Email', 'Phone', 'Position', 'Type', 'Experience', 'Status', 'Date']],
+        body: tableData,
+        startY: 48,
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [59, 130, 246], textColor: 255, fontSize: 9 },
+        alternateRowStyles: { fillColor: [240, 240, 240] }
+      });
+      
+      doc.save(`applications_${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      alert('Failed to export PDF');
+    } finally {
+      setExporting(null);
+    }
+  };
+
+  const printApplications = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+    
+    const tableRows = filteredApps.map(app => `
+      <tr>
+        <td>${app.id}</td>
+        <td>${app.full_name}</td>
+        <td>${app.email}</td>
+        <td>${app.phone}</td>
+        <td>${app.position}</td>
+        <td>${app.category === 'job' ? 'Job' : 'Internship'}</td>
+        <td>${app.experience}</td>
+        <td>${app.status}</td>
+        <td>${new Date(app.created_at).toLocaleDateString()}</td>
+      </tr>
+    `).join('');
+    
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Applications Report</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 20px; }
+          h1 { color: #3b82f6; }
+          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+          th { background-color: #3b82f6; color: white; }
+          tr:nth-child(even) { background-color: #f2f2f2; }
+          .header { margin-bottom: 20px; }
+          .stats { margin: 20px 0; padding: 10px; background: #f0f0f0; border-radius: 5px; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Nestick Tech - Applications Report</h1>
+          <p>Generated on: ${new Date().toLocaleString()}</p>
+          <p>Total Applications: ${filteredApps.length}</p>
+        </div>
+        <div class="stats">
+          <strong>Statistics:</strong> Pending: ${filteredApps.filter(a => a.status === 'pending').length} | 
+          Reviewed: ${filteredApps.filter(a => a.status === 'reviewed').length} | 
+          Shortlisted: ${filteredApps.filter(a => a.status === 'shortlisted').length} | 
+          Rejected: ${filteredApps.filter(a => a.status === 'rejected').length}
+        </div>
+        <table>
+          <thead>
+            <tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Position</th><th>Type</th><th>Experience</th><th>Status</th><th>Date</th></tr>
+          </thead>
+          <tbody>
+            ${tableRows}
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
   };
 
   const updateStatus = async (id: number, status: string) => {
@@ -215,22 +489,22 @@ export default function CareersPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <span className="px-2 py-1 rounded-full bg-yellow-500/20 text-yellow-400 text-xs flex items-center gap-1 cursor-default"><Clock size={12} /> Pending</span>;
+        return <span className="px-2 py-1 rounded-full bg-yellow-500/20 text-yellow-400 text-xs flex items-center gap-1"><Clock size={12} /> Pending</span>;
       case 'reviewed':
-        return <span className="px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 text-xs flex items-center gap-1 cursor-default"><Eye size={12} /> Reviewed</span>;
+        return <span className="px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 text-xs flex items-center gap-1"><Eye size={12} /> Reviewed</span>;
       case 'shortlisted':
-        return <span className="px-2 py-1 rounded-full bg-green-500/20 text-green-400 text-xs flex items-center gap-1 cursor-default"><CheckCircle size={12} /> Shortlisted</span>;
+        return <span className="px-2 py-1 rounded-full bg-green-500/20 text-green-400 text-xs flex items-center gap-1"><CheckCircle size={12} /> Shortlisted</span>;
       case 'rejected':
-        return <span className="px-2 py-1 rounded-full bg-red-500/20 text-red-400 text-xs flex items-center gap-1 cursor-default"><XCircle size={12} /> Rejected</span>;
+        return <span className="px-2 py-1 rounded-full bg-red-500/20 text-red-400 text-xs flex items-center gap-1"><XCircle size={12} /> Rejected</span>;
       default:
-        return <span className="text-xs text-gray-400 cursor-default">{status}</span>;
+        return <span className="text-xs text-gray-400">{status}</span>;
     }
   };
 
   const getCategoryBadge = (category: string) => {
     return category === 'job' 
-      ? <span className="px-2 py-1 rounded-full bg-purple-500/20 text-purple-400 text-xs flex items-center gap-1 cursor-default"><Briefcase size={12} /> Full-Time</span>
-      : <span className="px-2 py-1 rounded-full bg-cyan-500/20 text-cyan-400 text-xs flex items-center gap-1 cursor-default"><GraduationCap size={12} /> Internship</span>;
+      ? <span className="px-2 py-1 rounded-full bg-purple-500/20 text-purple-400 text-xs flex items-center gap-1"><Briefcase size={12} /> Full-Time</span>
+      : <span className="px-2 py-1 rounded-full bg-cyan-500/20 text-cyan-400 text-xs flex items-center gap-1"><GraduationCap size={12} /> Internship</span>;
   };
 
   if (loading) {
@@ -242,89 +516,220 @@ export default function CareersPage() {
   }
 
   return (
-    <div className="cursor-default">
+    <div>
       {/* Header */}
       <div className="mb-6">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center flex-wrap gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Career Applications</h1>
             <p className="text-gray-500 dark:text-gray-400 mt-1">Manage job and internship applications</p>
           </div>
-          <button
-            onClick={fetchApplications}
-            disabled={refreshing}
-            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg flex items-center gap-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition-all cursor-pointer disabled:opacity-50"
-          >
-            {refreshing ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
-            Refresh
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={fetchApplications}
+              disabled={refreshing}
+              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg flex items-center gap-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition-all disabled:opacity-50"
+            >
+              {refreshing ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
+              Refresh
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-3 text-center border border-gray-200 dark:border-gray-700 cursor-default">
-          <p className="text-xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
-          <p className="text-xs text-gray-500">Total</p>
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-3 text-center border border-gray-200 dark:border-gray-700">
+          <p className="text-xl font-bold text-gray-900 dark:text-white">{filteredApps.length}</p>
+          <p className="text-xs text-gray-500">Showing</p>
         </div>
-        <div className="bg-yellow-500/10 rounded-xl p-3 text-center border border-yellow-500/30 cursor-default">
-          <p className="text-xl font-bold text-yellow-500">{stats.pending}</p>
+        <div className="bg-yellow-500/10 rounded-xl p-3 text-center border border-yellow-500/30">
+          <p className="text-xl font-bold text-yellow-500">{filteredApps.filter(a => a.status === 'pending').length}</p>
           <p className="text-xs text-gray-500">Pending</p>
         </div>
-        <div className="bg-blue-500/10 rounded-xl p-3 text-center border border-blue-500/30 cursor-default">
-          <p className="text-xl font-bold text-blue-500">{stats.reviewed}</p>
+        <div className="bg-blue-500/10 rounded-xl p-3 text-center border border-blue-500/30">
+          <p className="text-xl font-bold text-blue-500">{filteredApps.filter(a => a.status === 'reviewed').length}</p>
           <p className="text-xs text-gray-500">Reviewed</p>
         </div>
-        <div className="bg-green-500/10 rounded-xl p-3 text-center border border-green-500/30 cursor-default">
-          <p className="text-xl font-bold text-green-500">{stats.shortlisted}</p>
+        <div className="bg-green-500/10 rounded-xl p-3 text-center border border-green-500/30">
+          <p className="text-xl font-bold text-green-500">{filteredApps.filter(a => a.status === 'shortlisted').length}</p>
           <p className="text-xs text-gray-500">Shortlisted</p>
         </div>
-        <div className="bg-red-500/10 rounded-xl p-3 text-center border border-red-500/30 cursor-default">
-          <p className="text-xl font-bold text-red-500">{stats.rejected}</p>
+        <div className="bg-red-500/10 rounded-xl p-3 text-center border border-red-500/30">
+          <p className="text-xl font-bold text-red-500">{filteredApps.filter(a => a.status === 'rejected').length}</p>
           <p className="text-xs text-gray-500">Rejected</p>
         </div>
-        <div className="bg-purple-500/10 rounded-xl p-3 text-center border border-purple-500/30 cursor-default">
-          <p className="text-xl font-bold text-purple-500">{stats.jobs}</p>
+        <div className="bg-purple-500/10 rounded-xl p-3 text-center border border-purple-500/30">
+          <p className="text-xl font-bold text-purple-500">{filteredApps.filter(a => a.category === 'job').length}</p>
           <p className="text-xs text-gray-500">Jobs</p>
         </div>
-        <div className="bg-cyan-500/10 rounded-xl p-3 text-center border border-cyan-500/30 cursor-default">
-          <p className="text-xl font-bold text-cyan-500">{stats.internships}</p>
+        <div className="bg-cyan-500/10 rounded-xl p-3 text-center border border-cyan-500/30">
+          <p className="text-xl font-bold text-cyan-500">{filteredApps.filter(a => a.category === 'internship').length}</p>
           <p className="text-xs text-gray-500">Internships</p>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-4 mb-6">
-        <div className="relative flex-1 max-w-md">
+      {/* Export Buttons */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        <button
+          onClick={exportToCSV}
+          disabled={exporting !== null || filteredApps.length === 0}
+          className="px-3 py-2 bg-green-600 text-white rounded-lg flex items-center gap-2 hover:bg-green-700 transition-all text-sm disabled:opacity-50"
+        >
+          {exporting === 'csv' ? <Loader2 size={14} className="animate-spin" /> : <FileDown size={14} />}
+          CSV
+        </button>
+        <button
+          onClick={exportToExcel}
+          disabled={exporting !== null || filteredApps.length === 0}
+          className="px-3 py-2 bg-emerald-600 text-white rounded-lg flex items-center gap-2 hover:bg-emerald-700 transition-all text-sm disabled:opacity-50"
+        >
+          {exporting === 'excel' ? <Loader2 size={14} className="animate-spin" /> : <Sheet size={14} />}
+          Excel
+        </button>
+        <button
+          onClick={exportToPDF}
+          disabled={exporting !== null || filteredApps.length === 0}
+          className="px-3 py-2 bg-red-600 text-white rounded-lg flex items-center gap-2 hover:bg-red-700 transition-all text-sm disabled:opacity-50"
+        >
+          {exporting === 'pdf' ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
+          PDF
+        </button>
+        <button
+          onClick={printApplications}
+          disabled={filteredApps.length === 0}
+          className="px-3 py-2 bg-gray-600 text-white rounded-lg flex items-center gap-2 hover:bg-gray-700 transition-all text-sm disabled:opacity-50"
+        >
+          <Printer size={14} />
+          Print
+        </button>
+      </div>
+
+      {/* Filters Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <button
+            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+            className="flex items-center gap-2 text-gray-700 dark:text-gray-300 font-medium"
+          >
+            <Filter size={18} />
+            Filters
+            {showAdvancedFilters ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </button>
+          <button
+            onClick={clearAllFilters}
+            className="text-sm text-red-500 hover:text-red-600 flex items-center gap-1"
+          >
+            <FilterX size={14} />
+            Clear All Filters
+          </button>
+        </div>
+
+        {/* Basic Search */}
+        <div className="relative mb-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
           <input
             type="text"
-            placeholder="Search by name, email, or position..."
+            placeholder="Search by name, email, position, or phone..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-text"
+            className="w-full pl-10 pr-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
         </div>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-          className="px-4 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
-        >
-          <option value="all">All Status</option>
-          <option value="pending">Pending</option>
-          <option value="reviewed">Reviewed</option>
-          <option value="shortlisted">Shortlisted</option>
-          <option value="rejected">Rejected</option>
-        </select>
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value as CategoryFilter)}
-          className="px-4 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
-        >
-          <option value="all">All Types</option>
-          <option value="job">Full-Time Jobs</option>
-          <option value="internship">Internships</option>
-        </select>
+
+        {/* Basic Filters Row */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+            className="px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+          >
+            <option value="all">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="reviewed">Reviewed</option>
+            <option value="shortlisted">Shortlisted</option>
+            <option value="rejected">Rejected</option>
+          </select>
+
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value as CategoryFilter)}
+            className="px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+          >
+            <option value="all">All Types</option>
+            <option value="job">Full-Time Jobs</option>
+            <option value="internship">Internships</option>
+          </select>
+
+          <select
+            value={positionFilter}
+            onChange={(e) => setPositionFilter(e.target.value)}
+            className="px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+          >
+            <option value="all">All Positions</option>
+            {uniquePositions.map(pos => (
+              <option key={pos} value={pos}>{pos}</option>
+            ))}
+          </select>
+
+          <select
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value as DateFilter)}
+            className="px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+          >
+            <option value="all">All Time</option>
+            <option value="today">Today</option>
+            <option value="week">Last 7 Days</option>
+            <option value="month">Last 30 Days</option>
+            <option value="custom">Custom Range</option>
+          </select>
+        </div>
+
+        {/* Advanced Filters */}
+        {showAdvancedFilters && dateFilter === 'custom' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Start Date</label>
+              <input
+                type="date"
+                value={customStartDate}
+                onChange={(e) => setCustomStartDate(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">End Date</label>
+              <input
+                type="date"
+                value={customEndDate}
+                onChange={(e) => setCustomEndDate(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Active Filters Display */}
+        {(statusFilter !== 'all' || categoryFilter !== 'all' || positionFilter !== 'all' || dateFilter !== 'all' || searchTerm) && (
+          <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+            <span className="text-xs text-gray-500">Active Filters:</span>
+            {statusFilter !== 'all' && (
+              <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded text-xs">Status: {statusFilter}</span>
+            )}
+            {categoryFilter !== 'all' && (
+              <span className="px-2 py-1 bg-purple-500/20 text-purple-400 rounded text-xs">Type: {categoryFilter}</span>
+            )}
+            {positionFilter !== 'all' && (
+              <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs">Position: {positionFilter}</span>
+            )}
+            {dateFilter !== 'all' && (
+              <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded text-xs">Date: {dateFilter}</span>
+            )}
+            {searchTerm && (
+              <span className="px-2 py-1 bg-gray-500/20 text-gray-400 rounded text-xs">Search: {searchTerm}</span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Applications Table */}
@@ -385,7 +790,7 @@ export default function CareersPage() {
                             setNotes(app.notes || '');
                             setShowDetailModal(true);
                           }}
-                          className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                           title="View Details"
                         >
                           <Eye size={16} className="text-blue-500" />
@@ -393,7 +798,7 @@ export default function CareersPage() {
                         {app.cv_file && (
                           <button
                             onClick={() => downloadCV(app)}
-                            className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                             title="Download CV"
                           >
                             <Download size={16} className="text-green-500" />
@@ -411,12 +816,18 @@ export default function CareersPage() {
         {filteredApps.length === 0 && (
           <div className="text-center py-12">
             <Briefcase size={48} className="mx-auto text-gray-400 mb-3" />
-            <p className="text-gray-500">No applications found</p>
+            <p className="text-gray-500">No applications found with current filters</p>
+            <button
+              onClick={clearAllFilters}
+              className="mt-3 text-purple-500 hover:text-purple-600 text-sm"
+            >
+              Clear all filters
+            </button>
           </div>
         )}
       </div>
 
-      {/* Detail Modal */}
+      {/* Detail Modal - Same as before */}
       <AnimatePresence>
         {showDetailModal && selectedApp && (
           <motion.div
@@ -440,7 +851,7 @@ export default function CareersPage() {
                 </div>
                 <button
                   onClick={() => setShowDetailModal(false)}
-                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 >
                   <XCircle size={20} />
                 </button>
@@ -455,7 +866,7 @@ export default function CareersPage() {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Email</p>
-                    <a href={`mailto:${selectedApp.email}`} className="text-blue-500 hover:underline cursor-pointer">
+                    <a href={`mailto:${selectedApp.email}`} className="text-blue-500 hover:underline">
                       {selectedApp.email}
                     </a>
                   </div>
@@ -488,7 +899,7 @@ export default function CareersPage() {
                     {selectedApp.portfolio && (
                       <div>
                         <p className="text-sm text-gray-500">Portfolio</p>
-                        <a href={selectedApp.portfolio} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline flex items-center gap-1 cursor-pointer">
+                        <a href={selectedApp.portfolio} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline flex items-center gap-1">
                           View Portfolio <ExternalLink size={12} />
                         </a>
                       </div>
@@ -503,13 +914,13 @@ export default function CareersPage() {
                     <div className="flex flex-wrap gap-3">
                       <button
                         onClick={() => viewCV(selectedApp)}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all cursor-pointer"
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all"
                       >
                         <Eye size={16} /> View CV
                       </button>
                       <button
                         onClick={() => downloadCV(selectedApp)}
-                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all cursor-pointer"
+                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all"
                       >
                         <Download size={16} /> Download CV ({selectedApp.cv_filename})
                       </button>
@@ -537,7 +948,7 @@ export default function CareersPage() {
                     onChange={(e) => setNotes(e.target.value)}
                     rows={3}
                     placeholder="Add notes about this application..."
-                    className="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-text"
+                    className="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
 
@@ -550,7 +961,7 @@ export default function CareersPage() {
                       setShowEmailModal(true);
                       setShowDetailModal(false);
                     }}
-                    className="flex-1 py-2 rounded-lg bg-purple-600 text-white font-medium hover:bg-purple-700 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    className="flex-1 py-2 rounded-lg bg-purple-600 text-white font-medium hover:bg-purple-700 transition-all flex items-center justify-center gap-2"
                   >
                     <Mail size={16} /> Send Email
                   </button>
@@ -560,7 +971,7 @@ export default function CareersPage() {
                       <button
                         onClick={() => updateStatus(selectedApp.id, 'reviewed')}
                         disabled={updatingId === selectedApp.id}
-                        className="flex-1 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                        className="flex-1 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                       >
                         {updatingId === selectedApp.id ? <Loader2 size={16} className="animate-spin" /> : <Eye size={16} />}
                         Mark as Reviewed
@@ -568,7 +979,7 @@ export default function CareersPage() {
                       <button
                         onClick={() => updateStatus(selectedApp.id, 'rejected')}
                         disabled={updatingId === selectedApp.id}
-                        className="flex-1 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                        className="flex-1 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                       >
                         {updatingId === selectedApp.id ? <Loader2 size={16} className="animate-spin" /> : <XCircle size={16} />}
                         Reject
@@ -580,7 +991,7 @@ export default function CareersPage() {
                       <button
                         onClick={() => updateStatus(selectedApp.id, 'shortlisted')}
                         disabled={updatingId === selectedApp.id}
-                        className="flex-1 py-2 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                        className="flex-1 py-2 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                       >
                         {updatingId === selectedApp.id ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
                         Shortlist
@@ -588,7 +999,7 @@ export default function CareersPage() {
                       <button
                         onClick={() => updateStatus(selectedApp.id, 'rejected')}
                         disabled={updatingId === selectedApp.id}
-                        className="flex-1 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                        className="flex-1 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                       >
                         {updatingId === selectedApp.id ? <Loader2 size={16} className="animate-spin" /> : <XCircle size={16} />}
                         Reject
@@ -599,7 +1010,7 @@ export default function CareersPage() {
                     <button
                       onClick={() => updateStatus(selectedApp.id, 'rejected')}
                       disabled={updatingId === selectedApp.id}
-                      className="flex-1 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                      className="flex-1 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                     >
                       {updatingId === selectedApp.id ? <Loader2 size={16} className="animate-spin" /> : <XCircle size={16} />}
                       Reject
@@ -607,7 +1018,7 @@ export default function CareersPage() {
                   )}
                   <button
                     onClick={() => setShowDetailModal(false)}
-                    className="flex-1 py-2 rounded-lg bg-gray-600 text-white font-medium hover:bg-gray-700 transition-all cursor-pointer"
+                    className="flex-1 py-2 rounded-lg bg-gray-600 text-white font-medium hover:bg-gray-700 transition-all"
                   >
                     Close
                   </button>
@@ -643,7 +1054,7 @@ export default function CareersPage() {
                   </div>
                   <button
                     onClick={() => setShowEmailModal(false)}
-                    className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                    className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                   >
                     <X size={20} />
                   </button>
@@ -664,7 +1075,7 @@ export default function CareersPage() {
                       value={emailSubject}
                       onChange={(e) => setEmailSubject(e.target.value)}
                       placeholder="Email subject"
-                      className="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-text"
+                      className="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                     />
                   </div>
 
@@ -675,7 +1086,7 @@ export default function CareersPage() {
                       onChange={(e) => setEmailMessage(e.target.value)}
                       rows={6}
                       placeholder="Write your message here..."
-                      className="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none cursor-text"
+                      className="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
                     />
                   </div>
 
@@ -683,7 +1094,7 @@ export default function CareersPage() {
                     <button
                       onClick={sendEmailToStudent}
                       disabled={sendingEmail}
-                      className="flex-1 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg font-medium hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+                      className="flex-1 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg font-medium hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       {sendingEmail ? (
                         <>
@@ -699,7 +1110,7 @@ export default function CareersPage() {
                     </button>
                     <button
                       onClick={() => setShowEmailModal(false)}
-                      className="flex-1 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-all cursor-pointer"
+                      className="flex-1 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-all"
                     >
                       Cancel
                     </button>
