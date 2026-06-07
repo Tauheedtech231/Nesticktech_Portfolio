@@ -14,11 +14,47 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   title: "Nestick Tech - Your Digital Partner for Success",
   description: "Nestick - Complete digital solutions from idea to execution.",
-
+  
   icons: {
     icon: "/nesticklogo.jpg",
     shortcut: "/nesticklogo.jpg",
     apple: "/nesticklogo.jpg",
+  },
+  
+  // Open Graph Tags (Social Media Sharing)
+  openGraph: {
+    title: "Nestick Tech - Your Digital Partner for Success",
+    description: "Nestick - Complete digital solutions from idea to execution. Web development, mobile apps, and digital marketing services.",
+    url: "https://nesticktech.com",
+    siteName: "Nestick Tech",
+    images: [
+      {
+        url: "https://nesticktech.com/nesticklogo.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Nestick Tech Logo",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  
+  // Twitter Cards (Twitter Sharing)
+  twitter: {
+    card: "summary_large_image",
+    title: "Nestick Tech - Your Digital Partner for Success",
+    description: "Nestick - Complete digital solutions from idea to execution.",
+    images: ["https://nesticktech.com/nesticklogo.jpg"],
+  },
+  
+  // Additional metadata
+  keywords: "Nestick Tech, web development, mobile apps, digital marketing, software development",
+  authors: [{ name: "Nestick Tech" }],
+  creator: "Nestick Tech",
+  publisher: "Nestick Tech",
+  robots: "index, follow",
+  alternates: {
+    canonical: "https://nesticktech.com",
   },
 };
 
@@ -29,6 +65,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        {/* Additional OG tags that Next.js metadata doesn't cover */}
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:type" content="image/jpeg" />
+        <meta property="og:email" content="info@nesticktech.com" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="canonical" href="https://nesticktech.com" />
+      </head>
       <body
         className={`${poppins.variable} antialiased bg-[#020617] text-white`}
       >
