@@ -1,10 +1,11 @@
+/* eslint-disable react/jsx-no-duplicate-props */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // app/blogs/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Calendar, Eye, Search, Filter, Tag, Clock, Sparkles } from 'lucide-react';
+import { Calendar, Eye, Search, Filter, Tag, Clock, Sparkles, ArrowRight } from 'lucide-react';
 
 interface Blog {
   id: number;
@@ -16,6 +17,12 @@ interface Blog {
   category?: string;
   author?: string;
   read_time?: number;
+  // Theme fields
+  theme_heading_color: string;
+  theme_font_family: string;
+  theme_bg_color: string;
+  theme_text_color: string;
+  theme_accent_color: string;
 }
 
 export default function PublicBlogsPage() {
@@ -75,7 +82,7 @@ export default function PublicBlogsPage() {
         const publishedBlogs = data.data.filter((b: any) => b.status === 'published');
         setBlogs(publishedBlogs);
         
-        // Extract unique categories - Fixed type issue
+        // Extract unique categories
         const categorySet = new Set<string>();
         categorySet.add('All');
         publishedBlogs.forEach((b: any) => {
@@ -94,20 +101,17 @@ export default function PublicBlogsPage() {
   const filterAndSortBlogs = () => {
     let filtered = [...blogs];
     
-    // Filter by search term
     if (searchTerm) {
       filtered = filtered.filter(blog => 
         blog.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        blog.excerpt.toLowerCase().includes(searchTerm.toLowerCase())
+        (blog.excerpt && blog.excerpt.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
     
-    // Filter by category
     if (selectedCategory !== 'All') {
       filtered = filtered.filter(blog => (blog.category || 'Uncategorized') === selectedCategory);
     }
     
-    // Sort blogs
     if (sortBy === 'latest') {
       filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     } else if (sortBy === 'oldest') {
@@ -119,7 +123,7 @@ export default function PublicBlogsPage() {
     setFilteredBlogs(filtered);
   };
 
-  // Theme-based class names
+  // Theme-based class names for overall page
   const isDark = theme === 'dark';
   const bgColor = isDark ? 'bg-[#020617]' : 'bg-gray-50';
   const textColor = isDark ? 'text-[#F8FAFC]' : 'text-gray-900';
@@ -133,9 +137,8 @@ export default function PublicBlogsPage() {
   const placeholderColor = isDark ? 'text-[#64748B]' : 'text-gray-400';
   const hoverBorder = isDark ? 'hover:border-[#6366F1]/50' : 'hover:border-indigo-400/50';
 
-  // Hero section background based on theme
   const heroImage = isDark
-    ? 'url("https://images.unsplash.com/photo-1499750310107-5fef28a66643?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80")'
+    ? 'url("https://images.unsplash.com/photo-1499750310107-5fef28a66643?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80")'
     : 'url("https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop")';
 
   if (loading) {
@@ -153,18 +156,14 @@ export default function PublicBlogsPage() {
 
   return (
     <div className={`min-h-screen ${bgColor}`}>
-      {/* Hero Section with Smooth Animation */}
+      {/* Hero Section */}
       <div 
         className="relative h-[300px] mt-[1rem] md:h-[450px] bg-cover bg-center bg-fixed flex items-center overflow-hidden"
-        style={{
-          backgroundImage: heroImage
-        }}
+        style={{ backgroundImage: heroImage }}
       >
-        {/* Gradient Overlay - Theme aware */}
         <div className={`absolute inset-0 bg-gradient-to-br ${overlayBg} via-${overlayBg} to-${isDark ? '[#0F172A]/80' : 'gray-800/80'}`} />
         <div className="absolute inset-0 bg-gradient-to-r from-[#6366F1]/20 via-transparent to-[#8B5CF6]/20" />
         
-        {/* Background animated elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className={`absolute top-20 right-10 w-96 h-96 ${isDark ? 'bg-[#6366F1]/5' : 'bg-indigo-200/20'} rounded-full blur-3xl animate-pulse`} style={{ animationDuration: '8s' }} />
           <div className={`absolute bottom-20 left-10 w-96 h-96 ${isDark ? 'bg-[#8B5CF6]/5' : 'bg-purple-200/20'} rounded-full blur-3xl animate-pulse`} style={{ animationDuration: '10s', animationDelay: '1s' }} />
@@ -277,7 +276,7 @@ export default function PublicBlogsPage() {
             </div>
           </div>
 
-          {/* Right side - Blog Grid */}
+          {/* Right side - Blog Grid with Individual Blog Themes */}
           <div className="flex-1">
             {filteredBlogs.length === 0 ? (
               <div className={`text-center py-20 ${cardBg} backdrop-blur-sm border ${cardBorder} rounded-xl`}>
@@ -289,8 +288,21 @@ export default function PublicBlogsPage() {
                 {filteredBlogs.map((blog, index) => (
                   <Link key={blog.id} href={`/blogs/${blog.id}`}>
                     <div 
-                      className={`group ${cardBg} backdrop-blur-sm border ${cardBorder} rounded-xl overflow-hidden ${hoverBorder} transition-all duration-300 cursor-pointer h-full animate-fade-in-up`}
-                      style={{ animationDelay: `${index * 0.1}s` }}
+                      className="group rounded-xl overflow-hidden transition-all duration-300 cursor-pointer h-full animate-fade-in-up hover:shadow-xl"
+                      style={{
+                        backgroundColor: blog.theme_bg_color || (isDark ? '#0F172A' : '#ffffff'),
+                        border: `1px solid ${blog.theme_accent_color || '#6366F1'}30`,
+                        fontFamily: blog.theme_font_family || 'inherit',
+                        animationDelay: `${index * 0.1}s`
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = blog.theme_accent_color || '#6366F1';
+                        e.currentTarget.style.transform = 'translateY(-4px)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = `${blog.theme_accent_color || '#6366F1'}30`;
+                        e.currentTarget.style.transform = 'translateY(0)';
+                      }}
                     >
                       {blog.featured_image && (
                         <div className="relative h-48 overflow-hidden">
@@ -299,22 +311,40 @@ export default function PublicBlogsPage() {
                             alt={blog.title} 
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />
-                          <div className={`absolute inset-0 bg-gradient-to-t from-${isDark ? '[#020617]/80' : 'gray-900/80'} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+                          <div 
+                            className="absolute inset-0 bg-gradient-to-t to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                            style={{ background: `linear-gradient(to top, ${blog.theme_bg_color || '#000'}cc, transparent)` }}
+                          />
                           {blog.category && (
-                            <span className="absolute top-3 left-3 px-2 py-1 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] rounded-lg text-xs text-white font-sans tracking-wide">
+                            <span 
+                              className="absolute top-3 left-3 px-2 py-1 rounded-lg text-xs text-white font-sans tracking-wide"
+                              style={{ backgroundColor: blog.theme_accent_color || '#6366F1' }}
+                            >
                               {blog.category}
                             </span>
                           )}
                         </div>
                       )}
                       <div className="p-5 flex-1 flex flex-col">
-                        <h2 className={`text-lg lg:text-xl font-semibold font-serif tracking-tight ${textColor} mb-2 line-clamp-2 group-hover:text-[#6366F1] transition-colors`}>
+                        <h2 
+                          className="text-lg lg:text-xl font-semibold tracking-tight mb-2 line-clamp-2 group-hover:opacity-80 transition-all"
+                          style={{ color: blog.theme_heading_color || '#000000' }}
+                        >
                           {blog.title}
                         </h2>
-                        <p className={`text-sm ${subTextColor} font-light tracking-wide line-clamp-2 mb-4`}>
+                        <p 
+                          className="text-sm line-clamp-2 mb-4"
+                          style={{ color: blog.theme_text_color || '#666666' }}
+                        >
                           {blog.excerpt}
                         </p>
-                        <div className={`flex items-center justify-between text-sm ${subTextColor} pt-3 border-t ${cardBorder}`}>
+                        <div 
+                          className="flex items-center justify-between text-sm pt-3 border-t"
+                          style={{ 
+                            color: `${blog.theme_text_color}99`,
+                            borderTopColor: `${blog.theme_text_color}30`
+                          }}
+                        >
                           <div className="flex items-center gap-2">
                             <Calendar size={14} />
                             <span>{new Date(blog.created_at).toLocaleDateString()}</span>
@@ -331,6 +361,17 @@ export default function PublicBlogsPage() {
                               <span>{blog.views}</span>
                             </div>
                           </div>
+                        </div>
+                        
+                        {/* Read More Button */}
+                        <div className="mt-4">
+                          <span 
+                            className="inline-flex items-center gap-2 text-sm font-medium transition-all group-hover:gap-3"
+                            style={{ color: blog.theme_accent_color || '#6366F1' }}
+                          >
+                            Read More
+                            <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
+                          </span>
                         </div>
                       </div>
                     </div>

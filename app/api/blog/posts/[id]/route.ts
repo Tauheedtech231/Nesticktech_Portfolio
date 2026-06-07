@@ -60,7 +60,32 @@ async function deleteImage(imageUrl: string | null) {
   }
 }
 
-// GET - Fetch single blog with category
+// IndexNow Helper Function
+async function sendIndexNowPing(url: string, key: string) {
+  try {
+    const indexNowApi = `https://api.indexnow.org/indexnow?url=${encodeURIComponent(url)}&key=${key}`;
+    
+    const response = await fetch(indexNowApi, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (response.ok) {
+      console.log(`✅ IndexNow ping sent for: ${url}`);
+      return true;
+    } else {
+      console.log(`❌ IndexNow failed for: ${url}`, response.status);
+      return false;
+    }
+  } catch (error) {
+    console.error('IndexNow error:', error);
+    return false;
+  }
+}
+
+// GET - Fetch single blog with category and theme
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -73,7 +98,7 @@ export async function GET(
       // Update view count
       await connection.execute('UPDATE blogs SET views = views + 1 WHERE id = ?', [id]);
       
-      // Fetch blog with category information
+      // Fetch blog with category information and theme fields
       const [rows] = await connection.execute(
         `SELECT 
           b.id, 
@@ -85,6 +110,12 @@ export async function GET(
           b.views, 
           b.created_at, 
           b.updated_at,
+          b.published_at,
+          b.theme_heading_color,
+          b.theme_font_family,
+          b.theme_bg_color,
+          b.theme_text_color,
+          b.theme_accent_color,
           GROUP_CONCAT(DISTINCT c.id) as category_ids,
           GROUP_CONCAT(DISTINCT c.name) as category_names,
           GROUP_CONCAT(DISTINCT c.description) as category_descriptions
@@ -119,11 +150,27 @@ export async function GET(
         }
       }
       
+      // Return blog with theme fields (fallback to defaults if null)
       return NextResponse.json({ 
         success: true, 
         data: {
-          ...blog,
-          categories
+          id: blog.id,
+          title: blog.title,
+          content: blog.content,
+          excerpt: blog.excerpt,
+          featured_image: blog.featured_image,
+          status: blog.status,
+          views: blog.views,
+          created_at: blog.created_at,
+          updated_at: blog.updated_at,
+          published_at: blog.published_at,
+          categories: categories,
+          // Theme fields with defaults
+          theme_heading_color: blog.theme_heading_color || '#000000',
+          theme_font_family: blog.theme_font_family || 'Arial, sans-serif',
+          theme_bg_color: blog.theme_bg_color || '#ffffff',
+          theme_text_color: blog.theme_text_color || '#333333',
+          theme_accent_color: blog.theme_accent_color || '#8b5cf6'
         }
       });
     } finally {
@@ -135,7 +182,7 @@ export async function GET(
   }
 }
 
-// PUT - Update blog with local image upload and category
+// PUT - Update blog with local image upload, category, theme, and IndexNow ping
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -143,7 +190,20 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await req.json();
-    const { title, content, excerpt, featured_image, status, category_id } = body;
+    const { 
+      title, 
+      content, 
+      excerpt, 
+      featured_image, 
+      status, 
+      category_id,
+      // Theme fields
+      theme_heading_color,
+      theme_font_family,
+      theme_bg_color,
+      theme_text_color,
+      theme_accent_color
+    } = body;
 
     if (!title || !content) {
       return NextResponse.json({ success: false, error: 'Title and content are required' }, { status: 400 });
@@ -155,9 +215,9 @@ export async function PUT(
       // Start transaction
       await connection.beginTransaction();
       
-      // Get current blog to delete old image if needed
+      // Get current blog to delete old image if needed and check old status
       const [oldRows] = await connection.execute(
-        'SELECT featured_image FROM blogs WHERE id = ?',
+        'SELECT featured_image, status FROM blogs WHERE id = ?',
         [id]
       );
       const oldBlog = (oldRows as any[])[0];
@@ -179,12 +239,35 @@ export async function PUT(
         }
       }
       
-      // Update blog
+      // Update blog with theme fields
       await connection.execute(
         `UPDATE blogs 
-         SET title = ?, content = ?, excerpt = ?, featured_image = ?, status = ?, updated_at = NOW()
+         SET 
+          title = ?, 
+          content = ?, 
+          excerpt = ?, 
+          featured_image = ?, 
+          status = ?, 
+          theme_heading_color = ?,
+          theme_font_family = ?,
+          theme_bg_color = ?,
+          theme_text_color = ?,
+          theme_accent_color = ?,
+          updated_at = NOW()
          WHERE id = ?`,
-        [title, content, excerpt || null, imageUrl, status || 'draft', id]
+        [
+          title, 
+          content, 
+          excerpt || null, 
+          imageUrl, 
+          status || 'draft',
+          theme_heading_color || '#000000',
+          theme_font_family || 'Arial, sans-serif',
+          theme_bg_color || '#ffffff',
+          theme_text_color || '#333333',
+          theme_accent_color || '#8b5cf6',
+          id
+        ]
       );
       
       // Update category relation
@@ -203,6 +286,24 @@ export async function PUT(
       
       // Commit transaction
       await connection.commit();
+      
+      // 🔥 SEND INDEXNOW PING - ONLY IF BLOG IS PUBLISHED
+      // Check if status is 'published' (either newly published or already was published)
+      const isPublished = status === 'published';
+      
+      if (isPublished) {
+        const indexNowKey = process.env.INDEXNOW_KEY;
+        const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://nesticktech.com/';
+        
+        if (indexNowKey) {
+          const blogUrl = `${siteUrl}blogs/${id}`;
+          await sendIndexNowPing(blogUrl, indexNowKey);
+          await sendIndexNowPing(`${siteUrl}blogs`, indexNowKey);
+          console.log(`📡 IndexNow pinged for updated blog ID: ${id}`);
+        } else {
+          console.warn('⚠️ INDEXNOW_KEY not found in environment variables');
+        }
+      }
       
       return NextResponse.json({ success: true, message: 'Blog updated successfully' });
     } catch (error) {
