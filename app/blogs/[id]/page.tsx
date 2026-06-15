@@ -1,4 +1,4 @@
-// app/blog/[id]/page.tsx
+// app/blogs/[id]/page.tsx
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import BlogClient from './BlogClient';
@@ -20,7 +20,7 @@ async function getBlog(id: string) {
   }
 }
 
-// Dynamic OG Tags ke liye generateMetadata function
+// Dynamic OG Tags ke liye generateMetadata function (with Arabic support)
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const blog = await getBlog(id);
@@ -32,22 +32,33 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     };
   }
   
+  // Read language from URL or default to English
+  const language = blog.language || 'en';
+  const isRTL = language === 'ar';
+  
   // Calculate read time
-  const readTime = Math.ceil(blog.content?.length / 1000) || 3;
+  const readTimeEn = Math.ceil(blog.content?.length / 1000) || 3;
+  const readTimeAr = blog.contentAr ? Math.ceil(blog.contentAr?.length / 1000) || 3 : readTimeEn;
+  
+  // Get title and description based on language
+  const titleEn = `${blog.title} | Nestick Tech`;
+  const titleAr = blog.titleAr ? `${blog.titleAr} | نستيك تك` : titleEn;
+  const descriptionEn = blog.excerpt || `Read this article by Nestick Tech. ${readTimeEn} min read.`;
+  const descriptionAr = blog.excerptAr || blog.excerpt || `اقرأ هذا المقال من نستيك تك. ${readTimeAr} دقيقة قراءة.`;
   
   return {
-    title: `${blog.title} | Nestick Tech`,
-    description: blog.excerpt || `Read this article by Nestick Tech. ${readTime} min read.`,
+    title: titleEn,
+    description: descriptionEn,
     keywords: `${blog.category}, web development, technology, programming, Nestick Tech`,
     authors: [{ name: blog.author || 'Nestick Tech' }],
     creator: 'Nestick Tech',
     publisher: 'Nestick Tech',
     robots: 'index, follow',
     
-    // Open Graph Tags (Facebook, LinkedIn, WhatsApp)
+    // Open Graph Tags (Facebook, LinkedIn, WhatsApp) - English version
     openGraph: {
-      title: blog.title,
-      description: blog.excerpt || `Read this article by Nestick Tech. ${readTime} min read.`,
+      title: titleEn,
+      description: descriptionEn,
       url: `https://nesticktech.com/blogs/${blog.id}`,
       siteName: 'Nestick Tech',
       images: [
@@ -59,6 +70,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         },
       ],
       locale: 'en_US',
+      alternateLocale: ['ar_SA'],
       type: 'article',
       publishedTime: blog.created_at,
       modifiedTime: blog.updated_at,
@@ -66,11 +78,11 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       tags: [blog.category].filter(Boolean),
     },
     
-    // Twitter Card
+    // Twitter Card - English version
     twitter: {
       card: 'summary_large_image',
-      title: blog.title,
-      description: blog.excerpt || `Read this article by Nestick Tech. ${readTime} min read.`,
+      title: titleEn,
+      description: descriptionEn,
       images: [blog.featured_image || 'https://nesticktech.com/nesticklogo.jpg'],
       creator: '@nesticktech',
       site: '@nesticktech',

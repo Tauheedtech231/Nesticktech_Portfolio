@@ -18,6 +18,10 @@ export default function AdminLogin() {
 
   const isRTL = language === 'ar';
 
+  // TEST CREDENTIALS
+  const TEST_EMAIL = 'test@gmail.com';
+  const TEST_PASSWORD = '1234';
+
   // Content translations
   const content = {
     en: {
@@ -27,6 +31,7 @@ export default function AdminLogin() {
       signIn: 'Sign In',
       invalidCredentials: 'Invalid credentials',
       networkError: 'Network error. Please try again.',
+      testCredentialsNote: 'Demo: test@gmail.com / 1234',
     },
     ar: {
       emailPlaceholder: 'البريد الإلكتروني',
@@ -35,6 +40,7 @@ export default function AdminLogin() {
       signIn: 'تسجيل الدخول',
       invalidCredentials: 'بيانات الدخول غير صحيحة',
       networkError: 'خطأ في الشبكة. يرجى المحاولة مرة أخرى.',
+      testCredentialsNote: 'تجريبي: test@gmail.com / 1234',
     }
   };
 
@@ -86,6 +92,27 @@ export default function AdminLogin() {
     setLoading(true);
     setError('');
 
+    // CHECK FOR TEST CREDENTIALS FIRST
+    if (email === TEST_EMAIL && password === TEST_PASSWORD) {
+      // Direct redirect for test credentials
+      console.log('Test credentials matched, redirecting...');
+      
+      // Store dummy admin data in session
+      const dummyAdmin = {
+        id: 1,
+        email: TEST_EMAIL,
+        name: 'Test Admin',
+        role: 'admin'
+      };
+      sessionStorage.setItem('admin_auth', JSON.stringify(dummyAdmin));
+      
+      // Immediate redirect
+      router.push('/admin_blogs_portal/dashboard');
+      setLoading(false);
+      return;
+    }
+
+    // Otherwise, try API call
     try {
       const response = await fetch('/api/blog/auth/login', {
         method: 'POST',
@@ -145,7 +172,9 @@ export default function AdminLogin() {
           </motion.div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 mt-6">
+      
+
+        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           {error && (
             <motion.div
               initial={{ opacity: 0, x: isRTL ? 20 : -20 }}

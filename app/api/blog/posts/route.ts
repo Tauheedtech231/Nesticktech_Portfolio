@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// app/api/blog/posts/route.ts (Complete Updated API)
+// app/api/blog/posts/route.ts (Complete Updated API with Arabic Fields)
 import { NextRequest, NextResponse } from 'next/server';
 import mysql from 'mysql2/promise';
 import { writeFile, mkdir } from 'fs/promises';
@@ -65,18 +65,23 @@ async function sendIndexNowPing(url: string, key: string) {
   }
 }
 
-// GET - Fetch all blogs
+// GET - Fetch all blogs (UPDATED with Arabic fields)
 export async function GET(req: NextRequest) {
   try {
     const searchParams = req.nextUrl.searchParams;
     const status = searchParams.get('status');
     const limit = searchParams.get('limit');
 
+    // ✅ UPDATED QUERY - Added titleAr, contentAr, excerptAr
     let query = `
       SELECT 
         b.id, 
         b.title, 
+        b.titleAr,
+        b.content,
+        b.contentAr,
         b.excerpt, 
+        b.excerptAr,
         b.featured_image, 
         b.status, 
         b.views, 
@@ -113,15 +118,29 @@ export async function GET(req: NextRequest) {
       const [rows] = await connection.execute(query, params);
       
       const processedRows = (rows as any[]).map(row => ({
-        ...row,
+        id: row.id,
+        title: row.title,
+        titleAr: row.titleAr || null,
+        content: row.content,
+        contentAr: row.contentAr || null,
+        excerpt: row.excerpt,
+        excerptAr: row.excerptAr || null,
+        featured_image: row.featured_image,
+        status: row.status,
+        views: row.views,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
         theme_heading_color: row.theme_heading_color || '#000000',
         theme_font_family: row.theme_font_family || 'Arial, sans-serif',
         theme_bg_color: row.theme_bg_color || '#ffffff',
         theme_text_color: row.theme_text_color || '#333333',
         theme_accent_color: row.theme_accent_color || '#8b5cf6',
         category: row.categories ? row.categories.split(',')[0] : null,
+        category_ids: row.category_ids,
         read_time: Math.ceil((row.content?.length || 0) / 1000) || 3
       }));
+      
+      console.log(`✅ GET blogs: Returning ${processedRows.length} blogs with Arabic fields`);
       
       return NextResponse.json({ success: true, data: processedRows });
     } finally {
@@ -133,12 +152,20 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST - Create new blog with category and IndexNow ping
+// POST - Create new blog with Arabic fields
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { 
-      title, content, excerpt, featured_image, status, category_id,
+      title, 
+      titleAr,
+      content, 
+      contentAr,
+      excerpt, 
+      excerptAr,
+      featured_image, 
+      status, 
+      category_id,
       theme_heading_color,
       theme_font_family,
       theme_bg_color,
@@ -162,13 +189,21 @@ export async function POST(req: NextRequest) {
 
       const [result] = await connection.execute(
         `INSERT INTO blogs (
-          title, content, excerpt, featured_image, status, 
+          title, titleAr, content, contentAr, excerpt, excerptAr,
+          featured_image, status, 
           theme_heading_color, theme_font_family, theme_bg_color, 
           theme_text_color, theme_accent_color,
           created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
         [
-          title, content, excerpt || null, imageUrl, status || 'draft',
+          title, 
+          titleAr || null,
+          content, 
+          contentAr || null,
+          excerpt || null, 
+          excerptAr || null,
+          imageUrl, 
+          status || 'draft',
           theme_heading_color || '#000000',
           theme_font_family || 'Arial, sans-serif',
           theme_bg_color || '#ffffff',

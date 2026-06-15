@@ -10,14 +10,15 @@ import { Calendar, Eye, Search, Filter, Tag, Clock, Sparkles, ArrowRight } from 
 interface Blog {
   id: number;
   title: string;
+  titleAr?: string;
   excerpt: string;
+  excerptAr?: string;
   featured_image: string;
   views: number;
   created_at: string;
   category?: string;
   author?: string;
   read_time?: number;
-  // Theme fields
   theme_heading_color: string;
   theme_font_family: string;
   theme_bg_color: string;
@@ -25,15 +26,126 @@ interface Blog {
   theme_accent_color: string;
 }
 
+// HARDCODED CATEGORIES with Arabic translations
+const categoriesData = [
+  { en: 'All', ar: 'الكل' },
+  { en: 'Technology', ar: 'التقنية' },
+  { en: 'Development', ar: 'التطوير' },
+  { en: 'AI/ML', ar: 'الذكاء الاصطناعي' },
+  { en: 'Cybersecurity', ar: 'الأمن السيبراني' },
+  { en: 'Business', ar: 'الأعمال' },
+  { en: 'Design', ar: 'التصميم' },
+  { en: 'Marketing', ar: 'التسويق' },
+];
+
+// HARDCODED SORT OPTIONS with Arabic translations
+const sortOptions = [
+  { value: 'latest', labelEn: 'Latest First', labelAr: 'الأحدث أولاً' },
+  { value: 'oldest', labelEn: 'Oldest First', labelAr: 'الأقدم أولاً' },
+  { value: 'popular', labelEn: 'Most Popular', labelAr: 'الأكثر مشاهدة' }
+];
+
 export default function PublicBlogsPage() {
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [filteredBlogs, setFilteredBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [categories, setCategories] = useState<string[]>(['All']);
   const [sortBy, setSortBy] = useState('latest');
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [language, setLanguage] = useState<'en' | 'ar'>('en');
+
+  const isRTL = language === 'ar';
+
+  // Content translations for UI text
+  const content = {
+    en: {
+      badge: 'Our Blog',
+      heading: 'Insights &',
+      headingHighlight: 'Stories',
+      description: 'Discover expert insights, industry trends, and innovative ideas from our team of creative minds.',
+      searchArticles: 'Search Articles',
+      searchPlaceholder: 'Search...',
+      categories: 'Categories',
+      sortBy: 'Sort By',
+      found: 'Found',
+      articles: 'articles',
+      noArticles: 'No articles found',
+      tryAdjusting: 'Try adjusting your search or filter',
+      readMore: 'Read More',
+      min: 'min',
+    },
+    ar: {
+      badge: 'مدونتنا',
+      heading: 'رؤى و',
+      headingHighlight: 'قصص',
+      description: 'اكتشف رؤى الخبراء واتجاهات الصناعة والأفكار المبتكرة من فريقنا من العقول المبدعة.',
+      searchArticles: 'البحث في المقالات',
+      searchPlaceholder: 'بحث...',
+      categories: 'التصنيفات',
+      sortBy: 'ترتيب حسب',
+      found: 'تم العثور على',
+      articles: 'مقال',
+      noArticles: 'لا توجد مقالات',
+      tryAdjusting: 'حاول تعديل بحثك أو التصفية',
+      readMore: 'اقرأ المزيد',
+      min: 'دقيقة',
+    }
+  };
+
+  // Get category display name based on language
+  const getCategoryDisplay = (categoryEn: string) => {
+    const cat = categoriesData.find(c => c.en === categoryEn);
+    if (!cat) return isRTL ? categoryEn : categoryEn;
+    return isRTL ? cat.ar : cat.en;
+  };
+
+  // Get categories for filter display (HARDCODED)
+  const displayCategories = categoriesData.map(cat => ({
+    value: cat.en,
+    label: isRTL ? cat.ar : cat.en
+  }));
+
+  // Listen for language changes
+  useEffect(() => {
+    const checkLanguage = () => {
+      const htmlDir = document.documentElement.getAttribute('dir');
+      const htmlLang = document.documentElement.getAttribute('lang');
+      if (htmlDir === 'rtl' || htmlLang === 'ar') {
+        setLanguage('ar');
+      } else {
+        setLanguage('en');
+      }
+    };
+
+    checkLanguage();
+
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'dir' || mutation.attributeName === 'lang') {
+          checkLanguage();
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, { attributes: true });
+
+    const handleLanguageChange = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail?.language) {
+        setLanguage(customEvent.detail.language);
+      } else {
+        checkLanguage();
+      }
+    };
+
+    window.addEventListener('languageChange', handleLanguageChange);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('languageChange', handleLanguageChange);
+    };
+  }, []);
 
   // System theme detection
   useEffect(() => {
@@ -72,27 +184,38 @@ export default function PublicBlogsPage() {
 
   useEffect(() => {
     filterAndSortBlogs();
-  }, [searchTerm, selectedCategory, sortBy, blogs]);
+  }, [searchTerm, selectedCategory, sortBy, blogs, language]);
 
   const fetchBlogs = async () => {
     try {
+      console.log('🟡 Fetching blogs from API...');
       const response = await fetch('/api/blog/posts?status=published');
       const data = await response.json();
+      
+      // 🔥 PRINT FULL API RESPONSE IN CONSOLE
+      console.log('📦 API RESPONSE:', JSON.stringify(data, null, 2));
+      
       if (data.success) {
         const publishedBlogs = data.data.filter((b: any) => b.status === 'published');
-        setBlogs(publishedBlogs);
         
-        // Extract unique categories
-        const categorySet = new Set<string>();
-        categorySet.add('All');
-        publishedBlogs.forEach((b: any) => {
-          categorySet.add(b.category || 'Uncategorized');
+        // 🔥 PRINT EACH BLOG'S TITLE AND ARABIC TITLE
+        console.log('📝 BLOGS DATA:');
+        publishedBlogs.forEach((blog: any, index: number) => {
+          console.log(`  Blog ${index + 1}:`);
+          console.log(`    - ID: ${blog.id}`);
+          console.log(`    - title: ${blog.title}`);
+          console.log(`    - titleAr: ${blog.titleAr || '❌ MISSING'}`);
+          console.log(`    - excerpt: ${blog.excerpt?.substring(0, 50)}...`);
+          console.log(`    - excerptAr: ${blog.excerptAr || '❌ MISSING'}`);
+          console.log(`    - category: ${blog.category}`);
         });
-        const uniqueCategories = Array.from(categorySet);
-        setCategories(uniqueCategories);
+        
+        setBlogs(publishedBlogs);
+      } else {
+        console.error('❌ API returned success: false', data);
       }
     } catch (error) {
-      console.error('Error fetching blogs:', error);
+      console.error('❌ Error fetching blogs:', error);
     } finally {
       setLoading(false);
     }
@@ -102,10 +225,12 @@ export default function PublicBlogsPage() {
     let filtered = [...blogs];
     
     if (searchTerm) {
-      filtered = filtered.filter(blog => 
-        blog.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (blog.excerpt && blog.excerpt.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
+      filtered = filtered.filter(blog => {
+        const titleToSearch = isRTL ? (blog.titleAr || blog.title) : blog.title;
+        const excerptToSearch = isRTL ? (blog.excerptAr || blog.excerpt) : blog.excerpt;
+        return titleToSearch.toLowerCase().includes(searchTerm.toLowerCase()) ||
+               excerptToSearch.toLowerCase().includes(searchTerm.toLowerCase());
+      });
     }
     
     if (selectedCategory !== 'All') {
@@ -123,7 +248,31 @@ export default function PublicBlogsPage() {
     setFilteredBlogs(filtered);
   };
 
-  // Theme-based class names for overall page
+  const currentContent = content[language];
+
+  // Get blog title with proper fallback
+  const getBlogTitle = (blog: Blog) => {
+    if (isRTL) {
+      if (blog.titleAr && blog.titleAr.trim() !== '') {
+        return blog.titleAr;
+      }
+      console.log(`⚠️ Missing Arabic title for blog ID ${blog.id}: "${blog.title}"`);
+      return blog.title;
+    }
+    return blog.title;
+  };
+
+  const getBlogExcerpt = (blog: Blog) => {
+    if (isRTL) {
+      if (blog.excerptAr && blog.excerptAr.trim() !== '') {
+        return blog.excerptAr;
+      }
+      return blog.excerpt;
+    }
+    return blog.excerpt;
+  };
+
+  // Theme-based class names
   const isDark = theme === 'dark';
   const bgColor = isDark ? 'bg-[#020617]' : 'bg-gray-50';
   const textColor = isDark ? 'text-[#F8FAFC]' : 'text-gray-900';
@@ -155,7 +304,7 @@ export default function PublicBlogsPage() {
   }
 
   return (
-    <div className={`min-h-screen ${bgColor}`}>
+    <div className={`min-h-screen ${bgColor}`} dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Hero Section */}
       <div 
         className="relative h-[300px] mt-[1rem] md:h-[450px] bg-cover bg-center bg-fixed flex items-center overflow-hidden"
@@ -171,97 +320,99 @@ export default function PublicBlogsPage() {
 
         <div className="relative z-10 w-full text-center px-4 animate-fade-in-up">
           <div className="animate-slide-down">
-            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4 ${badgeBg} backdrop-blur-sm border ${cardBorder} animate-scale-in`}>
+            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4 ${badgeBg} backdrop-blur-sm border ${cardBorder} animate-scale-in ${isRTL ? 'flex-row-reverse' : ''}`}>
               <Sparkles className="w-4 h-4 text-[#6366F1]" />
               <span className="text-xs lg:text-sm font-medium font-sans tracking-wide bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent italic">
-                Our Blog
+                {currentContent.badge}
               </span>
             </div>
             
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold font-serif tracking-tight text-[#F8FAFC] mb-4 animate-slide-in-left">
-              Insights &{' '}
-              <span className="bg-gradient-to-r from-[#6366F1] via-[#8B5CF6] to-[#A855F7] bg-clip-text text-transparent">
-                Stories
-              </span>
+              {isRTL ? (
+                <>
+                  <span className="bg-gradient-to-r from-[#6366F1] via-[#8B5CF6] to-[#A855F7] bg-clip-text text-transparent">
+                    {currentContent.headingHighlight}
+                  </span>
+                  {' '}{currentContent.heading}
+                </>
+              ) : (
+                <>
+                  {currentContent.heading}{' '}
+                  <span className="bg-gradient-to-r from-[#6366F1] via-[#8B5CF6] to-[#A855F7] bg-clip-text text-transparent">
+                    {currentContent.headingHighlight}
+                  </span>
+                </>
+              )}
             </h1>
             
-            <p className={`text-sm sm:text-base ${isDark ? 'text-[#E2E8F0]' : 'text-gray-700'} max-w-2xl mx-auto font-light tracking-wide leading-relaxed ${badgeBg} backdrop-blur-sm px-6 py-3 rounded-xl animate-slide-in-right`}>
-              Discover expert insights, industry trends, and innovative ideas from our team of creative minds.
+            <p className={`text-sm sm:text-base ${isDark ? 'text-[#E2E8F0]' : 'text-gray-700'} max-w-2xl mx-auto font-light tracking-wide leading-relaxed ${badgeBg} backdrop-blur-sm px-6 py-3 rounded-xl animate-slide-in-right ${isRTL ? 'text-right' : ''}`}>
+              {currentContent.description}
             </p>
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className={`flex flex-col lg:flex-row gap-8 ${isRTL ? 'lg:flex-row-reverse' : ''}`}>
           {/* Left Sidebar - Filters */}
           <div className="lg:w-80 flex-shrink-0">
             <div className="sticky top-24 space-y-6">
               {/* Search Box */}
               <div className={`${cardBg} backdrop-blur-sm border ${cardBorder} rounded-xl p-5 ${hoverBorder} transition-all duration-300`}>
-                <h3 className={`text-sm lg:text-base font-semibold font-sans tracking-wide ${textColor} mb-3 flex items-center gap-2`}>
+                <h3 className={`text-sm lg:text-base font-semibold font-sans tracking-wide ${textColor} mb-3 flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                   <Search size={18} className="text-[#6366F1]" />
-                  Search Articles
+                  {currentContent.searchArticles}
                 </h3>
                 <input
                   type="text"
-                  placeholder="Search..."
+                  placeholder={currentContent.searchPlaceholder}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className={`w-full px-4 py-2 ${inputBg} border ${inputBorder} rounded-lg ${isDark ? 'text-[#E2E8F0]' : 'text-gray-900'} ${placeholderColor} focus:ring-2 focus:ring-[#6366F1] focus:border-transparent transition-all text-sm font-sans tracking-wide`}
+                  className={`w-full px-4 py-2 ${inputBg} border ${inputBorder} rounded-lg ${isDark ? 'text-[#E2E8F0]' : 'text-gray-900'} ${placeholderColor} focus:ring-2 focus:ring-[#6366F1] focus:border-transparent transition-all text-sm font-sans tracking-wide ${isRTL ? 'text-right' : ''}`}
                 />
               </div>
 
-              {/* Categories Filter */}
+              {/* Categories Filter - HARDCODED */}
               <div className={`${cardBg} backdrop-blur-sm border ${cardBorder} rounded-xl p-5 ${hoverBorder} transition-all duration-300`}>
-                <h3 className={`text-sm lg:text-base font-semibold font-sans tracking-wide ${textColor} mb-3 flex items-center gap-2`}>
+                <h3 className={`text-sm lg:text-base font-semibold font-sans tracking-wide ${textColor} mb-3 flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                   <Tag size={18} className="text-[#8B5CF6]" />
-                  Categories
+                  {currentContent.categories}
                 </h3>
                 <div className="space-y-2">
-                  {categories.map((category) => (
+                  {displayCategories.map((category) => (
                     <button
-                      key={category}
-                      onClick={() => setSelectedCategory(category)}
-                      className={`w-full text-left px-3 py-2 rounded-lg transition-all duration-300 cursor-pointer text-sm font-sans tracking-wide ${
-                        selectedCategory === category
+                      key={category.value}
+                      onClick={() => setSelectedCategory(category.value)}
+                      className={`w-full text-left px-3 py-2 rounded-lg transition-all duration-300 cursor-pointer text-sm font-sans tracking-wide ${isRTL ? 'text-right' : ''} ${
+                        selectedCategory === category.value
                           ? 'bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white'
                           : `${subTextColor} hover:${textColor} ${isDark ? 'hover:bg-[#6366F1]/10' : 'hover:bg-indigo-50'}`
                       }`}
                     >
-                      {category}
-                      {category !== 'All' && (
-                        <span className="float-right text-xs opacity-75">
-                          {blogs.filter(b => (b.category || 'Uncategorized') === category).length}
-                        </span>
-                      )}
+                      {category.label}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Sort By */}
+              {/* Sort By - HARDCODED */}
               <div className={`${cardBg} backdrop-blur-sm border ${cardBorder} rounded-xl p-5 ${hoverBorder} transition-all duration-300`}>
-                <h3 className={`text-sm lg:text-base font-semibold font-sans tracking-wide ${textColor} mb-3 flex items-center gap-2`}>
+                <h3 className={`text-sm lg:text-base font-semibold font-sans tracking-wide ${textColor} mb-3 flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                   <Filter size={18} className="text-[#A855F7]" />
-                  Sort By
+                  {currentContent.sortBy}
                 </h3>
                 <div className="space-y-2">
-                  {[
-                    { value: 'latest', label: 'Latest First' },
-                    { value: 'oldest', label: 'Oldest First' },
-                    { value: 'popular', label: 'Most Popular' }
-                  ].map((option) => (
+                  {sortOptions.map((option) => (
                     <button
                       key={option.value}
                       onClick={() => setSortBy(option.value)}
-                      className={`w-full text-left px-3 py-2 rounded-lg transition-all duration-300 cursor-pointer text-sm font-sans tracking-wide ${
+                      className={`w-full text-left px-3 py-2 rounded-lg transition-all duration-300 cursor-pointer text-sm font-sans tracking-wide ${isRTL ? 'text-right' : ''} ${
                         sortBy === option.value
                           ? 'bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white'
                           : `${subTextColor} hover:${textColor} ${isDark ? 'hover:bg-[#6366F1]/10' : 'hover:bg-indigo-50'}`
                       }`}
                     >
-                      {option.label}
+                      {isRTL ? option.labelAr : option.labelEn}
                     </button>
                   ))}
                 </div>
@@ -269,19 +420,19 @@ export default function PublicBlogsPage() {
 
               {/* Results Count */}
               <div className="bg-gradient-to-r from-[#6366F1]/10 to-[#8B5CF6]/10 backdrop-blur-sm rounded-xl p-4 border border-[#6366F1]/30">
-                <p className={`text-xs sm:text-sm ${subTextColor} text-center font-sans tracking-wide`}>
-                  Found <span className="font-bold text-[#6366F1]">{filteredBlogs.length}</span> articles
+                <p className={`text-xs sm:text-sm ${subTextColor} text-center font-sans tracking-wide ${isRTL ? 'rtl' : ''}`}>
+                  {currentContent.found} <span className="font-bold text-[#6366F1]">{filteredBlogs.length}</span> {currentContent.articles}
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Right side - Blog Grid with Individual Blog Themes */}
+          {/* Right side - Blog Grid */}
           <div className="flex-1">
             {filteredBlogs.length === 0 ? (
               <div className={`text-center py-20 ${cardBg} backdrop-blur-sm border ${cardBorder} rounded-xl`}>
-                <p className={`${subTextColor} text-lg font-sans tracking-wide`}>No articles found</p>
-                <p className={`${isDark ? 'text-[#64748B]' : 'text-gray-400'} text-sm mt-2`}>Try adjusting your search or filter</p>
+                <p className={`${subTextColor} text-lg font-sans tracking-wide ${isRTL ? 'text-right' : ''}`}>{currentContent.noArticles}</p>
+                <p className={`${isDark ? 'text-[#64748B]' : 'text-gray-400'} text-sm mt-2 ${isRTL ? 'text-right' : ''}`}>{currentContent.tryAdjusting}</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -308,7 +459,7 @@ export default function PublicBlogsPage() {
                         <div className="relative h-48 overflow-hidden">
                           <img 
                             src={blog.featured_image} 
-                            alt={blog.title} 
+                            alt={getBlogTitle(blog)} 
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />
                           <div 
@@ -317,10 +468,10 @@ export default function PublicBlogsPage() {
                           />
                           {blog.category && (
                             <span 
-                              className="absolute top-3 left-3 px-2 py-1 rounded-lg text-xs text-white font-sans tracking-wide"
+                              className={`absolute top-3 ${isRTL ? 'right-3' : 'left-3'} px-2 py-1 rounded-lg text-xs text-white font-sans tracking-wide`}
                               style={{ backgroundColor: blog.theme_accent_color || '#6366F1' }}
                             >
-                              {blog.category}
+                              {getCategoryDisplay(blog.category)}
                             </span>
                           )}
                         </div>
@@ -330,33 +481,33 @@ export default function PublicBlogsPage() {
                           className="text-lg lg:text-xl font-semibold tracking-tight mb-2 line-clamp-2 group-hover:opacity-80 transition-all"
                           style={{ color: blog.theme_heading_color || '#000000' }}
                         >
-                          {blog.title}
+                          {getBlogTitle(blog)}
                         </h2>
                         <p 
                           className="text-sm line-clamp-2 mb-4"
                           style={{ color: blog.theme_text_color || '#666666' }}
                         >
-                          {blog.excerpt}
+                          {getBlogExcerpt(blog)}
                         </p>
                         <div 
-                          className="flex items-center justify-between text-sm pt-3 border-t"
+                          className={`flex items-center justify-between text-sm pt-3 border-t ${isRTL ? 'flex-row-reverse' : ''}`}
                           style={{ 
                             color: `${blog.theme_text_color}99`,
                             borderTopColor: `${blog.theme_text_color}30`
                           }}
                         >
-                          <div className="flex items-center gap-2">
+                          <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                             <Calendar size={14} />
-                            <span>{new Date(blog.created_at).toLocaleDateString()}</span>
+                            <span>{new Date(blog.created_at).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US')}</span>
                           </div>
-                          <div className="flex items-center gap-3">
+                          <div className={`flex items-center gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
                             {blog.read_time && (
-                              <div className="flex items-center gap-1">
+                              <div className={`flex items-center gap-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
                                 <Clock size={14} />
-                                <span>{blog.read_time} min</span>
+                                <span>{blog.read_time} {currentContent.min}</span>
                               </div>
                             )}
-                            <div className="flex items-center gap-1">
+                            <div className={`flex items-center gap-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
                               <Eye size={14} />
                               <span>{blog.views}</span>
                             </div>
@@ -366,11 +517,11 @@ export default function PublicBlogsPage() {
                         {/* Read More Button */}
                         <div className="mt-4">
                           <span 
-                            className="inline-flex items-center gap-2 text-sm font-medium transition-all group-hover:gap-3"
+                            className={`inline-flex items-center gap-2 text-sm font-medium transition-all group-hover:gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}
                             style={{ color: blog.theme_accent_color || '#6366F1' }}
                           >
-                            Read More
-                            <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
+                            {currentContent.readMore}
+                            <ArrowRight size={14} className={`transition-transform group-hover:translate-x-1 ${isRTL ? 'rotate-180 group-hover:-translate-x-1' : ''}`} />
                           </span>
                         </div>
                       </div>
@@ -383,82 +534,32 @@ export default function PublicBlogsPage() {
         </div>
       </div>
 
-      {/* Custom CSS for smooth animations */}
       <style jsx global>{`
         @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
         }
-        
         @keyframes slideDown {
-          from {
-            opacity: 0;
-            transform: translateY(-30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(-30px); }
+          to { opacity: 1; transform: translateY(0); }
         }
-        
         @keyframes slideInLeft {
-          from {
-            opacity: 0;
-            transform: translateX(-50px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
+          from { opacity: 0; transform: translateX(-50px); }
+          to { opacity: 1; transform: translateX(0); }
         }
-        
         @keyframes slideInRight {
-          from {
-            opacity: 0;
-            transform: translateX(50px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
+          from { opacity: 0; transform: translateX(50px); }
+          to { opacity: 1; transform: translateX(0); }
         }
-        
         @keyframes scaleIn {
-          from {
-            opacity: 0;
-            transform: scale(0.8);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
+          from { opacity: 0; transform: scale(0.8); }
+          to { opacity: 1; transform: scale(1); }
         }
-        
-        .animate-fade-in-up {
-          animation: fadeInUp 0.6s ease-out forwards;
-        }
-        
-        .animate-slide-down {
-          animation: slideDown 0.5s ease-out forwards;
-        }
-        
-        .animate-slide-in-left {
-          animation: slideInLeft 0.7s ease-out forwards;
-        }
-        
-        .animate-slide-in-right {
-          animation: slideInRight 0.7s ease-out forwards;
-        }
-        
-        .animate-scale-in {
-          animation: scaleIn 0.4s ease-out forwards;
-        }
+        .animate-fade-in-up { animation: fadeInUp 0.6s ease-out forwards; }
+        .animate-slide-down { animation: slideDown 0.5s ease-out forwards; }
+        .animate-slide-in-left { animation: slideInLeft 0.7s ease-out forwards; }
+        .animate-slide-in-right { animation: slideInRight 0.7s ease-out forwards; }
+        .animate-scale-in { animation: scaleIn 0.4s ease-out forwards; }
       `}</style>
     </div>
   );

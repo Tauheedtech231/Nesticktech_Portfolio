@@ -4,11 +4,14 @@ import { useRouter } from 'next/navigation';
 import { Calendar, Eye, ArrowLeft, Clock, User, ChevronRight } from 'lucide-react';
 import { motion, Variants } from 'framer-motion';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 interface Blog {
   id: number;
   title: string;
+  titleAr?: string;
   content: string;
+  contentAr?: string;
   featured_image: string;
   views: number;
   created_at: string;
@@ -24,6 +27,71 @@ interface Blog {
 
 export default function BlogClient({ blog }: { blog: Blog }) {
   const router = useRouter();
+  const [language, setLanguage] = useState<'en' | 'ar'>('en');
+
+  const isRTL = language === 'ar';
+
+  // Content translations
+  const content = {
+    en: {
+      backToBlogs: 'Back to Blogs',
+      views: 'views',
+      minRead: 'min read',
+      viewAllArticles: 'View All Articles',
+    },
+    ar: {
+      backToBlogs: 'العودة إلى المدونات',
+      views: 'مشاهدة',
+      minRead: 'دقيقة قراءة',
+      viewAllArticles: 'عرض جميع المقالات',
+    }
+  };
+
+  // Listen for language changes
+  useEffect(() => {
+    const checkLanguage = () => {
+      const htmlDir = document.documentElement.getAttribute('dir');
+      const htmlLang = document.documentElement.getAttribute('lang');
+      if (htmlDir === 'rtl' || htmlLang === 'ar') {
+        setLanguage('ar');
+      } else {
+        setLanguage('en');
+      }
+    };
+
+    checkLanguage();
+
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'dir' || mutation.attributeName === 'lang') {
+          checkLanguage();
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, { attributes: true });
+
+    const handleLanguageChange = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail?.language) {
+        setLanguage(customEvent.detail.language);
+      } else {
+        checkLanguage();
+      }
+    };
+
+    window.addEventListener('languageChange', handleLanguageChange);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('languageChange', handleLanguageChange);
+    };
+  }, []);
+
+  const currentContent = content[language];
+
+  const getBlogTitle = () => isRTL ? (blog.titleAr || blog.title) : blog.title;
+  const getBlogContent = () => isRTL ? (blog.contentAr || blog.content) : blog.content;
 
   const processContent = (html: string) => {
     if (!html) return '';
@@ -69,7 +137,7 @@ export default function BlogClient({ blog }: { blog: Blog }) {
     },
   };
 
-  const readTime = blog.read_time || Math.ceil(blog.content?.length / 1000) || 3;
+  const readTime = blog.read_time || Math.ceil((getBlogContent()?.length || 0) / 1000) || 3;
 
   return (
     <main 
@@ -79,6 +147,7 @@ export default function BlogClient({ blog }: { blog: Blog }) {
         color: blog.theme_text_color || '#333333',
         fontFamily: blog.theme_font_family || 'Arial, sans-serif',
       }}
+      dir={isRTL ? 'rtl' : 'ltr'}
     >
       <div 
         className="fixed inset-0 opacity-5 pointer-events-none"
@@ -90,14 +159,14 @@ export default function BlogClient({ blog }: { blog: Blog }) {
 
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
         <motion.div
-          initial={{ opacity: 0, x: -20 }}
+          initial={{ opacity: 0, x: isRTL ? 20 : -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
           className="mb-6"
         >
           <button
             onClick={() => router.back()}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg backdrop-blur-sm transition-all duration-300 cursor-pointer group border"
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg backdrop-blur-sm transition-all duration-300 cursor-pointer group border ${isRTL ? 'flex-row-reverse' : ''}`}
             style={{
               backgroundColor: `${blog.theme_bg_color}cc`,
               borderColor: `${blog.theme_text_color}33`,
@@ -112,8 +181,8 @@ export default function BlogClient({ blog }: { blog: Blog }) {
               e.currentTarget.style.color = blog.theme_text_color;
             }}
           >
-            <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-            <span className="text-sm font-medium">Back to Blogs</span>
+            <ArrowLeft size={18} className={`transition-transform ${isRTL ? 'rotate-180 group-hover:translate-x-1' : 'group-hover:-translate-x-1'}`} />
+            <span className="text-sm font-medium">{currentContent.backToBlogs}</span>
           </button>
         </motion.div>
 
@@ -131,7 +200,7 @@ export default function BlogClient({ blog }: { blog: Blog }) {
             <motion.div variants={itemVariants} className="relative h-48 md:h-80 lg:h-96 overflow-hidden">
               <img 
                 src={blog.featured_image} 
-                alt={blog.title} 
+                alt={getBlogTitle()} 
                 className="w-full h-full object-cover"
               />
               <div 
@@ -163,35 +232,35 @@ export default function BlogClient({ blog }: { blog: Blog }) {
               className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4"
               style={{ color: blog.theme_heading_color }}
             >
-              {blog.title}
+              {getBlogTitle()}
             </motion.h1>
 
             <motion.div 
               variants={itemVariants}
-              className="flex flex-wrap items-center gap-4 text-xs mb-8 pb-6"
+              className={`flex flex-wrap items-center gap-4 text-xs mb-8 pb-6 ${isRTL ? 'flex-row-reverse justify-end' : ''}`}
               style={{
                 borderBottom: `1px solid ${blog.theme_text_color}20`,
                 color: `${blog.theme_text_color}cc`,
               }}
             >
-              <div className="flex items-center gap-1.5">
+              <div className={`flex items-center gap-1.5 ${isRTL ? 'flex-row-reverse' : ''}`}>
                 <Calendar size={14} style={{ color: blog.theme_accent_color }} />
-                <span>{new Date(blog.created_at).toLocaleDateString('en-US', {
+                <span>{new Date(blog.created_at).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',
                 })}</span>
               </div>
-              <div className="flex items-center gap-1.5">
+              <div className={`flex items-center gap-1.5 ${isRTL ? 'flex-row-reverse' : ''}`}>
                 <Eye size={14} style={{ color: blog.theme_accent_color }} />
-                <span>{blog.views} views</span>
+                <span>{blog.views} {currentContent.views}</span>
               </div>
-              <div className="flex items-center gap-1.5">
+              <div className={`flex items-center gap-1.5 ${isRTL ? 'flex-row-reverse' : ''}`}>
                 <Clock size={14} style={{ color: blog.theme_accent_color }} />
-                <span>{readTime} min read</span>
+                <span>{readTime} {currentContent.minRead}</span>
               </div>
               {blog.author && (
-                <div className="flex items-center gap-1.5">
+                <div className={`flex items-center gap-1.5 ${isRTL ? 'flex-row-reverse' : ''}`}>
                   <User size={14} style={{ color: blog.theme_accent_color }} />
                   <span>{blog.author}</span>
                 </div>
@@ -201,38 +270,38 @@ export default function BlogClient({ blog }: { blog: Blog }) {
             <motion.div 
               variants={itemVariants}
               className="blog-content"
-              dangerouslySetInnerHTML={{ __html: processContent(blog.content) }}
+              dangerouslySetInnerHTML={{ __html: processContent(getBlogContent()) }}
             />
 
             <motion.div 
               variants={itemVariants}
-              className="mt-10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4"
+              className={`mt-10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4 ${isRTL ? 'sm:flex-row-reverse' : ''}`}
               style={{
                 borderTop: `1px solid ${blog.theme_text_color}20`,
               }}
             >
               <button
                 onClick={() => router.back()}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-300 cursor-pointer group"
+                className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-300 cursor-pointer group ${isRTL ? 'flex-row-reverse' : ''}`}
                 style={{
                   backgroundColor: blog.theme_accent_color,
                   color: '#ffffff',
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.opacity = '0.9';
-                  e.currentTarget.style.transform = 'translateX(-4px)';
+                  e.currentTarget.style.transform = isRTL ? 'translateX(4px)' : 'translateX(-4px)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.opacity = '1';
                   e.currentTarget.style.transform = 'translateX(0)';
                 }}
               >
-                <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-                <span>Back to Blogs</span>
+                <ArrowLeft size={16} className={`transition-transform ${isRTL ? 'rotate-180 group-hover:translate-x-1' : 'group-hover:-translate-x-1'}`} />
+                <span>{currentContent.backToBlogs}</span>
               </button>
               <Link
                 href="/blogs"
-                className="inline-flex items-center gap-2 transition-colors duration-300 cursor-pointer group text-sm"
+                className={`inline-flex items-center gap-2 transition-colors duration-300 cursor-pointer group text-sm ${isRTL ? 'flex-row-reverse' : ''}`}
                 style={{ color: blog.theme_text_color }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.color = blog.theme_accent_color;
@@ -241,8 +310,8 @@ export default function BlogClient({ blog }: { blog: Blog }) {
                   e.currentTarget.style.color = blog.theme_text_color;
                 }}
               >
-                <span>View All Articles</span>
-                <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                <span>{currentContent.viewAllArticles}</span>
+                <ChevronRight size={14} className={`transition-transform group-hover:translate-x-1 ${isRTL ? 'rotate-180 group-hover:-translate-x-1' : ''}`} />
               </Link>
             </motion.div>
           </div>
@@ -255,6 +324,52 @@ export default function BlogClient({ blog }: { blog: Blog }) {
           font-family: ${blog.theme_font_family};
           line-height: 1.7;
         }
+        
+        ${isRTL ? `
+        .blog-content {
+          direction: rtl;
+          text-align: right;
+        }
+        
+        .blog-content h2 {
+          border-left: none;
+          border-right: 4px solid ${blog.theme_accent_color};
+          padding-right: 1rem;
+          padding-left: 0;
+        }
+        
+        .blog-content blockquote {
+          border-left: none;
+          border-right: 3px solid ${blog.theme_accent_color};
+          padding-right: 1.25rem;
+          padding-left: 0;
+        }
+        
+        .custom-list li {
+          padding-right: 1.5rem;
+          padding-left: 0;
+        }
+        
+        .custom-list li::before {
+          left: auto;
+          right: 0;
+        }
+        
+        .checkbox-item {
+          padding-right: 1.75rem !important;
+          padding-left: 0 !important;
+        }
+        
+        .checkbox-input {
+          left: auto;
+          right: 0;
+        }
+        
+        .blog-content th,
+        .blog-content td {
+          text-align: right;
+        }
+        ` : ''}
         
         .blog-content h1,
         .blog-content h2,

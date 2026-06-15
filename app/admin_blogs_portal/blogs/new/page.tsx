@@ -1,15 +1,17 @@
+/* eslint-disable react/no-unescaped-entities */
 // admin_blogs_portal/blogs/new/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Save, Eye, X, Image as ImageIcon, FolderOpen, Palette } from 'lucide-react';
+import { Save, Eye, X, Image as ImageIcon, FolderOpen, Palette, Languages } from 'lucide-react';
 import Link from 'next/link';
 
 interface Category {
   id: number;
   name: string;
+  nameAr: string;
   description: string;
 }
 
@@ -18,8 +20,11 @@ export default function CreateBlogPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [formData, setFormData] = useState({
     title: '',
+    titleAr: '',
     content: '',
+    contentAr: '',
     excerpt: '',
+    excerptAr: '',
     featured_image: '',
     status: 'draft',
     category_id: '',
@@ -33,6 +38,7 @@ export default function CreateBlogPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPreview, setShowPreview] = useState(false);
+  const [previewLang, setPreviewLang] = useState<'en' | 'ar'>('en');
 
   useEffect(() => {
     fetchCategories();
@@ -100,7 +106,7 @@ export default function CreateBlogPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Create New Blog</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">Write and publish a new blog post with custom theme</p>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">Write and publish a new blog post with bilingual support (English & Arabic)</p>
         </div>
         <Link
           href="/admin_blogs_portal/blogs"
@@ -108,6 +114,16 @@ export default function CreateBlogPage() {
         >
           <X size={18} /> Cancel
         </Link>
+      </div>
+
+      {/* Bilingual Info Banner */}
+      <div className="mb-6 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+        <div className="flex items-center gap-2">
+          <Languages size={18} className="text-purple-500" />
+          <p className="text-sm text-purple-700 dark:text-purple-300">
+            Fill in both English and Arabic fields. Your blog will be displayed in the user's preferred language.
+          </p>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -119,33 +135,80 @@ export default function CreateBlogPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            {/* Title */}
+            {/* Title - English & Arabic side by side */}
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Blog Title *</label>
-              <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                required
-                placeholder="Enter blog title"
-                className="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500"
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* English Title */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    🇬🇧 Blog Title (English) *
+                  </label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleChange}
+                    required
+                    placeholder="Enter blog title in English"
+                    className="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+                {/* Arabic Title */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    🇸🇦 عنوان المدونة (عربي) *
+                  </label>
+                  <input
+                    type="text"
+                    name="titleAr"
+                    value={formData.titleAr}
+                    onChange={handleChange}
+                    required
+                    placeholder="أدخل عنوان المدونة بالعربية"
+                    className="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 text-right"
+                    dir="rtl"
+                  />
+                </div>
+              </div>
             </div>
 
-            {/* Content */}
+            {/* Content - English & Arabic side by side */}
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Content *</label>
-              <textarea
-                name="content"
-                value={formData.content}
-                onChange={handleChange}
-                required
-                rows={12}
-                placeholder="Write your blog content here..."
-                className="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 resize-none font-mono"
-              />
-              <p className="text-xs text-gray-500 mt-2">HTML tags are supported (h1, h2, p, etc.)</p>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* English Content */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    🇬🇧 Content (English) *
+                  </label>
+                  <textarea
+                    name="content"
+                    value={formData.content}
+                    onChange={handleChange}
+                    required
+                    rows={12}
+                    placeholder="Write your blog content in English... (HTML tags supported)"
+                    className="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 resize-none font-mono"
+                  />
+                  <p className="text-xs text-gray-500 mt-2">HTML tags: h1, h2, p, ul, li, etc.</p>
+                </div>
+                {/* Arabic Content */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    🇸🇦 المحتوى (عربي) *
+                  </label>
+                  <textarea
+                    name="contentAr"
+                    value={formData.contentAr}
+                    onChange={handleChange}
+                    required
+                    rows={12}
+                    placeholder="اكتب محتوى مدونتك بالعربية... (HTML tags supported)"
+                    className="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 resize-none font-mono text-right"
+                    dir="rtl"
+                  />
+                  <p className="text-xs text-gray-500 mt-2 text-right">علامات HTML مدعومة: h1, h2, p, ul, li، إلخ</p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -166,7 +229,7 @@ export default function CreateBlogPage() {
                   <option value="">Select a category</option>
                   {categories.map((category) => (
                     <option key={category.id} value={category.id}>
-                      {category.name}
+                      {category.name} / {category.nameAr}
                     </option>
                   ))}
                 </select>
@@ -204,17 +267,39 @@ export default function CreateBlogPage() {
               </div>
             </div>
 
-            {/* Excerpt */}
+            {/* Excerpt - English & Arabic */}
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Excerpt / Summary</label>
-              <textarea
-                name="excerpt"
-                value={formData.excerpt}
-                onChange={handleChange}
-                rows={3}
-                placeholder="Short summary of your blog..."
-                className="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white resize-none"
-              />
+              <div className="grid grid-cols-1 gap-4">
+                {/* English Excerpt */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    🇬🇧 Excerpt / Summary (English)
+                  </label>
+                  <textarea
+                    name="excerpt"
+                    value={formData.excerpt}
+                    onChange={handleChange}
+                    rows={3}
+                    placeholder="Short summary of your blog in English..."
+                    className="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white resize-none"
+                  />
+                </div>
+                {/* Arabic Excerpt */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    🇸🇦 الملخص / النبذة (عربي)
+                  </label>
+                  <textarea
+                    name="excerptAr"
+                    value={formData.excerptAr}
+                    onChange={handleChange}
+                    rows={3}
+                    placeholder="ملخص قصير لمدونتك بالعربية..."
+                    className="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white resize-none text-right"
+                    dir="rtl"
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Theme Customization */}
@@ -338,6 +423,8 @@ export default function CreateBlogPage() {
                     <option value="'Roboto', sans-serif">Roboto</option>
                     <option value="'Open Sans', sans-serif">Open Sans</option>
                     <option value="'Lora', serif">Lora</option>
+                    <option value="'Cairo', sans-serif">Cairo (Arabic)</option>
+                    <option value="'Tajawal', sans-serif">Tajawal (Arabic)</option>
                   </select>
                 </div>
 
@@ -395,12 +482,38 @@ export default function CreateBlogPage() {
         </div>
       </form>
 
-      {/* Preview Modal */}
+      {/* Preview Modal - With Language Selector */}
       {showPreview && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" onClick={() => setShowPreview(false)}>
           <div className="max-w-4xl w-full max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="sticky top-0 bg-gray-100 dark:bg-gray-800 p-4 border-b border-gray-300 dark:border-gray-700 flex justify-between items-center">
-              <h3 className="font-bold text-gray-900 dark:text-white">Blog Preview</h3>
+              <div className="flex items-center gap-3">
+                <h3 className="font-bold text-gray-900 dark:text-white">Blog Preview</h3>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewLang('en')}
+                    className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                      previewLang === 'en'
+                        ? 'bg-purple-500 text-white'
+                        : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                    }`}
+                  >
+                    English
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewLang('ar')}
+                    className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                      previewLang === 'ar'
+                        ? 'bg-purple-500 text-white'
+                        : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                    }`}
+                  >
+                    العربية
+                  </button>
+                </div>
+              </div>
               <button onClick={() => setShowPreview(false)} className="text-gray-500 hover:text-gray-700">
                 <X size={24} />
               </button>
@@ -409,15 +522,17 @@ export default function CreateBlogPage() {
               backgroundColor: formData.theme_bg_color,
               color: formData.theme_text_color,
               fontFamily: formData.theme_font_family
-            }}>
+            }} dir={previewLang === 'ar' ? 'rtl' : 'ltr'}>
               {formData.featured_image && (
                 <img src={formData.featured_image} alt="Featured" className="w-full h-64 object-cover rounded-lg mb-6" />
               )}
               <h1 className="text-4xl font-bold mb-4" style={{ color: formData.theme_heading_color }}>
-                {formData.title || "Your Blog Title"}
+                {previewLang === 'en' ? (formData.title || "Your Blog Title") : (formData.titleAr || "عنوان مدونتك")}
               </h1>
               <div className="prose max-w-none" dangerouslySetInnerHTML={{ 
-                __html: formData.content || "<p>Your blog content will appear here...</p>" 
+                __html: previewLang === 'en' 
+                  ? (formData.content || "<p>Your blog content will appear here...</p>")
+                  : (formData.contentAr || "<p>محتوى مدونتك سيظهر هنا...</p>")
               }} />
             </div>
           </div>

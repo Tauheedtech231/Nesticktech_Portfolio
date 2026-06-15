@@ -85,7 +85,7 @@ async function sendIndexNowPing(url: string, key: string) {
   }
 }
 
-// GET - Fetch single blog with category and theme
+// GET - Fetch single blog with Arabic fields
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -98,13 +98,16 @@ export async function GET(
       // Update view count
       await connection.execute('UPDATE blogs SET views = views + 1 WHERE id = ?', [id]);
       
-      // Fetch blog with category information and theme fields
+      // Fetch blog with category information and theme fields (INCLUDING ARABIC FIELDS)
       const [rows] = await connection.execute(
         `SELECT 
           b.id, 
           b.title, 
+          b.titleAr,
           b.content, 
+          b.contentAr,
           b.excerpt, 
+          b.excerptAr,
           b.featured_image, 
           b.status, 
           b.views, 
@@ -150,14 +153,17 @@ export async function GET(
         }
       }
       
-      // Return blog with theme fields (fallback to defaults if null)
+      // Return blog with theme fields and Arabic fields
       return NextResponse.json({ 
         success: true, 
         data: {
           id: blog.id,
           title: blog.title,
+          titleAr: blog.titleAr,
           content: blog.content,
+          contentAr: blog.contentAr,
           excerpt: blog.excerpt,
+          excerptAr: blog.excerptAr,
           featured_image: blog.featured_image,
           status: blog.status,
           views: blog.views,
@@ -182,7 +188,7 @@ export async function GET(
   }
 }
 
-// PUT - Update blog with local image upload, category, theme, and IndexNow ping
+// PUT - Update blog with Arabic fields
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -192,8 +198,11 @@ export async function PUT(
     const body = await req.json();
     const { 
       title, 
+      titleAr,
       content, 
+      contentAr,
       excerpt, 
+      excerptAr,
       featured_image, 
       status, 
       category_id,
@@ -239,13 +248,16 @@ export async function PUT(
         }
       }
       
-      // Update blog with theme fields
+      // Update blog with theme fields and Arabic fields
       await connection.execute(
         `UPDATE blogs 
          SET 
           title = ?, 
+          titleAr = ?,
           content = ?, 
+          contentAr = ?,
           excerpt = ?, 
+          excerptAr = ?,
           featured_image = ?, 
           status = ?, 
           theme_heading_color = ?,
@@ -257,8 +269,11 @@ export async function PUT(
          WHERE id = ?`,
         [
           title, 
+          titleAr || null,
           content, 
+          contentAr || null,
           excerpt || null, 
+          excerptAr || null,
           imageUrl, 
           status || 'draft',
           theme_heading_color || '#000000',
@@ -288,7 +303,6 @@ export async function PUT(
       await connection.commit();
       
       // 🔥 SEND INDEXNOW PING - ONLY IF BLOG IS PUBLISHED
-      // Check if status is 'published' (either newly published or already was published)
       const isPublished = status === 'published';
       
       if (isPublished) {
