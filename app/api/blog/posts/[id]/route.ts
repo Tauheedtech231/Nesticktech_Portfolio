@@ -57,6 +57,7 @@ async function deleteImage(imageUrl: string | null) {
     }
   } catch (error) {
     console.error('Image delete error:', error);
+    return null;
   }
 }
 
@@ -85,20 +86,27 @@ async function sendIndexNowPing(url: string, key: string) {
   }
 }
 
-// GET - Fetch single blog with Arabic fields
+// GET - Fetch single blog with Arabic fields (WITH LOGS)
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const startTime = Date.now();
+  console.log(`\n🔵 [GET] /api/blog/posts/${(await params).id} - Request received`);
+  
   try {
     const { id } = await params;
+    console.log(`📝 Fetching blog with ID: ${id}`);
+    
     const connection = await pool.getConnection();
+    console.log(`✅ Database connection acquired`);
     
     try {
       // Update view count
       await connection.execute('UPDATE blogs SET views = views + 1 WHERE id = ?', [id]);
+      console.log(`👁️ View count updated for blog ID: ${id}`);
       
-      // Fetch blog with category information and theme fields (INCLUDING ARABIC FIELDS)
+      // Fetch blog with category information and theme fields
       const [rows] = await connection.execute(
         `SELECT 
           b.id, 
@@ -131,11 +139,26 @@ export async function GET(
       );
       
       const blogs = rows as any[];
+      console.log(`📊 Query returned ${blogs.length} row(s)`);
+      
       if (blogs.length === 0) {
+        console.log(`❌ Blog not found for ID: ${id}`);
         return NextResponse.json({ success: false, error: 'Blog not found' }, { status: 404 });
       }
       
       const blog = blogs[0];
+      
+      // LOG ARABIC FIELDS STATUS
+      console.log(`\n📝 BLOG DATA FOR ID ${id}:`);
+      console.log(`   ├─ title: ${blog.title}`);
+      console.log(`   ├─ titleAr: ${blog.titleAr ? '✅ EXISTS' : '❌ NULL'} (${blog.titleAr || 'No Arabic title'})`);
+      console.log(`   ├─ content length: ${blog.content?.length || 0}`);
+      console.log(`   ├─ contentAr: ${blog.contentAr ? '✅ EXISTS' : '❌ NULL'} (${blog.contentAr?.length || 0} chars)`);
+      console.log(`   ├─ excerpt: ${blog.excerpt?.substring(0, 50)}...`);
+      console.log(`   ├─ excerptAr: ${blog.excerptAr ? '✅ EXISTS' : '❌ NULL'}`);
+      console.log(`   ├─ category_ids: ${blog.category_ids}`);
+      console.log(`   ├─ category_names: ${blog.category_names}`);
+      console.log(`   └─ status: ${blog.status}`);
       
       // Parse categories
       const categories = [];
@@ -151,48 +174,58 @@ export async function GET(
             description: descriptions[i] || ''
           });
         }
+        console.log(`📁 Categories: ${categories.map(c => c.name).join(', ')}`);
       }
       
-      // Return blog with theme fields and Arabic fields
+      const responseData = {
+        id: blog.id,
+        title: blog.title,
+        titleAr: blog.titleAr,
+        content: blog.content,
+        contentAr: blog.contentAr,
+        excerpt: blog.excerpt,
+        excerptAr: blog.excerptAr,
+        featured_image: blog.featured_image,
+        status: blog.status,
+        views: blog.views,
+        created_at: blog.created_at,
+        updated_at: blog.updated_at,
+        published_at: blog.published_at,
+        categories: categories,
+        theme_heading_color: blog.theme_heading_color || '#000000',
+        theme_font_family: blog.theme_font_family || 'Arial, sans-serif',
+        theme_bg_color: blog.theme_bg_color || '#ffffff',
+        theme_text_color: blog.theme_text_color || '#333333',
+        theme_accent_color: blog.theme_accent_color || '#8b5cf6'
+      };
+      
+      const duration = Date.now() - startTime;
+      console.log(`✅ Response prepared in ${duration}ms`);
+      console.log(`📤 Sending response with titleAr: ${responseData.titleAr ? 'PRESENT' : 'MISSING'}\n`);
+      
       return NextResponse.json({ 
         success: true, 
-        data: {
-          id: blog.id,
-          title: blog.title,
-          titleAr: blog.titleAr,
-          content: blog.content,
-          contentAr: blog.contentAr,
-          excerpt: blog.excerpt,
-          excerptAr: blog.excerptAr,
-          featured_image: blog.featured_image,
-          status: blog.status,
-          views: blog.views,
-          created_at: blog.created_at,
-          updated_at: blog.updated_at,
-          published_at: blog.published_at,
-          categories: categories,
-          // Theme fields with defaults
-          theme_heading_color: blog.theme_heading_color || '#000000',
-          theme_font_family: blog.theme_font_family || 'Arial, sans-serif',
-          theme_bg_color: blog.theme_bg_color || '#ffffff',
-          theme_text_color: blog.theme_text_color || '#333333',
-          theme_accent_color: blog.theme_accent_color || '#8b5cf6'
-        }
+        data: responseData
       });
     } finally {
       connection.release();
+      console.log(`🔌 Database connection released`);
     }
   } catch (error) {
-    console.error('GET blog error:', error);
+    const duration = Date.now() - startTime;
+    console.error(`❌ Error fetching blog after ${duration}ms:`, error);
     return NextResponse.json({ success: false, error: 'Failed to fetch blog' }, { status: 500 });
   }
 }
 
-// PUT - Update blog with Arabic fields
+// PUT - Update blog with Arabic fields (WITH LOGS)
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const startTime = Date.now();
+  console.log(`\n🟡 [PUT] /api/blog/posts/${(await params).id} - Request received`);
+  
   try {
     const { id } = await params;
     const body = await req.json();
@@ -206,7 +239,6 @@ export async function PUT(
       featured_image, 
       status, 
       category_id,
-      // Theme fields
       theme_heading_color,
       theme_font_family,
       theme_bg_color,
@@ -214,41 +246,54 @@ export async function PUT(
       theme_accent_color
     } = body;
 
+    console.log(`📝 Updating blog ID: ${id}`);
+    console.log(`   ├─ title: ${title}`);
+    console.log(`   ├─ titleAr: ${titleAr || '❌ Not provided'}`);
+    console.log(`   ├─ content length: ${content?.length || 0}`);
+    console.log(`   ├─ contentAr: ${contentAr ? '✅ Provided' : '❌ Not provided'}`);
+    console.log(`   ├─ excerpt: ${excerpt?.substring(0, 50)}...`);
+    console.log(`   ├─ excerptAr: ${excerptAr ? '✅ Provided' : '❌ Not provided'}`);
+    console.log(`   ├─ category_id: ${category_id || 'None'}`);
+    console.log(`   └─ status: ${status || 'draft'}`);
+
     if (!title || !content) {
+      console.log(`❌ Validation failed: Title or content missing`);
       return NextResponse.json({ success: false, error: 'Title and content are required' }, { status: 400 });
     }
 
     const connection = await pool.getConnection();
+    console.log(`✅ Database connection acquired`);
     
     try {
-      // Start transaction
       await connection.beginTransaction();
+      console.log(`🔓 Transaction started`);
       
-      // Get current blog to delete old image if needed and check old status
+      // Get current blog
       const [oldRows] = await connection.execute(
         'SELECT featured_image, status FROM blogs WHERE id = ?',
         [id]
       );
       const oldBlog = (oldRows as any[])[0];
+      console.log(`📖 Old blog data retrieved`);
       
       let imageUrl = null;
       
-      // Check if new image is base64 (new upload) or URL (existing)
       if (featured_image) {
         if (featured_image.startsWith('data:image')) {
-          // New image uploaded - save it
+          console.log(`🖼️ New image detected, saving...`);
           imageUrl = await saveImage(featured_image);
-          // Delete old image
           if (oldBlog?.featured_image) {
             await deleteImage(oldBlog.featured_image);
+            console.log(`🗑️ Old image deleted`);
           }
+          console.log(`✅ New image saved: ${imageUrl}`);
         } else {
-          // Existing URL - keep as is
           imageUrl = featured_image;
+          console.log(`🖼️ Using existing image: ${imageUrl}`);
         }
       }
       
-      // Update blog with theme fields and Arabic fields
+      // Update blog
       await connection.execute(
         `UPDATE blogs 
          SET 
@@ -284,27 +329,27 @@ export async function PUT(
           id
         ]
       );
+      console.log(`💾 Blog updated in database`);
       
-      // Update category relation
+      // Update category
       if (category_id !== undefined) {
-        // Delete existing category relations
         await connection.execute('DELETE FROM blog_categories WHERE blog_id = ?', [id]);
+        console.log(`🗑️ Existing categories deleted`);
         
-        // Insert new category if selected
         if (category_id) {
           await connection.execute(
             'INSERT INTO blog_categories (blog_id, category_id) VALUES (?, ?)',
             [id, category_id]
           );
+          console.log(`✅ New category ${category_id} assigned`);
         }
       }
       
-      // Commit transaction
       await connection.commit();
+      console.log(`✅ Transaction committed`);
       
-      // 🔥 SEND INDEXNOW PING - ONLY IF BLOG IS PUBLISHED
+      // IndexNow ping
       const isPublished = status === 'published';
-      
       if (isPublished) {
         const indexNowKey = process.env.INDEXNOW_KEY;
         const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://nesticktech.com/';
@@ -313,21 +358,24 @@ export async function PUT(
           const blogUrl = `${siteUrl}blogs/${id}`;
           await sendIndexNowPing(blogUrl, indexNowKey);
           await sendIndexNowPing(`${siteUrl}blogs`, indexNowKey);
-          console.log(`📡 IndexNow pinged for updated blog ID: ${id}`);
-        } else {
-          console.warn('⚠️ INDEXNOW_KEY not found in environment variables');
         }
       }
+      
+      const duration = Date.now() - startTime;
+      console.log(`✅ Blog updated successfully in ${duration}ms\n`);
       
       return NextResponse.json({ success: true, message: 'Blog updated successfully' });
     } catch (error) {
       await connection.rollback();
+      console.error(`❌ Transaction failed, rolling back:`, error);
       throw error;
     } finally {
       connection.release();
+      console.log(`🔌 Database connection released`);
     }
   } catch (error) {
-    console.error('PUT blog error:', error);
+    const duration = Date.now() - startTime;
+    console.error(`❌ PUT blog error after ${duration}ms:`, error);
     return NextResponse.json({ success: false, error: 'Failed to update blog' }, { status: 500 });
   }
 }
@@ -337,44 +385,55 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const startTime = Date.now();
+  console.log(`\n🔴 [DELETE] /api/blog/posts/${(await params).id} - Request received`);
+  
   try {
     const { id } = await params;
+    console.log(`🗑️ Deleting blog ID: ${id}`);
+    
     const connection = await pool.getConnection();
+    console.log(`✅ Database connection acquired`);
     
     try {
-      // Start transaction
       await connection.beginTransaction();
+      console.log(`🔓 Transaction started`);
       
-      // Get blog image to delete
       const [rows] = await connection.execute(
         'SELECT featured_image FROM blogs WHERE id = ?',
         [id]
       );
       const blog = (rows as any[])[0];
       
-      // Delete image file
       if (blog?.featured_image) {
         await deleteImage(blog.featured_image);
+        console.log(`🗑️ Featured image deleted`);
       }
       
-      // Delete category relations
       await connection.execute('DELETE FROM blog_categories WHERE blog_id = ?', [id]);
+      console.log(`🗑️ Category relations deleted`);
       
-      // Delete blog
       await connection.execute('DELETE FROM blogs WHERE id = ?', [id]);
+      console.log(`🗑️ Blog deleted`);
       
-      // Commit transaction
       await connection.commit();
+      console.log(`✅ Transaction committed`);
+      
+      const duration = Date.now() - startTime;
+      console.log(`✅ Blog deleted successfully in ${duration}ms\n`);
       
       return NextResponse.json({ success: true, message: 'Blog deleted successfully' });
     } catch (error) {
       await connection.rollback();
+      console.error(`❌ Transaction failed:`, error);
       throw error;
     } finally {
       connection.release();
+      console.log(`🔌 Database connection released`);
     }
   } catch (error) {
-    console.error('DELETE blog error:', error);
+    const duration = Date.now() - startTime;
+    console.error(`❌ DELETE blog error after ${duration}ms:`, error);
     return NextResponse.json({ success: false, error: 'Failed to delete blog' }, { status: 500 });
   }
 }

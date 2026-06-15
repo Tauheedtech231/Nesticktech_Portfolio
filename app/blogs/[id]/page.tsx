@@ -3,19 +3,39 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import BlogClient from './BlogClient';
 
-// Blog data fetch karne ka function
+// Blog data fetch karne ka function (with logging)
 async function getBlog(id: string) {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/blog/posts/${id}`, {
+    console.log(`🔍 Fetching blog ID: ${id}`);
+    const apiUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/blog/posts/${id}`;
+    console.log(`📡 API URL: ${apiUrl}`);
+    
+    const res = await fetch(apiUrl, {
       cache: 'no-store',
     });
+    
     const data = await res.json();
+    
+    // 🔥 PRINT FULL API RESPONSE
+    console.log('📦 API RESPONSE:', JSON.stringify(data, null, 2));
+    
     if (data.success) {
-      return data.data;
+      // Check if Arabic fields exist
+      const blog = data.data;
+      console.log('📝 BLOG DATA:');
+      console.log(`   - title: ${blog.title}`);
+      console.log(`   - titleAr: ${blog.titleAr || '❌ MISSING'}`);
+      console.log(`   - content length: ${blog.content?.length || 0}`);
+      console.log(`   - contentAr length: ${blog.contentAr?.length || 0}`);
+      console.log(`   - excerpt: ${blog.excerpt || '❌ MISSING'}`);
+      console.log(`   - excerptAr: ${blog.excerptAr || '❌ MISSING'}`);
+      
+      return blog;
     }
+    console.error('❌ API returned success: false', data);
     return null;
   } catch (error) {
-    console.error('Error fetching blog:', error);
+    console.error('❌ Error fetching blog:', error);
     return null;
   }
 }
@@ -32,22 +52,23 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     };
   }
   
-  // Read language from URL or default to English
-  const language = blog.language || 'en';
-  const isRTL = language === 'ar';
+  // Get Arabic title if available
+  const hasArabicContent = blog.titleAr && blog.titleAr.trim() !== '';
+  const arabicTitle = hasArabicContent ? `${blog.titleAr} | نستيك تك` : `${blog.title} | Nestick Tech`;
+  const englishTitle = `${blog.title} | Nestick Tech`;
   
-  // Calculate read time
-  const readTimeEn = Math.ceil(blog.content?.length / 1000) || 3;
-  const readTimeAr = blog.contentAr ? Math.ceil(blog.contentAr?.length / 1000) || 3 : readTimeEn;
+  // Calculate read times
+  const readTimeEn = Math.ceil((blog.content?.length || 0) / 1000) || 3;
+  const readTimeAr = blog.contentAr ? Math.ceil((blog.contentAr?.length || 0) / 1000) || 3 : readTimeEn;
   
-  // Get title and description based on language
-  const titleEn = `${blog.title} | Nestick Tech`;
-  const titleAr = blog.titleAr ? `${blog.titleAr} | نستيك تك` : titleEn;
+  // Descriptions
   const descriptionEn = blog.excerpt || `Read this article by Nestick Tech. ${readTimeEn} min read.`;
-  const descriptionAr = blog.excerptAr || blog.excerpt || `اقرأ هذا المقال من نستيك تك. ${readTimeAr} دقيقة قراءة.`;
+  const descriptionAr = (blog.excerptAr && blog.excerptAr.trim() !== '') 
+    ? blog.excerptAr 
+    : `اقرأ هذا المقال من نستيك تك. ${readTimeAr} دقيقة قراءة.`;
   
   return {
-    title: titleEn,
+    title: englishTitle,
     description: descriptionEn,
     keywords: `${blog.category}, web development, technology, programming, Nestick Tech`,
     authors: [{ name: blog.author || 'Nestick Tech' }],
@@ -55,9 +76,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     publisher: 'Nestick Tech',
     robots: 'index, follow',
     
-    // Open Graph Tags (Facebook, LinkedIn, WhatsApp) - English version
+    // Open Graph Tags - Use English version for OG (social media)
     openGraph: {
-      title: titleEn,
+      title: englishTitle,
       description: descriptionEn,
       url: `https://nesticktech.com/blogs/${blog.id}`,
       siteName: 'Nestick Tech',
@@ -70,7 +91,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         },
       ],
       locale: 'en_US',
-      alternateLocale: ['ar_SA'],
+      alternateLocale: hasArabicContent ? ['ar_SA'] : [],
       type: 'article',
       publishedTime: blog.created_at,
       modifiedTime: blog.updated_at,
@@ -78,10 +99,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       tags: [blog.category].filter(Boolean),
     },
     
-    // Twitter Card - English version
+    // Twitter Card
     twitter: {
       card: 'summary_large_image',
-      title: titleEn,
+      title: englishTitle,
       description: descriptionEn,
       images: [blog.featured_image || 'https://nesticktech.com/nesticklogo.jpg'],
       creator: '@nesticktech',
@@ -101,8 +122,11 @@ export default async function SingleBlogPage({ params }: { params: Promise<{ id:
   const blog = await getBlog(id);
   
   if (!blog) {
+    console.log(`❌ Blog not found for ID: ${id}`);
     notFound();
   }
+  
+  console.log(`✅ Rendering blog page for ID: ${id}, Title: ${blog.title}`);
   
   return <BlogClient blog={blog} />;
 }
