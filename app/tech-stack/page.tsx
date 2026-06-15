@@ -13,7 +13,9 @@ import {
 interface TechItem {
   id: number;
   name: string;
+  nameAr: string;
   category: string;
+  categoryAr: string;
   ring: string;
   icon: React.ReactNode;
   gradient: string;
@@ -25,8 +27,123 @@ const TechStackPage = () => {
   const [isDesktop, setIsDesktop] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [language, setLanguage] = useState<'en' | 'ar'>('en');
   
   const resizeTimeout = useRef<NodeJS.Timeout>(null);
+
+  const isRTL = language === 'ar';
+
+  // Category names with Arabic translations
+  const categories = [
+    { en: 'All', ar: 'الكل' },
+    { en: 'Frontend', ar: 'الواجهة الأمامية' },
+    { en: 'Backend', ar: 'الواجهة الخلفية' },
+    { en: 'DevOps', ar: 'ديف أوبس' },
+    { en: 'Cloud', ar: 'السحابة' },
+    { en: 'Mobile', ar: 'تطبيقات الجوال' },
+    { en: 'Database', ar: 'قواعد البيانات' },
+    { en: 'AI/ML', ar: 'الذكاء الاصطناعي' },
+    { en: 'Design', ar: 'التصميم' },
+  ];
+
+  // Tech Stack data with Arabic names
+  const techStack: TechItem[] = [
+    // Outer Ring - Frontend + Backend
+    { id:1, name:"React", nameAr:"رياكت", category:"Frontend", categoryAr:"الواجهة الأمامية", ring: "outer", icon: <Braces />, gradient:"from-[#6366F1] to-[#8B5CF6]" },
+    { id:2, name:"Next.js", nameAr:"نكست.جي إس", category:"Frontend", categoryAr:"الواجهة الأمامية", ring: "outer", icon: <Box />, gradient:"from-[#8B5CF6] to-[#6366F1]" },
+    { id:3, name:"TypeScript", nameAr:"تايپ‌اسكريبت", category:"Frontend", categoryAr:"الواجهة الأمامية", ring: "outer", icon: <Code2 />, gradient:"from-[#22C55E] to-[#86EFAC]" },
+    { id:4, name:"Vue.js", nameAr:"فيو.جي إس", category:"Frontend", categoryAr:"الواجهة الأمامية", ring: "outer", icon: <Braces />, gradient:"from-[#3B82F6] to-[#60A5FA]" },
+    { id:5, name:"Node.js", nameAr:"نود.جي إس", category:"Backend", categoryAr:"الواجهة الخلفية", ring: "outer", icon: <Server />, gradient:"from-[#F59E0B] to-[#FBBF24]" },
+    { id:6, name:"Python", nameAr:"بايثون", category:"Backend", categoryAr:"الواجهة الخلفية", ring: "outer", icon: <Cpu />, gradient:"from-[#EF4444] to-[#F87171]" },
+   
+    // Inner Ring - DevOps + Mobile + Cloud + Database
+    { id:8, name:"AWS", nameAr:"إيه دبليو إس", category:"Cloud", categoryAr:"السحابة", ring: "inner", icon: <Cloud />, gradient:"from-[#F97316] to-[#FB923C]" },
+    { id:9, name:"Docker", nameAr:"دوكر", category:"DevOps", categoryAr:"ديف أوبس", ring: "inner", icon: <Box />, gradient:"from-[#EC4899] to-[#F472B6]" },
+    { id:10, name:"Git", nameAr:"جيت", category:"DevOps", categoryAr:"ديف أوبس", ring: "inner", icon: <GitBranch />, gradient:"from-[#F97316] to-[#FB923C]" },
+    { id:11, name:"MongoDB", nameAr:"مونجو دي بي", category:"Database", categoryAr:"قواعد البيانات", ring: "inner", icon: <Database />, gradient:"from-[#3B82F6] to-[#60A5FA]" },
+    { id:12, name:"PostgreSQL", nameAr:"بوستجري إس كيو إل", category:"Database", categoryAr:"قواعد البيانات", ring: "inner", icon: <Database />, gradient:"from-[#06B6D4] to-[#0891B2]" },
+    { id:13, name:"React Native", nameAr:"رياكت نيتيف", category:"Mobile", categoryAr:"تطبيقات الجوال", ring: "inner", icon: <Smartphone />, gradient:"from-[#6366F1] to-[#8B5CF6]" },
+    { id:14, name:"Flutter", nameAr:"فلتر", category:"Mobile", categoryAr:"تطبيقات الجوال", ring: "inner", icon: <Smartphone />, gradient:"from-[#22C55E] to-[#86EFAC]" },
+    { id:15, name:"TensorFlow", nameAr:"تينسرفلو", category:"AI/ML", categoryAr:"الذكاء الاصطناعي", ring: "inner", icon: <Cpu />, gradient:"from-[#22C55E] to-[#86EFAC]" },
+    { id:16, name:"Figma", nameAr:"فيجما", category:"Design", categoryAr:"التصميم", ring: "inner", icon: <Figma />, gradient:"from-[#8B5CF6] to-[#6366F1]" },
+    
+    // Core Ring - AI & ML (Desktop only)
+    { id:17, name:"PyTorch", nameAr:"بايتورش", category:"AI/ML", categoryAr:"الذكاء الاصطناعي", ring: "core", icon: <Brain />, gradient:"from-[#EF4444] to-[#F87171]" },
+    { id:18, name:"OpenAI", nameAr:"أوبن إيه آي", category:"AI/ML", categoryAr:"الذكاء الاصطناعي", ring: "core", icon: <Sparkles />, gradient:"from-[#6366F1] to-[#8B5CF6]" },
+    { id:19, name:"Hugging Face", nameAr:"هاجينغ فيس", category:"AI/ML", categoryAr:"الذكاء الاصطناعي", ring: "core", icon: <Microscope />, gradient:"from-[#EC4899] to-[#F472B6]" },
+    { id:20, name:"LangChain", nameAr:"لانج تشين", category:"AI/ML", categoryAr:"الذكاء الاصطناعي", ring: "core", icon: <Zap />, gradient:"from-[#F59E0B] to-[#FBBF24]" },
+  ];
+
+  // Static content translations
+  const content = {
+    en: {
+      badge: 'Tech Stack',
+      heading: 'Our Technology Stack',
+      description: 'Modern technologies we use to build scalable solutions',
+      modalDesc: 'Part of our modern technology stack at Nestick Tech',
+    },
+    ar: {
+      badge: 'مجموعة التقنيات',
+      heading: 'مجموعة التقنيات لدينا',
+      description: 'التقنيات الحديثة التي نستخدمها لبناء حلول قابلة للتطوير',
+      modalDesc: 'جزء من مجموعة التقنيات الحديثة في نستيك تك',
+    }
+  };
+
+  // Ring labels translations
+  const ringLabels = {
+    en: {
+      outer: 'Frontend & Backend',
+      inner: 'DevOps, Cloud, Mobile & DB',
+      core: 'AI & ML',
+    },
+    ar: {
+      outer: 'الواجهة الأمامية والخلفية',
+      inner: 'ديف أوبس، السحابة، الجوال وقواعد البيانات',
+      core: 'الذكاء الاصطناعي',
+    }
+  };
+
+  // Listen for language changes
+  useEffect(() => {
+    const checkLanguage = () => {
+      const htmlDir = document.documentElement.getAttribute('dir');
+      const htmlLang = document.documentElement.getAttribute('lang');
+      if (htmlDir === 'rtl' || htmlLang === 'ar') {
+        setLanguage('ar');
+      } else {
+        setLanguage('en');
+      }
+    };
+
+    checkLanguage();
+
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'dir' || mutation.attributeName === 'lang') {
+          checkLanguage();
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, { attributes: true });
+
+    const handleLanguageChange = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail?.language) {
+        setLanguage(customEvent.detail.language);
+      } else {
+        checkLanguage();
+      }
+    };
+
+    window.addEventListener('languageChange', handleLanguageChange);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('languageChange', handleLanguageChange);
+    };
+  }, []);
 
   // System theme detection
   useEffect(() => {
@@ -102,36 +219,15 @@ const TechStackPage = () => {
     : 'from-gray-100/50 via-transparent to-gray-100/50';
   const iconColor = isDark ? 'text-white' : 'text-gray-900';
 
-  const techStack: TechItem[] = [
-    // Outer Ring - Frontend + Backend
-    { id:1, name:"React", category:"Frontend", ring: "outer", icon: <Braces />, gradient:"from-[#6366F1] to-[#8B5CF6]" },
-    { id:2, name:"Next.js", category:"Frontend", ring: "outer", icon: <Box />, gradient:"from-[#8B5CF6] to-[#6366F1]" },
-    { id:3, name:"TypeScript", category:"Frontend", ring: "outer", icon: <Code2 />, gradient:"from-[#22C55E] to-[#86EFAC]" },
-    { id:4, name:"Vue.js", category:"Frontend", ring: "outer", icon: <Braces />, gradient:"from-[#3B82F6] to-[#60A5FA]" },
-    { id:5, name:"Node.js", category:"Backend", ring: "outer", icon: <Server />, gradient:"from-[#F59E0B] to-[#FBBF24]" },
-    { id:6, name:"Python", category:"Backend", ring: "outer", icon: <Cpu />, gradient:"from-[#EF4444] to-[#F87171]" },
-   
-    
-    // Inner Ring - DevOps + Mobile + Cloud + Database
-    { id:8, name:"AWS", category:"Cloud", ring: "inner", icon: <Cloud />, gradient:"from-[#F97316] to-[#FB923C]" },
-    { id:9, name:"Docker", category:"DevOps", ring: "inner", icon: <Box />, gradient:"from-[#EC4899] to-[#F472B6]" },
-    { id:10, name:"Git", category:"DevOps", ring: "inner", icon: <GitBranch />, gradient:"from-[#F97316] to-[#FB923C]" },
-    { id:11, name:"MongoDB", category:"Database", ring: "inner", icon: <Database />, gradient:"from-[#3B82F6] to-[#60A5FA]" },
-    { id:12, name:"PostgreSQL", category:"Database", ring: "inner", icon: <Database />, gradient:"from-[#06B6D4] to-[#0891B2]" },
-    { id:13, name:"React Native", category:"Mobile", ring: "inner", icon: <Smartphone />, gradient:"from-[#6366F1] to-[#8B5CF6]" },
-    { id:14, name:"Flutter", category:"Mobile", ring: "inner", icon: <Smartphone />, gradient:"from-[#22C55E] to-[#86EFAC]" },
-    { id:15, name:"TensorFlow", category:"AI/ML", ring: "inner", icon: <Cpu />, gradient:"from-[#22C55E] to-[#86EFAC]" },
-    { id:16, name:"Figma", category:"Design", ring: "inner", icon: <Figma />, gradient:"from-[#8B5CF6] to-[#6366F1]" },
-    
-    // Core Ring - AI & ML (Desktop only)
-    { id:17, name:"PyTorch", category:"AI/ML", ring: "core", icon: <Brain />, gradient:"from-[#EF4444] to-[#F87171]" },
-    { id:18, name:"OpenAI", category:"AI/ML", ring: "core", icon: <Sparkles />, gradient:"from-[#6366F1] to-[#8B5CF6]" },
-    { id:19, name:"Hugging Face", category:"AI/ML", ring: "core", icon: <Microscope />, gradient:"from-[#EC4899] to-[#F472B6]" },
-    { id:20, name:"LangChain", category:"AI/ML", ring: "core", icon: <Zap />, gradient:"from-[#F59E0B] to-[#FBBF24]" },
-  ];
-
-  const categories = ['All', 'Frontend', 'Backend', 'DevOps', 'Cloud', 'Mobile', 'Database', 'AI/ML', 'Design'];
+  const currentContent = content[language];
+  const currentRingLabels = ringLabels[language];
   
+  // Get current category name based on language
+  const getCategoryName = (categoryEn: string) => {
+    const cat = categories.find(c => c.en === categoryEn);
+    return isRTL ? cat?.ar : cat?.en;
+  };
+
   const filteredTech = activeCategory === 'All' 
     ? techStack 
     : techStack.filter(t => t.category === activeCategory);
@@ -155,7 +251,7 @@ const TechStackPage = () => {
   const innerRingTech = getInnerRingTech();
   const coreRingTech = getCoreRingTech();
 
-  // Ring sizes - Properly calculated for center alignment
+  // Ring sizes
   const outerRingSize = isDesktop ? 520 : (isMobile ? 280 : 420);
   const innerRingSize = isDesktop ? 360 : (isMobile ? 200 : 280);
   const coreRingSize = isDesktop ? 200 : (isMobile ? 0 : 160);
@@ -172,7 +268,7 @@ const TechStackPage = () => {
     : outerRingSize + 40;
 
   return (
-    <section className={`relative w-full flex flex-col items-center justify-start ${bgColor} py-6 lg:py-10`} style={{ overflowX: 'clip' }}>
+    <section className={`relative w-full flex flex-col items-center justify-start ${bgColor} py-6 lg:py-10`} style={{ overflowX: 'clip' }} dir={isRTL ? 'rtl' : 'ltr'}>
       
       {/* Video Background - Only in dark mode */}
       {isDark && (
@@ -198,40 +294,44 @@ const TechStackPage = () => {
         </div>
       )}
 
-      {/* Gradient Overlay - Theme aware */}
+      {/* Gradient Overlay */}
       <div className={`absolute inset-0 bg-gradient-to-b ${overlayGradient}`} />
 
       <div className="relative z-10 w-full max-w-full px-3 sm:px-6 lg:px-8 flex flex-col items-center">
         
         {/* Header */}
-        <div className="text-center max-w-2xl px-4 mb-4 lg:mb-8 mt-4 lg:mt-10">
-          <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-3 ${badgeBg} backdrop-blur-sm border ${badgeBorder} cursor-pointer hover:border-[#6366F1] hover:bg-[#6366F1]/10 transition-all duration-300`}>
+        <div className={`text-center max-w-2xl px-4 mb-4 lg:mb-8 mt-4 lg:mt-10 ${isRTL ? 'rtl' : ''}`}>
+          <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-3 ${badgeBg} backdrop-blur-sm border ${badgeBorder} cursor-pointer hover:border-[#6366F1] hover:bg-[#6366F1]/10 transition-all duration-300 ${isRTL ? 'flex-row-reverse' : ''}`}>
             <Sparkles className="w-3.5 h-3.5 text-[#6366F1]" />
             <span className="text-xs font-medium font-sans tracking-wide text-[#6366F1] italic">
-              Tech Stack
+              {currentContent.badge}
             </span>
           </div>
           
-          <h2 className={`text-xl sm:text-2xl lg:text-3xl font-bold font-serif tracking-tight ${textColor}`}>
-            Our Technology Stack
+          <h2 className={`text-xl sm:text-2xl lg:text-3xl font-bold font-serif tracking-tight ${textColor} ${isRTL ? 'text-right' : ''}`}>
+            {currentContent.heading}
           </h2>
           
-          <p className={`mt-2 lg:mt-3 text-xs sm:text-sm lg:text-base ${subTextColor} font-light tracking-wide`}>
-            Modern technologies we use to build scalable solutions
+          <p className={`mt-2 lg:mt-3 text-xs sm:text-sm lg:text-base ${subTextColor} font-light tracking-wide ${isRTL ? 'text-right' : ''}`}>
+            {currentContent.description}
           </p>
         </div>
 
-        {/* Category Filters - Theme aware */}
+        {/* Category Filters - Bilingual */}
         <div className="flex flex-wrap justify-center gap-1.5 mb-6 lg:mb-10 px-2 max-w-full overflow-x-auto pb-2">
-          {categories.map(c => (
-            <button key={c} onClick={() => setActiveCategory(c)} 
-              className={`px-2 py-1 lg:px-3 lg:py-1.5 rounded-lg text-[10px] lg:text-xs font-medium font-sans tracking-wide transition-all duration-300 cursor-pointer backdrop-blur-sm whitespace-nowrap ${
-                activeCategory===c ? 'bg-[#6366F1] text-white shadow-lg shadow-[#6366F1]/25' 
-                : `${filterBg} border ${filterBorder} ${filterText} hover:border-[#6366F1] hover:text-[#6366F1]`
-              }`}>
-              {c}
-            </button>
-          ))}
+          {categories.map(c => {
+            const categoryLabel = isRTL ? c.ar : c.en;
+            const categoryValue = c.en;
+            return (
+              <button key={c.en} onClick={() => setActiveCategory(categoryValue)} 
+                className={`px-2 py-1 lg:px-3 lg:py-1.5 rounded-lg text-[10px] lg:text-xs font-medium font-sans tracking-wide transition-all duration-300 cursor-pointer backdrop-blur-sm whitespace-nowrap ${
+                  activeCategory === categoryValue ? 'bg-[#6366F1] text-white shadow-lg shadow-[#6366F1]/25' 
+                  : `${filterBg} border ${filterBorder} ${filterText} hover:border-[#6366F1] hover:text-[#6366F1]`
+                }`}>
+                {categoryLabel}
+              </button>
+            );
+          })}
         </div>
 
         {/* Rings Container */}
@@ -245,7 +345,7 @@ const TechStackPage = () => {
             }}
           >
           
-            {/* Outer Ring - Thicker border */}
+            {/* Outer Ring */}
             <div
               className="absolute rounded-full"
               style={{
@@ -261,7 +361,7 @@ const TechStackPage = () => {
             >
               <div className="absolute -top-5 lg:-top-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap z-10">
                 <span className={`${labelTextSize} text-[#6366F1] font-light tracking-wide ${isDark ? 'bg-black/60' : 'bg-white/60'} px-2 py-0.5 rounded-full backdrop-blur-sm border border-[#6366F1]/30`}>
-                  {isMobile ? "Frontend & Backend" : "Frontend & Backend"}
+                  {currentRingLabels.outer}
                 </span>
               </div>
 
@@ -303,7 +403,7 @@ const TechStackPage = () => {
                             </div>
                           </div>
                           <div className={`absolute -bottom-5 lg:-bottom-7 left-1/2 transform -translate-x-1/2 ${isDark ? 'bg-[#0F172A]/95' : 'bg-white/95'} backdrop-blur-sm border ${badgeBorder} px-1.5 py-0.5 rounded text-[7px] lg:text-[9px] ${textColor} whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-20`}>
-                            {tech.name}
+                            {isRTL ? tech.nameAr : tech.name}
                           </div>
                         </motion.button>
                       </div>
@@ -313,7 +413,7 @@ const TechStackPage = () => {
               </div>
             </div>
 
-            {/* Inner Ring - Thicker border */}
+            {/* Inner Ring */}
             <div
               className="absolute rounded-full"
               style={{
@@ -329,7 +429,7 @@ const TechStackPage = () => {
             >
               <div className="absolute -top-5 lg:-top-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap z-10">
                 <span className={`${labelTextSize} text-[#EC4899] font-light tracking-wide ${isDark ? 'bg-black/60' : 'bg-white/60'} px-2 py-0.5 rounded-full backdrop-blur-sm border border-[#EC4899]/30`}>
-                  {isMobile ? "DevOps & Cloud" : "DevOps, Cloud, Mobile & DB"}
+                  {currentRingLabels.inner}
                 </span>
               </div>
 
@@ -371,7 +471,7 @@ const TechStackPage = () => {
                             </div>
                           </div>
                           <div className={`absolute -bottom-5 lg:-bottom-7 left-1/2 transform -translate-x-1/2 ${isDark ? 'bg-[#0F172A]/95' : 'bg-white/95'} backdrop-blur-sm border ${badgeBorder} px-1.5 py-0.5 rounded text-[7px] lg:text-[9px] ${textColor} whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-20`}>
-                            {tech.name}
+                            {isRTL ? tech.nameAr : tech.name}
                           </div>
                         </motion.button>
                       </div>
@@ -381,7 +481,7 @@ const TechStackPage = () => {
               </div>
             </div>
 
-            {/* Core Ring - Desktop only - Thicker border */}
+            {/* Core Ring - Desktop only */}
             {!isMobile && coreRingTech.length > 0 && (
               <div
                 className="absolute rounded-full"
@@ -398,7 +498,7 @@ const TechStackPage = () => {
               >
                 <div className="absolute -top-5 lg:-top-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap z-10">
                   <span className={`${labelTextSize} text-[#22C55E] font-light tracking-wide ${isDark ? 'bg-black/60' : 'bg-white/60'} px-2 py-0.5 rounded-full backdrop-blur-sm border border-[#22C55E]/30`}>
-                    AI & ML
+                    {currentRingLabels.core}
                   </span>
                 </div>
 
@@ -440,7 +540,7 @@ const TechStackPage = () => {
                               </div>
                             </div>
                             <div className={`absolute -bottom-6 left-1/2 transform -translate-x-1/2 ${isDark ? 'bg-[#0F172A]/95' : 'bg-white/95'} backdrop-blur-sm border ${badgeBorder} px-1.5 py-0.5 rounded text-[8px] lg:text-[9px] ${textColor} whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-20`}>
-                              {tech.name}
+                              {isRTL ? tech.nameAr : tech.name}
                             </div>
                           </motion.button>
                         </div>
@@ -460,7 +560,7 @@ const TechStackPage = () => {
                 <div className={`w-full h-full rounded-full ${isDark ? 'bg-black' : 'bg-white'} flex items-center justify-center overflow-hidden`}>
                   <Image
                     src="/nesticklogo.jpg"
-                    alt="Nestick Tech Logo"
+                    alt={isRTL ? "شعار نستيك تك" : "Nestick Tech Logo"}
                     width={isMobile ? 40 : 80}
                     height={isMobile ? 40 : 80}
                     className="object-cover w-full h-full"
@@ -472,7 +572,7 @@ const TechStackPage = () => {
         </div>
       </div>
 
-      {/* Modal - Theme aware */}
+      {/* Modal - Bilingual */}
       <AnimatePresence>
         {selected && (
           <motion.div
@@ -511,9 +611,15 @@ const TechStackPage = () => {
                   </div>
                 </div>
 
-                <h3 className={`text-xl font-semibold font-sans tracking-wide ${textColor} mb-1`}>{selected.name}</h3>
-                <span className={`inline-block px-2 py-0.5 ${isDark ? 'bg-[#1E293B]' : 'bg-gray-200'} ${subTextColor} text-[10px] rounded-full mb-3 font-light tracking-wide`}>{selected.category}</span>
-                <p className={`${subTextColor} text-xs font-light tracking-wide mb-4`}>Part of our modern technology stack at Nestick Tech</p>
+                <h3 className={`text-xl font-semibold font-sans tracking-wide ${textColor} mb-1`}>
+                  {isRTL ? selected.nameAr : selected.name}
+                </h3>
+                <span className={`inline-block px-2 py-0.5 ${isDark ? 'bg-[#1E293B]' : 'bg-gray-200'} ${subTextColor} text-[10px] rounded-full mb-3 font-light tracking-wide`}>
+                  {isRTL ? selected.categoryAr : selected.category}
+                </span>
+                <p className={`${subTextColor} text-xs font-light tracking-wide mb-4 ${isRTL ? 'text-right' : ''}`}>
+                  {currentContent.modalDesc}
+                </p>
 
                 <div className="flex justify-center gap-1.5">
                   <div className="w-1.5 h-1.5 rounded-full bg-[#6366F1]" />

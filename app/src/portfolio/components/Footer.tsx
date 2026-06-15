@@ -23,7 +23,7 @@ import {
   Sparkles
 } from 'lucide-react';
 
-// Map icon names to components (Twitter removed)
+// Map icon names to components
 const iconMap: Record<string, any> = {
   Github: Github,
   Linkedin: Linkedin,
@@ -50,13 +50,6 @@ interface SocialLink {
   display_order: number;
 }
 
-interface FooterSettings {
-  ceo_name: string;
-  ceo_message: string;
-  ceo_title: string;
-  social_handle: string;
-}
-
 // Shimmer Component
 const FooterShimmer = ({ isDark }: { isDark: boolean }) => {
   return (
@@ -78,14 +71,104 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
-  const [settings, setSettings] = useState<FooterSettings>({
-    ceo_name: 'Mr. Hamza Hassan',
-    ceo_message: 'We believe in building technology that empowers businesses and transforms ideas into reality. Our mission is to deliver excellence through innovation and dedication.',
-    ceo_title: 'CEO of Nestick Tech',
-    social_handle: 'nesticktech'
-  });
   const [loading, setLoading] = useState(true);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [language, setLanguage] = useState<'en' | 'ar'>('en');
+
+  const isRTL = language === 'ar';
+
+  // HARDCODED CEO MESSAGE with Arabic translation
+  const ceoMessage = {
+    en: {
+      text: "We believe in building technology that empowers businesses and transforms ideas into reality. Our mission is to deliver excellence through innovation and dedication.",
+      name: "Mr. Hamza Hassan",
+      title: "CEO of Nestick Tech"
+    },
+    ar: {
+      text: "نؤمن ببناء التكنولوجيا التي تمكن الأعمال وتحول الأفكار إلى واقع. مهمتنا هي تقديم التميز من خلال الابتكار والتفاني.",
+      name: "السيد حمزة حسن",
+      title: "الرئيس التنفيذي لشركة نستيك تك"
+    }
+  };
+
+  // HARDCODED SERVICES with Arabic translations
+  const services = [
+    { nameEn: 'Web Development', nameAr: 'تطوير المواقع', href: '/services' },
+    { nameEn: 'Mobile App Development', nameAr: 'تطوير تطبيقات الجوال', href: '/services' },
+    { nameEn: 'AI/ML Solutions', nameAr: 'حلول الذكاء الاصطناعي', href: '/services' },
+    { nameEn: 'IT & Cybersecurity', nameAr: 'تكنولوجيا المعلومات والأمن السيبراني', href: '/services' },
+    { nameEn: 'E-commerce Solutions', nameAr: 'حلول التجارة الإلكترونية', href: '/services' },
+    { nameEn: 'Business Consulting', nameAr: 'الاستشارات التجارية', href: '/services' },
+  ];
+
+  // HARDCODED PRODUCTS with Arabic translations
+  const products = [
+    { nameEn: 'Neezamiya (Education ERP)', nameAr: 'نظام نيزامية (نظام إدارة التعليم)', href: '/products' },
+    { nameEn: 'Advance POS System', nameAr: 'نظام نقاط البيع المتقدم', href: '/products' },
+    { nameEn: 'MarX (Marketing Suite)', nameAr: 'ماركس (حزمة التسويق)', href: '/products' },
+    { nameEn: 'Build N (Construction)', nameAr: 'بناء N (إدارة المقاولات)', href: '/products' },
+  ];
+
+  // HARDCODED SECTION TITLES with Arabic translations
+  const sectionTitles = {
+    en: {
+      ourServices: 'Our Services',
+      ourProducts: 'Our Products',
+      connect: 'Connect',
+      builtBy: 'Built By Tauheed',
+      getInTouch: 'Get in Touch',
+      rights: 'All rights reserved.'
+    },
+    ar: {
+      ourServices: 'خدماتنا',
+      ourProducts: 'منتجاتنا',
+      connect: 'تواصل معنا',
+      builtBy: 'تم التطوير بواسطة Tauheed',
+      getInTouch: 'تواصل معنا',
+      rights: 'جميع الحقوق محفوظة.'
+    }
+  };
+
+  // Listen for language changes
+  useEffect(() => {
+    const checkLanguage = () => {
+      const htmlDir = document.documentElement.getAttribute('dir');
+      const htmlLang = document.documentElement.getAttribute('lang');
+      if (htmlDir === 'rtl' || htmlLang === 'ar') {
+        setLanguage('ar');
+      } else {
+        setLanguage('en');
+      }
+    };
+
+    checkLanguage();
+
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'dir' || mutation.attributeName === 'lang') {
+          checkLanguage();
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, { attributes: true });
+
+    const handleLanguageChange = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail?.language) {
+        setLanguage(customEvent.detail.language);
+      } else {
+        checkLanguage();
+      }
+    };
+
+    window.addEventListener('languageChange', handleLanguageChange);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('languageChange', handleLanguageChange);
+    };
+  }, []);
 
   // System theme detection
   useEffect(() => {
@@ -118,24 +201,6 @@ const Footer = () => {
     };
   }, []);
 
-  // Services Links (Can also be made dynamic)
-  const services = [
-    { name: 'Web Development', href: '/services' },
-    { name: 'Mobile App Development', href: '/services' },
-    { name: 'AI/ML Solutions', href: '/services' },
-    { name: 'IT & Cybersecurity', href: '/services' },
-    { name: 'E-commerce Solutions', href: '/services' },
-    { name: 'Business Consulting', href: '/services' },
-  ];
-
-  // Products Links
-  const products = [
-    { name: 'Neezamiya (Education ERP)', href: '/products' },
-    { name: 'Advance POS System', href: '/products' },
-    { name: 'MarX (Marketing Suite)', href: '/products' },
-    { name: 'Build N (Construction)', href: '/products' },
-  ];
-
   useEffect(() => {
     fetchFooterData();
   }, []);
@@ -147,7 +212,6 @@ const Footer = () => {
       if (data.success) {
         setContacts(data.contacts);
         setSocialLinks(data.social);
-        setSettings(prev => ({ ...prev, ...data.settings }));
       }
     } catch (error) {
       console.error('Error fetching footer data:', error);
@@ -205,14 +269,16 @@ const Footer = () => {
   const cardBorder = isDark ? 'border-[#1E293B]' : 'border-gray-200';
   const gradientFrom = isDark ? 'from-[#6366F1]' : 'from-indigo-500';
   const gradientTo = isDark ? 'to-[#8B5CF6]' : 'to-purple-500';
-  const logoGradient = isDark ? 'from-[#F8FAFC] to-[#94A3B8]' : 'from-gray-900 to-gray-600';
+  
+  const currentSectionTitles = sectionTitles[language];
+  const currentCeoMessage = ceoMessage[language];
   
   if (loading) {
     return <FooterShimmer isDark={isDark} />;
   }
 
   return (
-    <footer className={`relative ${bgColor} border-t ${borderColor} overflow-hidden`}>
+    <footer className={`relative ${bgColor} border-t ${borderColor} overflow-hidden`} dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className={`absolute -top-40 -right-40 w-80 h-80 ${isDark ? 'bg-[#6366F1]/5' : 'bg-indigo-100'} rounded-full blur-3xl opacity-50`} />
@@ -233,15 +299,15 @@ const Footer = () => {
           viewport={{ once: true }}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-10"
         >
-          {/* Company Info - Logo and CEO Message */}
-          <motion.div variants={itemVariants} className="lg:col-span-4">
-            {/* Logo - More rounded (full circle), centered */}
-            <Link href="/" className="inline-block group mb-4 cursor-pointer w-full flex justify-center">
+          {/* Company Info - Logo and HARDCODED CEO Message */}
+          <motion.div variants={itemVariants} className={`lg:col-span-4 ${isRTL ? 'text-right' : 'text-left'}`}>
+            {/* Logo */}
+            <Link href="/" className={`inline-block group mb-4 cursor-pointer w-full ${isRTL ? 'flex justify-end' : 'flex justify-center'}`}>
               <div className="flex items-center justify-center">
                 <div className={`relative w-32 h-32 rounded-full overflow-hidden bg-gradient-to-br ${gradientFrom} ${gradientTo} flex items-center justify-center shadow-lg transition-transform group-hover:scale-105 duration-300`}>
                   <Image
                     src="/nesticklogo.jpg"
-                    alt="Nestick Tech Logo"
+                    alt={isRTL ? "شعار نستيك تك" : "Nestick Tech Logo"}
                     width={128}
                     height={128}
                     className="object-cover"
@@ -250,67 +316,73 @@ const Footer = () => {
               </div>
             </Link>
             
-            {/* CEO Message - Dynamic */}
+            {/* HARDCODED CEO Message - No API, fully bilingual */}
             <div className={`mb-4 p-4 ${cardBg} rounded-xl border ${cardBorder}`}>
-              <p className={`${subTextColor} text-xs font-light tracking-wide italic leading-relaxed mb-2`}>
-                &quot;{settings.ceo_message}&quot;
+              <p className={`${subTextColor} text-xs font-light tracking-wide italic leading-relaxed mb-2 ${isRTL ? 'text-right' : ''}`}>
+                &quot;{currentCeoMessage.text}&quot;
               </p>
-              <p className={`${textColor} text-xs font-semibold font-sans tracking-wide mb-1`}>— {settings.ceo_name}</p>
-              <p className="text-[#6366F1] text-[10px] font-medium font-sans tracking-wide">{settings.ceo_title}</p>
+              <p className={`${textColor} text-xs font-semibold font-sans tracking-wide mb-1 ${isRTL ? 'text-right' : ''}`}>— {currentCeoMessage.name}</p>
+              <p className={`text-[#6366F1] text-[10px] font-medium font-sans tracking-wide ${isRTL ? 'text-right' : ''}`}>{currentCeoMessage.title}</p>
             </div>
           </motion.div>
 
-          {/* Services Links */}
-          <motion.div variants={itemVariants} className="lg:col-span-3">
-            <div className="flex items-center gap-2 mb-3">
+          {/* Services Links - HARDCODED with Arabic */}
+          <motion.div variants={itemVariants} className={`lg:col-span-3 ${isRTL ? 'text-right' : 'text-left'}`}>
+            <div className={`flex items-center gap-2 mb-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
               <Code className="w-4 h-4 text-[#6366F1]" />
-              <h3 className={`${textColor} font-semibold font-sans tracking-wide text-base`}>Our Services</h3>
+              <h3 className={`${textColor} font-semibold font-sans tracking-wide text-base`}>
+                {currentSectionTitles.ourServices}
+              </h3>
             </div>
-            <ul className="space-y-1.5">
+            <ul className={`space-y-1.5 ${isRTL ? 'pr-0' : ''}`}>
               {services.map((service) => (
-                <li key={service.name}>
+                <li key={service.nameEn}>
                   <Link
                     href={service.href}
-                    className={`${subTextColor} hover:text-[#6366F1] text-xs font-light tracking-wide transition-colors duration-200 inline-flex items-center gap-1 group cursor-pointer`}
+                    className={`${subTextColor} hover:text-[#6366F1] text-xs font-light tracking-wide transition-colors duration-200 inline-flex items-center gap-1 group cursor-pointer ${isRTL ? 'flex-row-reverse' : ''}`}
                   >
-                    <ArrowRight className="w-2.5 h-2.5 opacity-0 -ml-3 group-hover:opacity-100 group-hover:ml-0 transition-all duration-200" />
-                    {service.name}
+                    <ArrowRight className={`w-2.5 h-2.5 opacity-0 -ml-3 group-hover:opacity-100 group-hover:ml-0 transition-all duration-200 ${isRTL ? 'rotate-180' : ''}`} />
+                    {isRTL ? service.nameAr : service.nameEn}
                   </Link>
                 </li>
               ))}
             </ul>
           </motion.div>
 
-          {/* Products Links */}
-          <motion.div variants={itemVariants} className="lg:col-span-3">
-            <div className="flex items-center gap-2 mb-3">
+          {/* Products Links - HARDCODED with Arabic */}
+          <motion.div variants={itemVariants} className={`lg:col-span-3 ${isRTL ? 'text-right' : 'text-left'}`}>
+            <div className={`flex items-center gap-2 mb-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
               <ShoppingBag className="w-4 h-4 text-[#22C55E]" />
-              <h3 className={`${textColor} font-semibold font-sans tracking-wide text-base`}>Our Products</h3>
+              <h3 className={`${textColor} font-semibold font-sans tracking-wide text-base`}>
+                {currentSectionTitles.ourProducts}
+              </h3>
             </div>
-            <ul className="space-y-1.5">
+            <ul className={`space-y-1.5 ${isRTL ? 'pr-0' : ''}`}>
               {products.map((product) => (
-                <li key={product.name}>
+                <li key={product.nameEn}>
                   <Link
                     href={product.href}
-                    className={`${subTextColor} hover:text-[#6366F1] text-xs font-light tracking-wide transition-colors duration-200 inline-flex items-center gap-1 group cursor-pointer`}
+                    className={`${subTextColor} hover:text-[#6366F1] text-xs font-light tracking-wide transition-colors duration-200 inline-flex items-center gap-1 group cursor-pointer ${isRTL ? 'flex-row-reverse' : ''}`}
                   >
-                    <ArrowRight className="w-2.5 h-2.5 opacity-0 -ml-3 group-hover:opacity-100 group-hover:ml-0 transition-all duration-200" />
-                    {product.name}
+                    <ArrowRight className={`w-2.5 h-2.5 opacity-0 -ml-3 group-hover:opacity-100 group-hover:ml-0 transition-all duration-200 ${isRTL ? 'rotate-180' : ''}`} />
+                    {isRTL ? product.nameAr : product.nameEn}
                   </Link>
                 </li>
               ))}
             </ul>
           </motion.div>
 
-          {/* Social & Connect - With Contact Info moved here */}
-          <motion.div variants={itemVariants} className="lg:col-span-2">
-            <div className="flex items-center gap-2 mb-3">
+          {/* Social & Connect - API data with Arabic support */}
+          <motion.div variants={itemVariants} className={`lg:col-span-2 ${isRTL ? 'text-right' : 'text-left'}`}>
+            <div className={`flex items-center gap-2 mb-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
               <Sparkles className="w-4 h-4 text-[#F59E0B]" />
-              <h3 className={`${textColor} font-semibold font-sans tracking-wide text-base`}>Connect</h3>
+              <h3 className={`${textColor} font-semibold font-sans tracking-wide text-base`}>
+                {currentSectionTitles.connect}
+              </h3>
             </div>
             
-            {/* Social Links - Twitter removed */}
-            <div className="flex flex-wrap gap-2 mb-4">
+            {/* Social Links - from API */}
+            <div className={`flex flex-wrap gap-2 mb-4 ${isRTL ? 'justify-end' : ''}`}>
               {filteredSocialLinks.map((social) => {
                 const Icon = iconMap[social.icon_name] || Github;
                 return (
@@ -328,8 +400,8 @@ const Footer = () => {
               })}
             </div>
             
-            {/* Contact Info - No border line above */}
-            <div className="space-y-2">
+            {/* Contact Info - from API */}
+            {/* <div className={`space-y-2 ${isRTL ? 'text-right' : ''}`}>
               {contacts.map((contact) => {
                 const Icon = getContactIcon(contact.type);
                 return (
@@ -337,18 +409,74 @@ const Footer = () => {
                     key={contact.id}
                     href={contact.url || '#'}
                     target={contact.type === 'location' ? "_blank" : undefined}
-                    className={`${subTextColor} hover:text-[#6366F1] transition-colors duration-200 group cursor-pointer flex items-center gap-2`}
+                    className={`${subTextColor} hover:text-[#6366F1] transition-colors duration-200 group cursor-pointer flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}
                   >
                     <Icon className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
                     <span className="text-xs font-light tracking-wide">{contact.value}</span>
                   </Link>
                 );
               })}
-            </div>
+            </div> */}
+            {/* Hardcoded Contact Info */}
+<div className={`space-y-2 ${isRTL ? 'text-right' : ''}`}>
+
+  <a
+    href="mailto:nesticktech@gmail.com"
+    className={`${subTextColor} hover:text-[#6366F1] transition-colors duration-200 group cursor-pointer flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}
+  >
+    <Mail className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+    <span
+      className="text-xs font-light tracking-wide"
+      dir={isRTL ? 'rtl' : 'ltr'}
+    >
+      {isRTL
+        ? 'نستيك تك آت جيميل دوت كوم'
+        : 'nesticktech@gmail.com'}
+    </span>
+  </a>
+
+  <a
+    href="mailto:info@nesticktech.com"
+    className={`${subTextColor} hover:text-[#6366F1] transition-colors duration-200 group cursor-pointer flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}
+  >
+    <Mail className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+    <span
+      className="text-xs font-light tracking-wide"
+      dir={isRTL ? 'rtl' : 'ltr'}
+    >
+      {isRTL
+        ? 'إنفو آت نستيك تك دوت كوم'
+        : 'info@nesticktech.com'}
+    </span>
+  </a>
+
+  <div
+    className={`${subTextColor} flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}
+  >
+    <MapPin className="w-3.5 h-3.5" />
+    <span className="text-xs font-light tracking-wide">
+      {isRTL
+        ? 'جوهر تاون، لاهور، باكستان'
+        : 'Johar Town, Lahore, Pakistan'}
+    </span>
+  </div>
+
+  <div
+    className={`${subTextColor} flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}
+  >
+    <MapPin className="w-3.5 h-3.5" />
+    <span className="text-xs font-light tracking-wide">
+      {isRTL
+        ? 'منفوحة، الرياض، المملكة العربية السعودية'
+        : 'Manfuha, Riyadh, Saudi Arabia'}
+    </span>
+  </div>
+
+</div>
           </motion.div>
         </motion.div>
 
-        {/* Bottom Bar */}
+        {/* Bottom Bar - HARDCODED with Arabic */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -356,18 +484,18 @@ const Footer = () => {
           transition={{ delay: 0.2, duration: 0.3 }}
           className={`mt-10 pt-4 border-t ${borderColor}`}
         >
-          <div className="flex flex-col md:flex-row justify-between items-center gap-3">
-            <p className={`${subTextColor} text-xs font-light tracking-wide text-center md:text-left`}>
-              © {currentYear} Nestick Tech. All rights reserved.
+          <div className={`flex flex-col md:flex-row ${isRTL ? 'md:flex-row-reverse' : ''} justify-between items-center gap-3`}>
+            <p className={`${subTextColor} text-xs font-light tracking-wide text-center md:text-left ${isRTL ? 'md:text-right' : ''}`}>
+              © {currentYear} Nestick Tech. {currentSectionTitles.rights}
             </p>
-            <p className={`${subTextColor} text-xs font-light tracking-wide flex items-center gap-1`}>
-              Built By Tauheed
+            <p className={`${subTextColor} text-xs font-light tracking-wide flex items-center gap-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
+              {currentSectionTitles.builtBy}
             </p>
             <Link 
               href="/contact" 
-              className="text-[#6366F1] text-xs font-medium tracking-wide hover:underline transition-colors cursor-pointer"
+              className={`text-[#6366F1] text-xs font-medium tracking-wide hover:underline transition-colors cursor-pointer ${isRTL ? 'text-right' : ''}`}
             >
-              Get in Touch
+              {currentSectionTitles.getInTouch}
             </Link>
           </div>
         </motion.div>

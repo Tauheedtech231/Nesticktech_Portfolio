@@ -11,12 +11,14 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-// Industries data - Updated with only 3 hover features per tile
+// Industries data - Updated with Arabic translations
 const tiles = [
   {
     id: 1,
     name: "EDUCATION",
+    nameAr: "التعليم",
     desc: "LMS & e-learning solutions",
+    descAr: "حلول إدارة التعلم والتعليم الإلكتروني",
     icon: GraduationCap,
     clipPath: "polygon(0% 5%, 5% 0%, 95% 0%, 100% 5%, 100% 95%, 95% 100%, 5% 100%, 0% 95%)",
     angle: { x: -200, y: -150, rotate: -15 },
@@ -24,12 +26,19 @@ const tiles = [
       "Learning Management System",
       "Admission Automation System",
       "Parent Teacher Management System"
+    ],
+    hoverFeaturesAr: [
+      "نظام إدارة التعلم",
+      "نظام أتمتة القبول",
+      "نظام إدارة أولياء الأمور والمعلمين"
     ]
   },
   {
     id: 2,
     name: "E-COMMERCE",
+    nameAr: "التجارة الإلكترونية",
     desc: "Online stores & payments",
+    descAr: "متاجر إلكترونية ومدفوعات",
     icon: ShoppingBag,
     clipPath: "polygon(8% 0%, 92% 0%, 100% 10%, 88% 100%, 12% 100%, 0% 10%)",
     angle: { x: 0, y: -200, rotate: 10 },
@@ -37,12 +46,19 @@ const tiles = [
       "Store Creation & Management",
       "Payment Gateway Integration",
       "Inventory Management"
+    ],
+    hoverFeaturesAr: [
+      "إنشاء وإدارة المتاجر",
+      "تكامل بوابات الدفع",
+      "إدارة المخزون"
     ]
   },
   {
     id: 3,
     name: "CONSTRUCTION",
+    nameAr: "البناء والتشييد",
     desc: "Project & site management",
+    descAr: "إدارة المشاريع والمواقع",
     icon: Building2,
     clipPath: "polygon(0% 5%, 5% 0%, 95% 0%, 100% 5%, 100% 95%, 95% 100%, 5% 100%, 0% 95%)",
     angle: { x: 200, y: -150, rotate: 15 },
@@ -50,12 +66,19 @@ const tiles = [
       "BuildN Project Management",
       "Site & Resource Management",
       "Budget & Timeline Tracking"
+    ],
+    hoverFeaturesAr: [
+      "إدارة مشاريع BuildN",
+      "إدارة المواقع والموارد",
+      "تتبع الميزانية والجدول الزمني"
     ]
   },
   {
     id: 4,
     name: "ERP",
+    nameAr: "تخطيط موارد المؤسسات",
     desc: "LMS admission automation",
+    descAr: "أتمتة قبول نظام إدارة التعلم",
     icon: Rocket,
     clipPath: "polygon(0% 0%, 88% 0%, 100% 12%, 100% 100%, 12% 100%, 0% 88%)",
     angle: { x: -200, y: 150, rotate: 12 },
@@ -63,12 +86,19 @@ const tiles = [
       "Internal Management Software",
       "ERP Integration Solutions",
       "Portfolio Management"
+    ],
+    hoverFeaturesAr: [
+      "برامج الإدارة الداخلية",
+      "حلول تكامل تخطيط موارد المؤسسات",
+      "إدارة المحافظ"
     ]
   },
   {
     id: 5,
     name: "SHOPIFY",
+    nameAr: "شوبيفاي",
     desc: "WordPress",
+    descAr: "ووردبريس",
     icon: Landmark,
     clipPath: "polygon(12% 0%, 88% 0%, 100% 12%, 100% 88%, 88% 100%, 12% 100%, 0% 88%, 0% 12%)",
     angle: { x: 0, y: 200, rotate: -10 },
@@ -76,12 +106,19 @@ const tiles = [
       "Brand Building Strategy",
       "Social Media Management",
       "Digital & Google Marketing"
+    ],
+    hoverFeaturesAr: [
+      "استراتيجية بناء العلامة التجارية",
+      "إدارة وسائل التواصل الاجتماعي",
+      "التسويق الرقمي وجوجل"
     ]
   },
   {
     id: 6,
     name: "MarX",
+    nameAr: "ماركس",
     desc: "Build N",
+    descAr: "بناء N",
     icon: Heart,
     clipPath: "polygon(0% 5%, 5% 0%, 95% 0%, 100% 5%, 100% 95%, 95% 100%, 5% 100%, 0% 95%)",
     angle: { x: 200, y: 150, rotate: -12 },
@@ -89,6 +126,11 @@ const tiles = [
       "CRM System Management",
       "Lead Generation Software",
       "Client Portfolio Site"
+    ],
+    hoverFeaturesAr: [
+      "إدارة نظام CRM",
+      "برنامج توليد العملاء المحتملين",
+      "موقع محفظة العملاء"
     ]
   },
 ];
@@ -98,6 +140,65 @@ export default function Home() {
   const mobileTilesRef = useRef<(HTMLDivElement | null)[]>([]);
   const desktopTilesRef = useRef<(HTMLDivElement | null)[]>([]);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [language, setLanguage] = useState<'en' | 'ar'>('en');
+
+  // Arabic and English content
+  const content = {
+    en: {
+      heading: 'Industries',
+      headingHighlight: 'We Serve',
+      subText: 'Industries We Serve',
+    },
+    ar: {
+      heading: 'القطاعات',
+      headingHighlight: 'التي نخدمها',
+      subText: 'القطاعات التي نخدمها',
+    }
+  };
+
+  const isRTL = language === 'ar';
+  const currentContent = content[language];
+
+  // Listen for language changes
+  useEffect(() => {
+    const checkLanguage = () => {
+      const htmlDir = document.documentElement.getAttribute('dir');
+      const htmlLang = document.documentElement.getAttribute('lang');
+      if (htmlDir === 'rtl' || htmlLang === 'ar') {
+        setLanguage('ar');
+      } else {
+        setLanguage('en');
+      }
+    };
+
+    checkLanguage();
+
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'dir' || mutation.attributeName === 'lang') {
+          checkLanguage();
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, { attributes: true });
+
+    const handleLanguageChange = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail?.language) {
+        setLanguage(customEvent.detail.language);
+      } else {
+        checkLanguage();
+      }
+    };
+
+    window.addEventListener('languageChange', handleLanguageChange);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('languageChange', handleLanguageChange);
+    };
+  }, []);
 
   // SYSTEM THEME DETECTION - SELF-CONTAINED
   useEffect(() => {
@@ -130,7 +231,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    // Animate mobile tiles - reduced x-axis movement to prevent overflow
+    // Animate mobile tiles
     mobileTilesRef.current.forEach((tile, index) => {
       if (tile) {
         const tileData = tiles[index];
@@ -162,7 +263,7 @@ export default function Home() {
       }
     });
 
-    // Animate desktop tiles - contained within viewport
+    // Animate desktop tiles
     desktopTilesRef.current.forEach((tile, index) => {
       if (tile) {
         const tileData = tiles[index];
@@ -227,11 +328,17 @@ export default function Home() {
   // Mobile tiles filtered to only show EDUCATION, E-COMMERCE, CONSTRUCTION (first 3)
   const mobileTiles = tiles.slice(0, 3);
 
+  // Helper function to get current text based on language
+  const getTileName = (tile: typeof tiles[0]) => isRTL ? tile.nameAr : tile.name;
+  const getTileDesc = (tile: typeof tiles[0]) => isRTL ? tile.descAr : tile.desc;
+  const getTileFeatures = (tile: typeof tiles[0]) => isRTL ? tile.hoverFeaturesAr : tile.hoverFeatures;
+
   return (
     <div
       className={`min-h-screen ${themeClasses.section} flex flex-col items-center justify-center py-12 px-4 md:py-16 md:px-8 transition-colors duration-300`}
       style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}
       ref={sectionRef}
+      dir={isRTL ? 'rtl' : 'ltr'}
     >
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Montserrat:wght@200;300;400;500;600;700;800&display=swap');
@@ -380,6 +487,13 @@ export default function Home() {
           z-index: 2;
         }
         
+        ${isRTL ? `
+        .tile-icon {
+          left: auto;
+          right: 20px;
+        }
+        ` : ''}
+        
         .tile-icon svg {
           width: 22px;
           height: 22px;
@@ -394,6 +508,12 @@ export default function Home() {
             top: 25px;
             left: 25px;
           }
+          ${isRTL ? `
+          .tile-icon {
+            left: auto;
+            right: 25px;
+          }
+          ` : ''}
         }
         
         .tile-content-overlay {
@@ -404,7 +524,7 @@ export default function Home() {
           pointer-events: none;
         }
         
-        /* Hover Features - No bullets, left aligned, increased font size */
+        /* Hover Features */
         .tile-features {
           position: absolute;
           top: 0;
@@ -435,7 +555,7 @@ export default function Home() {
           display: flex;
           flex-direction: column;
           gap: 14px;
-          text-align: left;
+          text-align: ${isRTL ? 'right' : 'left'};
           width: auto;
         }
         
@@ -459,7 +579,7 @@ export default function Home() {
           .features-list li {
             font-size: 11px;
             white-space: normal;
-            text-align: left;
+            text-align: ${isRTL ? 'right' : 'left'};
           }
         }
         
@@ -475,7 +595,7 @@ export default function Home() {
           }
         }
         
-        /* Mobile grid - stacked layout (only 3 cards) */
+        /* Mobile grid - stacked layout */
         .mobile-stack {
           display: flex;
           flex-direction: column;
@@ -491,7 +611,7 @@ export default function Home() {
           opacity: 0;
         }
         
-        /* Desktop grid - full width control (all 6 cards) */
+        /* Desktop grid */
         .desktop-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
@@ -535,20 +655,27 @@ export default function Home() {
       `}</style>
 
       {/* Heading Section */}
-      <div className="text-center mb-10 md:mb-14">
+      <div className={`text-center mb-10 md:mb-14 ${isRTL ? 'rtl' : ''}`}>
         <h1 className={`text-3xl sm:text-4xl font-bold tracking-tight font-serif ${themeClasses.headingText}`}>
-          Industries{' '}
-          <span className="heading-gradient">
-            We Serve
-          </span>
+          {isRTL ? (
+            <>
+              <span className="heading-gradient">{currentContent.heading}</span>{' '}
+              {currentContent.headingHighlight}
+            </>
+          ) : (
+            <>
+              {currentContent.heading}{' '}
+              <span className="heading-gradient">{currentContent.headingHighlight}</span>
+            </>
+          )}
         </h1>
         <div className="w-24 h-px bg-gradient-to-r from-transparent via-[#6366F1] to-transparent mx-auto mt-6 mb-4" />
         <p className={`${themeClasses.subText} text-xs sm:text-sm tracking-[4px] sm:tracking-[6px] uppercase font-montserrat font-light transition-colors duration-300`}>
-          Industries We Serve
+          {currentContent.subText}
         </p>
       </div>
 
-      {/* Mobile Layout - Only shows EDUCATION, E-COMMERCE, CONSTRUCTION */}
+      {/* Mobile Layout - Only shows first 3 tiles */}
       <div className="md:hidden w-full industries-section">
         <div className="mobile-stack">
           {mobileTiles.map((tile, index) => {
@@ -568,11 +695,11 @@ export default function Home() {
                     <div className="tile-icon">
                       <IconComponent size={22} strokeWidth={1.3} />
                     </div>
-                    <div className="tile-name">{tile.name}</div>
-                    <div className="tile-desc">{tile.desc}</div>
+                    <div className="tile-name">{getTileName(tile)}</div>
+                    <div className="tile-desc">{getTileDesc(tile)}</div>
                     <div className="tile-features">
                       <ul className="features-list">
-                        {tile.hoverFeatures.map((feature, idx) => (
+                        {getTileFeatures(tile).map((feature, idx) => (
                           <li key={idx}>{feature}</li>
                         ))}
                       </ul>
@@ -609,11 +736,11 @@ export default function Home() {
                     <div className="tile-icon">
                       <IconComponent size={26} strokeWidth={1.3} />
                     </div>
-                    <div className="tile-name">{tile.name}</div>
-                    <div className="tile-desc">{tile.desc}</div>
+                    <div className="tile-name">{getTileName(tile)}</div>
+                    <div className="tile-desc">{getTileDesc(tile)}</div>
                     <div className="tile-features">
                       <ul className="features-list">
-                        {tile.hoverFeatures.map((feature, idx) => (
+                        {getTileFeatures(tile).map((feature, idx) => (
                           <li key={idx}>{feature}</li>
                         ))}
                       </ul>

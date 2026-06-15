@@ -10,10 +10,14 @@ import PartnerCollaboratorPage from "./PartnerSection";
 
 interface Product {
   title: string;
+  titleAr: string;
   desc: string;
+  descAr: string;
   images: string[];
   tags: string[];
+  tagsAr: string[];
   status: string;
+  statusAr: string;
   icon: React.ReactNode;
   bgColor: string;
 }
@@ -21,21 +25,27 @@ interface Product {
 const products: Product[] = [
   {
     title: "Neezamiya",
+    titleAr: "نظام نيزامية",
     desc: "Complete educational management system for schools and universities",
+    descAr: "نظام متكامل لإدارة التعليم للمدارس والجامعات",
     images: [
       "/nlogo.png",
-"https://images.unsplash.com/photo-1642132652860-603f4e3c19b7?q=80&w=1460&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "https://images.unsplash.com/photo-1642132652860-603f4e3c19b7?q=80&w=1460&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       "/d2.png",
       "/d3.png",
     ],
     tags: ["Education", "LMS", "School Management"],
+    tagsAr: ["التعليم", "نظام إدارة التعلم", "إدارة المدارس"],
     status: "Live",
+    statusAr: "مباشر",
     icon: <Building2 className="w-7 h-7 text-indigo-400" />,
     bgColor: "from-indigo-900/50 via-purple-900/40 to-blue-900/50",
   },
   {
     title: "Advance POS",
+    titleAr: "نظام نقاط البيع المتقدم",
     desc: "Smart point of sale system for retail businesses",
+    descAr: "نظام نقاط بيع ذكي لأعمال التجزئة",
     images: [
       "https://images.unsplash.com/photo-1726065235239-b20b88d43eea?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       "https://images.unsplash.com/photo-1715635845679-f44947f29383?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
@@ -43,27 +53,35 @@ const products: Product[] = [
       "https://images.unsplash.com/photo-1779278617909-f29b6064ca1f?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     ],
     tags: ["Retail", "POS", "Inventory"],
+    tagsAr: ["التجزئة", "نقاط البيع", "المخزون"],
     status: "Live",
+    statusAr: "مباشر",
     icon: <ShoppingCart className="w-7 h-7 text-indigo-400" />,
     bgColor: "from-emerald-900/50 via-teal-900/40 to-cyan-900/50",
   },
   {
     title: "MarX",
+    titleAr: "ماركس",
     desc: "Digital marketing suite for modern businesses",
+    descAr: "حزمة تسويق رقمي للأعمال الحديثة",
     images: [
       "https://images.unsplash.com/photo-1758270705290-62b6294dd044?q=80&w=1331&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       "https://images.unsplash.com/photo-1565688280018-b7893e3c9175?q=80&w=1267&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  "https://images.unsplash.com/photo-1644088379091-d574269d422f?q=80&w=1393&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "https://images.unsplash.com/photo-1644088379091-d574269d422f?q=80&w=1393&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       "https://images.unsplash.com/photo-1758520144424-2e04f4ad7f60?q=80&w=1332&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     ],
     tags: ["Marketing", "Automation", "CRM"],
+    tagsAr: ["التسويق", "الأتمتة", "إدارة علاقات العملاء"],
     status: "In Development",
+    statusAr: "قيد التطوير",
     icon: <TrendingUp className="w-7 h-7 text-indigo-400" />,
     bgColor: "from-orange-900/50 via-amber-900/40 to-yellow-900/50",
   },
   {
     title: "Build N",
+    titleAr: "بناء ",
     desc: "Construction project management software",
+    descAr: "برنامج إدارة مشاريع البناء",
     images: [
       "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=800&h=600&fit=crop",
       "https://plus.unsplash.com/premium_photo-1661376741563-56e907c3ec0c?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Y29uc3RydWN0aW9uJTIwcHJvamVjdCUyMHBsYW5uaW5nJTIwYmx1ZXByaW50JTIwbGFwdG9wfGVufDB8fDB8fHww",
@@ -71,11 +89,65 @@ const products: Product[] = [
       "https://media.istockphoto.com/id/2259531216/photo/smiling-male-industrial-worker-operating-control-room-system.webp?a=1&b=1&s=612x612&w=0&k=20&c=DGf0GRs1NqjjGqU-SWGSMUul9bTeX2vvm_yXEWP1ptc="
     ],
     tags: ["Construction", "Project"],
+    tagsAr: ["البناء", "المشاريع"],
     status: "Concept",
+    statusAr: "مفهوم",
     icon: <Store className="w-7 h-7 text-indigo-400" />,
     bgColor: "from-slate-900/50 via-gray-900/40 to-zinc-900/50",
   },
 ];
+
+// Content translations
+const content = {
+  en: {
+    productLabel: "PRODUCT",
+    imageOf: "Image",
+    of: "of",
+    productCount: "Product",
+    cinematicEntrance: "CINEMATIC ENTRANCE",
+    scrollToExplore: "Scroll to explore • Image",
+    requestDemo: "Request Demo",
+    previous: "Previous",
+    next: "Next image",
+    nextMobile: "Next",
+    modalTitle: "Request Demo -",
+    modalDesc: "Fill out the form below and our team will get back to you within 24 hours.",
+    fullName: "Full Name",
+    fullNamePlaceholder: "Enter your name",
+    emailAddress: "Email Address",
+    emailPlaceholder: "Enter your email",
+    phoneNumber: "Phone Number",
+    phonePlaceholder: "Enter your phone number",
+    message: "Message (Optional)",
+    messagePlaceholder: "Any specific requirements?",
+    submit: "Submit Request",
+    contactText: "We'll contact you shortly to schedule a personalized demo.",
+  },
+  ar: {
+    productLabel: "المنتج",
+    imageOf: "صورة",
+    of: "من",
+    productCount: "المنتج",
+    cinematicEntrance: "الدخول السينمائي",
+    scrollToExplore: "مرر لاستكشاف • صورة",
+    requestDemo: "طلب تجربة",
+    previous: "السابق",
+    next: "الصورة التالية",
+    nextMobile: "التالي",
+    modalTitle: "طلب تجربة -",
+    modalDesc: "املأ النموذج أدناه وسيتواصل معك فريقنا خلال 24 ساعة.",
+    fullName: "الاسم الكامل",
+    fullNamePlaceholder: "أدخل اسمك",
+    emailAddress: "البريد الإلكتروني",
+    emailPlaceholder: "أدخل بريدك الإلكتروني",
+    phoneNumber: "رقم الهاتف",
+    phonePlaceholder: "أدخل رقم هاتفك",
+    message: "الرسالة (اختياري)",
+    messagePlaceholder: "أي متطلبات محددة؟",
+    submit: "إرسال الطلب",
+    contactText: "سنتواصل معك قريباً لتحديد موعد لعرض توضيحي شخصي.",
+  }
+};
 
 const IMAGES_PER_PRODUCT = 4;
 const TOTAL_STEPS = products.length * IMAGES_PER_PRODUCT;
@@ -84,8 +156,8 @@ export default function CinematicShowcase() {
   const sectionRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [language, setLanguage] = useState<'en' | 'ar'>('en');
   
-  // EXISTING SCROLL LOGIC - COMPLETELY UNCHANGED
   const [activeProductIndex, setActiveProductIndex] = useState(0);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -95,6 +167,50 @@ export default function CinematicShowcase() {
   
   const isMountedRef = useRef(true);
   const rafRef = useRef<number | null>(null);
+
+  const isRTL = language === 'ar';
+  const currentContent = content[language];
+
+  // Listen for language changes
+  useEffect(() => {
+    const checkLanguage = () => {
+      const htmlDir = document.documentElement.getAttribute('dir');
+      const htmlLang = document.documentElement.getAttribute('lang');
+      if (htmlDir === 'rtl' || htmlLang === 'ar') {
+        setLanguage('ar');
+      } else {
+        setLanguage('en');
+      }
+    };
+
+    checkLanguage();
+
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'dir' || mutation.attributeName === 'lang') {
+          checkLanguage();
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, { attributes: true });
+
+    const handleLanguageChange = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail?.language) {
+        setLanguage(customEvent.detail.language);
+      } else {
+        checkLanguage();
+      }
+    };
+
+    window.addEventListener('languageChange', handleLanguageChange);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('languageChange', handleLanguageChange);
+    };
+  }, []);
 
   // System theme detection
   useEffect(() => {
@@ -141,9 +257,14 @@ export default function CinematicShowcase() {
   const inputText = isDark ? 'text-white' : 'text-gray-900';
   const placeholderColor = isDark ? 'placeholder-white/40' : 'placeholder-gray-500';
   
-  // Badge styling - BLACK background with WHITE text for both modes
   const badgeBg = 'bg-black';
   const badgeText = 'text-white/70';
+
+  // Helper function to get current text based on language
+  const getCurrentTitle = (product: Product) => isRTL ? product.titleAr : product.title;
+  const getCurrentDesc = (product: Product) => isRTL ? product.descAr : product.desc;
+  const getCurrentTags = (product: Product) => isRTL ? product.tagsAr : product.tags;
+  const getCurrentStatus = (product: Product) => isRTL ? product.statusAr : product.status;
 
   // Update background color when product changes
   useEffect(() => {
@@ -152,7 +273,7 @@ export default function CinematicShowcase() {
     }
   }, [activeProductIndex, cinematicComplete]);
 
-  // EXISTING SCROLL HANDLER - PRESERVED EXACTLY
+  // EXISTING SCROLL HANDLER - COMPLETELY UNCHANGED
   useEffect(() => {
     isMountedRef.current = true;
     
@@ -207,19 +328,15 @@ export default function CinematicShowcase() {
     
     const element = contentRef.current;
     
-    // Start position: VERY FAR above (deep off-screen top)
     element.style.transform = "translateY(-150vh)";
     element.style.transition = "none";
     element.style.opacity = "0";
     
-    // Force reflow
     element.getBoundingClientRect();
     
-    // Fade in smoothly
     element.style.transition = "opacity 0.6s cubic-bezier(0.2, 0.9, 0.4, 1.1)";
     element.style.opacity = "1";
     
-    // Apple-style cinematic spring animation sequence
     setTimeout(() => {
       element.style.transition = "transform 1.6s cubic-bezier(0.2, 0.8, 0.25, 1.05)";
       element.style.transform = "translateY(12vh)";
@@ -245,7 +362,6 @@ export default function CinematicShowcase() {
     };
   }, []);
 
-  // Navigation functions - unchanged
   const goToNextStep = () => {
     const windowHeight = window.innerHeight;
     const currentScroll = window.scrollY;
@@ -280,19 +396,20 @@ export default function CinematicShowcase() {
 
   const currentProduct = products[activeProductIndex];
   const currentImageUrl = currentProduct?.images[activeImageIndex] || currentProduct?.images[0];
+  const currentTitle = currentProduct ? getCurrentTitle(currentProduct) : '';
+  const currentDesc = currentProduct ? getCurrentDesc(currentProduct) : '';
+  const currentTags = currentProduct ? getCurrentTags(currentProduct) : [];
+  const currentStatus = currentProduct ? getCurrentStatus(currentProduct) : '';
   
   return (
     <>
-      <section ref={sectionRef} className="relative h-[1600vh] text-white">
+      <section ref={sectionRef} className="relative h-[1600vh] text-white" dir={isRTL ? 'rtl' : 'ltr'}>
         <div className="sticky top-0 h-screen overflow-hidden pt-16 md:pt-0">
           
-          {/* BACKGROUND - DURING INTRO: PURE BLACK ONLY, NOTHING ELSE */}
-          {/* AFTER INTRO: GRADIENT + BLURRED IMAGE */}
+          {/* BACKGROUND - DURING INTRO: PURE BLACK ONLY */}
           <div className="absolute inset-0 -z-10">
-            {/* Base background - theme aware */}
             <div className={`absolute inset-0 ${isDark ? 'bg-black' : 'bg-gray-100'}`} />
             
-            {/* Gradient background - only visible after cinematic completes */}
             {cinematicComplete && (
               <>
                 <div className={`absolute inset-0 bg-gradient-to-br ${currentBgColor} transition-opacity duration-1000 opacity-100`} />
@@ -301,7 +418,7 @@ export default function CinematicShowcase() {
             )}
           </div>
 
-          {/* Blurred background product image - ONLY after intro completes */}
+          {/* Blurred background product image */}
           {cinematicComplete && (
             <div className="absolute inset-0 opacity-30 pointer-events-none">
               <div className={`absolute inset-0 ${isDark ? 'bg-black/40' : 'bg-white/40'} backdrop-blur-3xl`} />
@@ -315,7 +432,7 @@ export default function CinematicShowcase() {
             </div>
           )}
 
-          {/* CINEMATIC CONTENT WRAPPER - animated as a whole */}
+          {/* CINEMATIC CONTENT WRAPPER */}
           <div 
             ref={contentRef}
             className="relative h-full will-change-transform"
@@ -328,6 +445,7 @@ export default function CinematicShowcase() {
                   {products.map((product, pIdx) => {
                     const isActiveProduct = pIdx === activeProductIndex;
                     const isPassedProduct = pIdx < activeProductIndex;
+                    const productTitle = isRTL ? product.titleAr : product.title;
                     return (
                       <div key={product.title} className="flex items-center">
                         <div className="flex flex-col items-center">
@@ -350,7 +468,7 @@ export default function CinematicShowcase() {
                             <span className={`hidden md:block ml-2 text-xs md:text-sm font-medium whitespace-nowrap transition-all duration-300 ${
                               isActiveProduct ? 'text-indigo-400' : isPassedProduct ? 'text-white/60' : 'text-white/30'
                             }`}>
-                              {product.title}
+                              {productTitle}
                             </span>
                           </div>
                         </div>
@@ -366,26 +484,29 @@ export default function CinematicShowcase() {
                   })}
                 </div>
                 
-                {/* Badge - BLACK background with WHITE text */}
                 <div className={`mt-6 text-xs ${badgeText} ${badgeBg} px-3 py-1 rounded-full backdrop-blur-sm border ${isDark ? 'border-white/10' : 'border-white/20'}`}>
                   {!cinematicComplete ? (
                     <span className="inline-flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-white/60 animate-pulse" />
-                      CINEMATIC ENTRANCE
+                      {currentContent.cinematicEntrance}
                     </span>
                   ) : (
-                    `Image ${activeImageIndex + 1} / ${IMAGES_PER_PRODUCT} • Product ${activeProductIndex + 1} / ${products.length}`
+                    `${currentContent.imageOf} ${activeImageIndex + 1} / ${IMAGES_PER_PRODUCT} • ${currentContent.productCount} ${activeProductIndex + 1} / ${products.length}`
                   )}
                 </div>
               </div>
             </div>
 
-            {/* DESKTOP UI */}
+            {/* DESKTOP UI - Only text changed, no layout or functionality change */}
             <div className="hidden md:block relative h-full">
               <div className="relative h-full flex items-start justify-center pt-24 md:pt-32">
                 {products.map((product, pIdx) => {
                   const isActive = pIdx === activeProductIndex;
                   const offset = pIdx - activeProductIndex;
+                  const productTitle = isRTL ? product.titleAr : product.title;
+                  const productDesc = isRTL ? product.descAr : product.desc;
+                  const productTags = isRTL ? product.tagsAr : product.tags;
+                  const productStatus = isRTL ? product.statusAr : product.status;
                   
                   return (
                     <div
@@ -398,29 +519,29 @@ export default function CinematicShowcase() {
                         pointerEvents: isActive ? 'auto' : 'none'
                       }}
                     >
-                      <div className="grid grid-cols-1 md:grid-cols-5 items-center gap-6">
+                      <div className={`grid grid-cols-1 md:grid-cols-5 items-center gap-6 ${isRTL ? 'text-right' : 'text-left'}`}>
                         {/* Left side description */}
-                        <div className="md:col-span-1 text-left">
+                        <div className="md:col-span-1">
                           <div className="text-sm text-indigo-400">
-                            0{pIdx + 1} — PRODUCT
+                            0{pIdx + 1} — {currentContent.productLabel}
                           </div>
-                       <div className="mt-2 inline-block px-2 py-1 text-xs rounded-full bg-black text-white border border-white/20">
-  {product.status}
-</div>
+                          <div className="mt-2 inline-block px-2 py-1 text-xs rounded-full bg-black text-white border border-white/20">
+                            {productStatus}
+                          </div>
                           <h2 className={`mt-3 text-3xl md:text-4xl font-bold transition-all duration-500 text-white ${
                             !isActive && 'blur-[2px] opacity-50'
                           }`}>
-                            {product.title}
+                            {productTitle}
                           </h2>
                           <p className={`mt-4 text-white/60 text-sm md:text-base transition-all duration-500 ${
                             !isActive && 'blur-[2px] opacity-30'
                           }`}>
-                            {product.desc}
+                            {productDesc}
                           </p>
-                          <div className={`mt-4 flex flex-wrap gap-2 transition-all duration-500 ${
+                          <div className={`mt-4 flex flex-wrap gap-2 transition-all duration-500 ${isRTL ? 'justify-end' : ''} ${
                             !isActive && 'blur-[2px] opacity-30'
                           }`}>
-                            {product.tags.map((tag, tagIdx) => (
+                            {productTags.map((tag, tagIdx) => (
                               <span key={tagIdx} className="text-xs px-2 py-1 rounded-full bg-white/10 text-white/70">
                                 {tag}
                               </span>
@@ -430,7 +551,7 @@ export default function CinematicShowcase() {
                           {isActive && cinematicComplete && (
                             <div className="text-xs text-indigo-300/70 flex items-center gap-1 mt-4">
                               <span className="inline-block w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
-                              Scroll to explore • Image {activeImageIndex + 1} of {IMAGES_PER_PRODUCT}
+                              {currentContent.scrollToExplore} {activeImageIndex + 1} {currentContent.of} {IMAGES_PER_PRODUCT}
                             </div>
                           )}
                         </div>
@@ -439,7 +560,7 @@ export default function CinematicShowcase() {
                           <div className="group mt-[1rem] relative cursor-pointer">
                             <Image
                               src={isActive ? currentImageUrl : product.images[0]}
-                              alt={`${product.title} view`}
+                              alt={`${productTitle} view`}
                               width={640}
                               height={480}
                               className={`relative h-[540px] w-[540px] md:h-[440px] md:w-[600px] rounded-2xl object-cover shadow-2xl border border-white/20 transition-all duration-500 ${
@@ -450,7 +571,7 @@ export default function CinematicShowcase() {
                           </div>
                         </div>
 
-                        <div className="md:col-span-1 flex flex-col items-end gap-4">
+                        <div className={`md:col-span-1 flex flex-col items-end gap-4 ${isRTL ? 'items-start' : 'items-end'}`}>
                           <button 
                             onClick={() => openModal(product)}
                             className={`rounded-xl px-6 py-3 font-medium transition-all duration-300 ${
@@ -460,7 +581,7 @@ export default function CinematicShowcase() {
                             }`}
                             disabled={!cinematicComplete}
                           >
-                            Request Demo
+                            {currentContent.requestDemo}
                           </button>
                           <div className="mt-2 text-sm text-white/60 text-right">
                             📞 03237594869
@@ -473,9 +594,9 @@ export default function CinematicShowcase() {
               </div>
             </div>
 
-            {/* MOBILE UI - Fixed steps indicator position */}
+            {/* MOBILE UI - Only text changed */}
             <div className="block md:hidden relative h-full">
-              {/* Mobile Steps Indicator - At the TOP, separate from content */}
+              {/* Mobile Steps Indicator */}
               <div className="absolute top-4 left-0 right-0 z-20 px-4">
                 <div className="flex flex-col items-center justify-center">
                   <div className="flex items-center gap-1 flex-wrap justify-center">
@@ -515,12 +636,11 @@ export default function CinematicShowcase() {
                     })}
                   </div>
                   
-                  {/* Mobile Badge - BLACK background with WHITE text */}
                   <div className={`mt-2 text-[10px] ${badgeText} ${badgeBg} px-2 py-0.5 rounded-full backdrop-blur-sm border ${isDark ? 'border-white/10' : 'border-white/20'}`}>
                     {!cinematicComplete ? (
                       <span className="inline-flex items-center gap-1">
                         <span className="w-1 h-1 rounded-full bg-white/60 animate-pulse" />
-                        CINEMATIC ENTRANCE
+                        {currentContent.cinematicEntrance}
                       </span>
                     ) : (
                       `${activeImageIndex + 1}/${IMAGES_PER_PRODUCT} • ${activeProductIndex + 1}/${products.length}`
@@ -529,14 +649,14 @@ export default function CinematicShowcase() {
                 </div>
               </div>
 
-              {/* Mobile Content - Centered with proper spacing */}
+              {/* Mobile Content */}
               <div className="relative h-full flex items-center justify-center px-4">
                 <div className="w-full max-w-sm">
                   <div className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20 mt-12">
                     <div className="relative w-full h-64 bg-black/30">
                       <Image
                         src={currentImageUrl}
-                        alt={currentProduct?.title || "Product"}
+                        alt={currentTitle}
                         fill
                         className="object-cover"
                       />
@@ -546,21 +666,21 @@ export default function CinematicShowcase() {
                     </div>
 
                     <div className="p-4">
-                      <div className="flex items-center justify-between mb-2">
+                      <div className={`flex items-center justify-between mb-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                         <h3 className="text-lg font-bold text-white">
-                          {currentProduct?.title}
+                          {currentTitle}
                         </h3>
                         <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300">
-                          {currentProduct?.status}
+                          {currentStatus}
                         </span>
                       </div>
                       
                       <p className="text-white/60 text-xs mb-3 line-clamp-2">
-                        {currentProduct?.desc}
+                        {currentDesc}
                       </p>
 
-                      <div className="flex flex-wrap gap-1 mb-4">
-                        {currentProduct?.tags.slice(0, 2).map((tag, idx) => (
+                      <div className={`flex flex-wrap gap-1 mb-4 ${isRTL ? 'justify-end' : ''}`}>
+                        {currentTags.slice(0, 2).map((tag, idx) => (
                           <span key={idx} className="text-[9px] px-2 py-0.5 rounded-full bg-white/10 text-white/70">
                             {tag}
                           </span>
@@ -576,28 +696,27 @@ export default function CinematicShowcase() {
                             : 'bg-indigo-600/40 text-white/60 cursor-not-allowed'
                         }`}
                       >
-                        Request Demo
+                        {currentContent.requestDemo}
                       </button>
                     </div>
                   </div>
 
-                  {/* Navigation Arrows */}
                   {cinematicComplete && (
-                    <div className="flex justify-between gap-4 mt-6">
+                    <div className={`flex justify-between gap-4 mt-6 ${isRTL ? 'flex-row-reverse' : ''}`}>
                       <button
                         onClick={goToPrevStep}
                         className="flex-1 bg-white/10 backdrop-blur-md rounded-xl py-3 flex items-center justify-center gap-2 active:scale-95 transition-all"
                       >
-                        <ChevronLeft className="w-5 h-5 text-white" />
-                        <span className="text-white text-sm font-medium">Previous</span>
+                        <ChevronLeft className={`w-5 h-5 text-white ${isRTL ? 'rotate-180' : ''}`} />
+                        <span className="text-white text-sm font-medium">{currentContent.previous}</span>
                       </button>
                       
                       <button
                         onClick={goToNextStep}
                         className="flex-1 bg-gradient-to-r from-indigo-600 to-indigo-500 rounded-xl py-3 flex items-center justify-center gap-2 active:scale-95 transition-all"
                       >
-                        <span className="text-white text-sm font-medium">Next</span>
-                        <ChevronRight className="w-5 h-5 text-white" />
+                        <span className="text-white text-sm font-medium">{currentContent.nextMobile}</span>
+                        <ChevronRight className={`w-5 h-5 text-white ${isRTL ? 'rotate-180' : ''}`} />
                       </button>
                     </div>
                   )}
@@ -609,19 +728,19 @@ export default function CinematicShowcase() {
             {cinematicComplete && (
               <button
                 onClick={goToNextStep}
-                className="fixed bottom-8 mb-[4rem] right-10 z-50 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 rounded-full px-6 py-3 transition-all duration-300 cursor-pointer group flex items-center gap-2 shadow-lg shadow-indigo-500/25 hidden md:flex"
+                className={`fixed bottom-8 mb-[4rem] ${isRTL ? 'left-10' : 'right-10'} z-50 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 rounded-full px-6 py-3 transition-all duration-300 cursor-pointer group flex items-center gap-2 shadow-lg shadow-indigo-500/25 hidden md:flex ${isRTL ? 'flex-row-reverse' : ''}`}
               >
                 <span className="text-sm text-white font-semibold">
-                  Next image
+                  {currentContent.next}
                 </span>
-                <ChevronRight className="w-4 h-4 text-white group-hover:translate-x-1 transition-transform" />
+                <ChevronRight className={`w-4 h-4 text-white group-hover:translate-x-1 transition-transform ${isRTL ? 'rotate-180 group-hover:-translate-x-1' : 'group-hover:translate-x-1'}`} />
               </button>
             )}
           </div>
         </div>
       </section>
 
-      {/* Modal - Theme aware */}
+      {/* Modal - Theme aware with Arabic */}
       <AnimatePresence>
         {isModalOpen && selectedProduct && (
           <motion.div
@@ -648,51 +767,59 @@ export default function CinematicShowcase() {
             >
               <button
                 onClick={closeModal}
-                className={`absolute top-4 right-4 ${modalSubText} hover:${modalText} transition cursor-pointer`}
+                className={`absolute top-4 ${isRTL ? 'left-4' : 'right-4'} ${modalSubText} hover:${modalText} transition cursor-pointer`}
               >
                 <X className="w-5 h-5" />
               </button>
-              <div className="text-center">
+              <div className={`text-center ${isRTL ? 'rtl' : ''}`}>
                 <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-indigo-500/20 flex items-center justify-center">
                   {selectedProduct.icon}
                 </div>
                 <h3 className={`text-2xl font-bold ${modalText} mb-2`}>
-                  Request Demo - {selectedProduct.title}
+                  {currentContent.modalTitle} {isRTL ? getCurrentTitle(selectedProduct) : selectedProduct.title}
                 </h3>
                 <p className={`${modalSubText} mb-5 text-sm`}>
-                  Fill out the form below and our team will get back to you within 24 hours.
+                  {currentContent.modalDesc}
                 </p>
-                <form className="space-y-3 text-left" onSubmit={(e) => e.preventDefault()}>
+                <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
                   <div>
-                    <label className={`block text-sm ${modalSubText} mb-1`}>Full Name</label>
+                    <label className={`block text-sm ${modalSubText} mb-1 ${isRTL ? 'text-right' : 'text-left'}`}>
+                      {currentContent.fullName}
+                    </label>
                     <input
                       type="text"
-                      placeholder="Enter your name"
-                      className={`w-full px-4 py-2.5 rounded-lg ${inputBg} border ${inputBorder} ${inputText} ${placeholderColor} focus:outline-none focus:border-indigo-400 transition`}
+                      placeholder={currentContent.fullNamePlaceholder}
+                      className={`w-full px-4 py-2.5 rounded-lg ${inputBg} border ${inputBorder} ${inputText} ${placeholderColor} focus:outline-none focus:border-indigo-400 transition ${isRTL ? 'text-right' : 'text-left'}`}
                     />
                   </div>
                   <div>
-                    <label className={`block text-sm ${modalSubText} mb-1`}>Email Address</label>
+                    <label className={`block text-sm ${modalSubText} mb-1 ${isRTL ? 'text-right' : 'text-left'}`}>
+                      {currentContent.emailAddress}
+                    </label>
                     <input
                       type="email"
-                      placeholder="Enter your email"
-                      className={`w-full px-4 py-2.5 rounded-lg ${inputBg} border ${inputBorder} ${inputText} ${placeholderColor} focus:outline-none focus:border-indigo-400 transition`}
+                      placeholder={currentContent.emailPlaceholder}
+                      className={`w-full px-4 py-2.5 rounded-lg ${inputBg} border ${inputBorder} ${inputText} ${placeholderColor} focus:outline-none focus:border-indigo-400 transition ${isRTL ? 'text-right' : 'text-left'}`}
                     />
                   </div>
                   <div>
-                    <label className={`block text-sm ${modalSubText} mb-1`}>Phone Number</label>
+                    <label className={`block text-sm ${modalSubText} mb-1 ${isRTL ? 'text-right' : 'text-left'}`}>
+                      {currentContent.phoneNumber}
+                    </label>
                     <input
                       type="tel"
-                      placeholder="Enter your phone number"
-                      className={`w-full px-4 py-2.5 rounded-lg ${inputBg} border ${inputBorder} ${inputText} ${placeholderColor} focus:outline-none focus:border-indigo-400 transition`}
+                      placeholder={currentContent.phonePlaceholder}
+                      className={`w-full px-4 py-2.5 rounded-lg ${inputBg} border ${inputBorder} ${inputText} ${placeholderColor} focus:outline-none focus:border-indigo-400 transition ${isRTL ? 'text-right' : 'text-left'}`}
                     />
                   </div>
                   <div>
-                    <label className={`block text-sm ${modalSubText} mb-1`}>Message (Optional)</label>
+                    <label className={`block text-sm ${modalSubText} mb-1 ${isRTL ? 'text-right' : 'text-left'}`}>
+                      {currentContent.message}
+                    </label>
                     <textarea
                       rows={3}
-                      placeholder="Any specific requirements?"
-                      className={`w-full px-4 py-2.5 rounded-lg ${inputBg} border ${inputBorder} ${inputText} ${placeholderColor} focus:outline-none focus:border-indigo-400 transition resize-none`}
+                      placeholder={currentContent.messagePlaceholder}
+                      className={`w-full px-4 py-2.5 rounded-lg ${inputBg} border ${inputBorder} ${inputText} ${placeholderColor} focus:outline-none focus:border-indigo-400 transition resize-none ${isRTL ? 'text-right' : 'text-left'}`}
                     />
                   </div>
                   <motion.button
@@ -701,11 +828,11 @@ export default function CinematicShowcase() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    Submit Request
+                    {currentContent.submit}
                   </motion.button>
                 </form>
-                <p className={`text-xs ${modalSubText} mt-4`}>
-                  We'll contact you shortly to schedule a personalized demo.
+                <p className={`text-xs ${modalSubText} mt-4 ${isRTL ? 'text-right' : 'text-left'}`}>
+                  {currentContent.contactText}
                 </p>
               </div>
             </motion.div>

@@ -1,7 +1,7 @@
 // /login/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Mail, Lock, AlertCircle, Eye, EyeOff } from 'lucide-react';
@@ -14,6 +14,72 @@ export default function AdminLogin() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [language, setLanguage] = useState<'en' | 'ar'>('en');
+
+  const isRTL = language === 'ar';
+
+  // Content translations
+  const content = {
+    en: {
+      emailPlaceholder: 'Email Address',
+      passwordPlaceholder: 'Password',
+      signingIn: 'Signing in...',
+      signIn: 'Sign In',
+      invalidCredentials: 'Invalid credentials',
+      networkError: 'Network error. Please try again.',
+    },
+    ar: {
+      emailPlaceholder: 'البريد الإلكتروني',
+      passwordPlaceholder: 'كلمة المرور',
+      signingIn: 'جاري تسجيل الدخول...',
+      signIn: 'تسجيل الدخول',
+      invalidCredentials: 'بيانات الدخول غير صحيحة',
+      networkError: 'خطأ في الشبكة. يرجى المحاولة مرة أخرى.',
+    }
+  };
+
+  // Listen for language changes
+  useEffect(() => {
+    const checkLanguage = () => {
+      const htmlDir = document.documentElement.getAttribute('dir');
+      const htmlLang = document.documentElement.getAttribute('lang');
+      if (htmlDir === 'rtl' || htmlLang === 'ar') {
+        setLanguage('ar');
+      } else {
+        setLanguage('en');
+      }
+    };
+
+    checkLanguage();
+
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'dir' || mutation.attributeName === 'lang') {
+          checkLanguage();
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, { attributes: true });
+
+    const handleLanguageChange = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail?.language) {
+        setLanguage(customEvent.detail.language);
+      } else {
+        checkLanguage();
+      }
+    };
+
+    window.addEventListener('languageChange', handleLanguageChange);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('languageChange', handleLanguageChange);
+    };
+  }, []);
+
+  const currentContent = content[language];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,17 +99,17 @@ export default function AdminLogin() {
         sessionStorage.setItem('admin_auth', JSON.stringify(data.admin));
         router.push('/admin_blogs_portal/dashboard');
       } else {
-        setError(data.error || 'Invalid credentials');
+        setError(data.error || currentContent.invalidCredentials);
       }
     } catch (error) {
-      setError('Network error. Please try again.');
+      setError(currentContent.networkError);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-mix filter blur-3xl opacity-20 animate-pulse"></div>
@@ -82,11 +148,11 @@ export default function AdminLogin() {
         <form onSubmit={handleSubmit} className="space-y-4 mt-6">
           {error && (
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
+              initial={{ opacity: 0, x: isRTL ? 20 : -20 }}
               animate={{ opacity: 1, x: 0 }}
               className="p-3 bg-red-500/20 border border-red-500/30 rounded-lg flex items-center gap-2 backdrop-blur-sm"
             >
-              <AlertCircle size={16} className="text-red-400" />
+              <AlertCircle size={16} className="text-red-400 flex-shrink-0" />
               <p className="text-sm text-red-200">{error}</p>
             </motion.div>
           )}
@@ -94,14 +160,14 @@ export default function AdminLogin() {
           {/* Email Field */}
           <div>
             <div className="relative group">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-purple-400 transition-colors" size={18} />
+              <Mail className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-purple-400 transition-colors`} size={18} />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                placeholder="Email Address"
+                className={`w-full ${isRTL ? 'pr-10 pl-4 text-right' : 'pl-10 pr-4'} py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all`}
+                placeholder={currentContent.emailPlaceholder}
               />
             </div>
           </div>
@@ -109,19 +175,19 @@ export default function AdminLogin() {
           {/* Password Field */}
           <div>
             <div className="relative group">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-purple-400 transition-colors" size={18} />
+              <Lock className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-purple-400 transition-colors`} size={18} />
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full pl-10 pr-12 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                placeholder="Password"
+                className={`w-full ${isRTL ? 'pr-10 pl-4 text-right' : 'pl-10 pr-4'} py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all`}
+                placeholder={currentContent.passwordPlaceholder}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-purple-400 transition-colors cursor-pointer"
+                className={`absolute ${isRTL ? 'left-3' : 'right-3'} top-1/2 -translate-y-1/2 text-gray-400 hover:text-purple-400 transition-colors cursor-pointer`}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
@@ -143,10 +209,10 @@ export default function AdminLogin() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  Signing in...
+                  {currentContent.signingIn}
                 </span>
               ) : (
-                'Sign In'
+                currentContent.signIn
               )}
             </span>
             <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/set-state-in-effect */
 // app/consultation/page.tsx
 'use client';
@@ -155,7 +156,6 @@ const ConsultationModel = ({ isDark }: { isDark: boolean }) => {
   const particlePositions = useMemo(() => generateParticlePositions(particleCount, 0.3), [particleCount]);
 
   const featureNodes = useMemo(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const nodes: any[] = [];
     const features = [
       { name: '30-Minute Session', color: '#6366F1', angle: 0 },
@@ -282,8 +282,170 @@ const ConsultationPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [language, setLanguage] = useState<'en' | 'ar'>('en');
   const sectionRef = useRef(null);
   const [isMobile, setIsMobile] = useState(false);
+
+  const isRTL = language === 'ar';
+
+  // Content translations
+  const content = {
+    en: {
+      badge: 'Free Consultation',
+      heading1: "Let's Build Your",
+      headingHighlight: 'Digital Future',
+      description: 'Schedule a free consultation with our experts. We\'ll discuss your business needs, explore opportunities, and create a tailored roadmap for your digital transformation.',
+      formTitle: 'Request Your Free Consultation',
+      fullName: 'Full Name *',
+      email: 'Email Address *',
+      phone: 'Phone Number *',
+      companyName: 'Company Name *',
+      industry: 'Industry *',
+      preferredTime: 'Preferred Time Slot *',
+      budget: 'Budget Range *',
+      projectDescription: 'Project Description *',
+      projectPlaceholder: 'Tell us about your project, goals, and requirements...',
+      submitButton: 'Schedule Free Consultation',
+      submitting: 'Submitting...',
+      privacyPolicy: 'By submitting, you agree to our',
+      privacyLink: 'Privacy Policy',
+      successTitle: 'Consultation Scheduled!',
+      successDesc: 'Thank you for booking a consultation with us. Our team will contact you shortly to confirm the details.',
+      successEmail: 'A confirmation email has been sent to',
+      bookAnother: 'Book Another Consultation',
+      features: {
+        session: '30-Minute Session',
+        expert: 'Expert Advice',
+        flexible: 'Flexible Scheduling',
+        confidential: '100% Confidential'
+      },
+      industries: {
+        education: 'Education',
+        ecommerce: 'E-commerce',
+        construction: 'Construction',
+        startups: 'Startups',
+        banking: 'Banking & Finance',
+        travel: 'Travel',
+        medical: 'Medical',
+        other: 'Other'
+      },
+      timeSlots: [
+        '9:00 AM - 10:00 AM',
+        '10:00 AM - 11:00 AM',
+        '11:00 AM - 12:00 PM',
+        '1:00 PM - 2:00 PM',
+        '2:00 PM - 3:00 PM',
+        '3:00 PM - 4:00 PM',
+      ],
+      budgets: [
+        '$1,000 - $5,000',
+        '$5,000 - $10,000',
+        '$10,000 - $25,000',
+        '$25,000 - $50,000',
+        '$50,000+',
+        'Not sure yet',
+      ],
+      selectOption: 'Select',
+    },
+    ar: {
+      badge: 'استشارة مجانية',
+      heading1: 'دعونا نبني',
+      headingHighlight: 'مستقبلك الرقمي',
+      description: 'احجز استشارة مجانية مع خبرائنا. سنناقش احتياجات عملك، ونستكشف الفرص، وننشئ خريطة طريق مخصصة لتحولك الرقمي.',
+      formTitle: 'اطلب استشارتك المجانية',
+      fullName: 'الاسم الكامل *',
+      email: 'البريد الإلكتروني *',
+      phone: 'رقم الهاتف *',
+      companyName: 'اسم الشركة *',
+      industry: 'مجال العمل *',
+      preferredTime: 'الوقت المفضل *',
+      budget: 'النطاق السعري *',
+      projectDescription: 'وصف المشروع *',
+      projectPlaceholder: 'أخبرنا عن مشروعك وأهدافك ومتطلباتك...',
+      submitButton: 'احجز استشارة مجانية',
+      submitting: 'جاري الإرسال...',
+      privacyPolicy: 'بتقديم الطلب، فإنك توافق على',
+      privacyLink: 'سياسة الخصوصية',
+      successTitle: 'تم حجز الاستشارة!',
+      successDesc: 'شكراً لحجز استشارة معنا. سيتواصل معك فريقنا قريباً لتأكيد التفاصيل.',
+      successEmail: 'تم إرسال بريد تأكيدي إلى',
+      bookAnother: 'حجز استشارة أخرى',
+      features: {
+        session: 'جلسة 30 دقيقة',
+        expert: 'استشارة خبراء',
+        flexible: 'مواعيد مرنة',
+        confidential: 'سري بنسبة 100%'
+      },
+      industries: {
+        education: 'التعليم',
+        ecommerce: 'التجارة الإلكترونية',
+        construction: 'البناء والتشييد',
+        startups: 'الشركات الناشئة',
+        banking: 'البنوك والتمويل',
+        travel: 'السفر والسياحة',
+        medical: 'الرعاية الصحية',
+        other: 'أخرى'
+      },
+      timeSlots: [
+        '٩:٠٠ ص - ١٠:٠٠ ص',
+        '١٠:٠٠ ص - ١١:٠٠ ص',
+        '١١:٠٠ ص - ١٢:٠٠ م',
+        '١:٠٠ م - ٢:٠٠ م',
+        '٢:٠٠ م - ٣:٠٠ م',
+        '٣:٠٠ م - ٤:٠٠ م',
+      ],
+      budgets: [
+        '١,٠٠٠ - ٥,٠٠٠ دولار',
+        '٥,٠٠٠ - ١٠,٠٠٠ دولار',
+        '١٠,٠٠٠ - ٢٥,٠٠٠ دولار',
+        '٢٥,٠٠٠ - ٥٠,٠٠٠ دولار',
+        '٥٠,٠٠٠+ دولار',
+        'غير متأكد بعد',
+      ],
+      selectOption: 'اختر',
+    }
+  };
+
+  // Listen for language changes
+  useEffect(() => {
+    const checkLanguage = () => {
+      const htmlDir = document.documentElement.getAttribute('dir');
+      const htmlLang = document.documentElement.getAttribute('lang');
+      if (htmlDir === 'rtl' || htmlLang === 'ar') {
+        setLanguage('ar');
+      } else {
+        setLanguage('en');
+      }
+    };
+
+    checkLanguage();
+
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'dir' || mutation.attributeName === 'lang') {
+          checkLanguage();
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, { attributes: true });
+
+    const handleLanguageChange = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail?.language) {
+        setLanguage(customEvent.detail.language);
+      } else {
+        checkLanguage();
+      }
+    };
+
+    window.addEventListener('languageChange', handleLanguageChange);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('languageChange', handleLanguageChange);
+    };
+  }, []);
 
   // System theme detection
   useEffect(() => {
@@ -336,7 +498,18 @@ const ConsultationPage = () => {
     budget: '',
   });
 
-  const industries = [
+  const currentContent = content[language];
+
+  const industries = isRTL ? [
+    currentContent.industries.education,
+    currentContent.industries.ecommerce,
+    currentContent.industries.construction,
+    currentContent.industries.startups,
+    currentContent.industries.banking,
+    currentContent.industries.travel,
+    currentContent.industries.medical,
+    currentContent.industries.other
+  ] : [
     'Education',
     'E-commerce',
     'Construction',
@@ -347,23 +520,8 @@ const ConsultationPage = () => {
     'Other'
   ];
 
-  const timeSlots = [
-    '9:00 AM - 10:00 AM',
-    '10:00 AM - 11:00 AM',
-    '11:00 AM - 12:00 PM',
-    '1:00 PM - 2:00 PM',
-    '2:00 PM - 3:00 PM',
-    '3:00 PM - 4:00 PM',
-  ];
-
-  const budgetRanges = [
-    '$1,000 - $5,000',
-    '$5,000 - $10,000',
-    '$10,000 - $25,000',
-    '$25,000 - $50,000',
-    '$50,000+',
-    'Not sure yet',
-  ];
+  const timeSlots = currentContent.timeSlots;
+  const budgetRanges = currentContent.budgets;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -414,10 +572,10 @@ const ConsultationPage = () => {
 
   // Features data with theme-aware colors
   const features = [
-    { icon: Clock, text: "30-Minute Session", color: "#6366F1", iconBg: isDark ? "bg-[#6366F1]/10" : "bg-indigo-100" },
-    { icon: MessageSquare, text: "Expert Advice", color: "#22C55E", iconBg: isDark ? "bg-green-500/10" : "bg-green-100" },
-    { icon: Calendar, text: "Flexible Scheduling", color: "#F59E0B", iconBg: isDark ? "bg-orange-500/10" : "bg-orange-100" },
-    { icon: Shield, text: "100% Confidential", color: "#EF4444", iconBg: isDark ? "bg-red-500/10" : "bg-red-100" },
+    { icon: Clock, text: currentContent.features.session, color: "#6366F1", iconBg: isDark ? "bg-[#6366F1]/10" : "bg-indigo-100" },
+    { icon: MessageSquare, text: currentContent.features.expert, color: "#22C55E", iconBg: isDark ? "bg-green-500/10" : "bg-green-100" },
+    { icon: Calendar, text: currentContent.features.flexible, color: "#F59E0B", iconBg: isDark ? "bg-orange-500/10" : "bg-orange-100" },
+    { icon: Shield, text: currentContent.features.confidential, color: "#EF4444", iconBg: isDark ? "bg-red-500/10" : "bg-red-100" },
   ];
 
   // Animation variants
@@ -483,7 +641,7 @@ const ConsultationPage = () => {
   };
 
   return (
-    <main className={`min-h-screen ${bgColor} pt-20 lg:pt-24 relative overflow-hidden`}>
+    <main className={`min-h-screen ${bgColor} pt-20 lg:pt-24 relative overflow-hidden`} dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Background 3D Canvas */}
       <div className="absolute inset-0 z-0 opacity-30 md:opacity-40">
         <Canvas
@@ -516,7 +674,7 @@ const ConsultationPage = () => {
         <div className={`absolute inset-0 bg-[url('/grid-pattern.svg')] ${isDark ? 'opacity-5' : 'opacity-10'}`} />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
+          <div className={`grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 ${isRTL ? 'lg:flex-row-reverse' : ''}`}>
             {/* Left Column - Info with 3D Model */}
             <motion.div
               variants={introContainerVariants}
@@ -527,11 +685,11 @@ const ConsultationPage = () => {
               {/* Badge */}
               <motion.div 
                 variants={fromTopVariants}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${badgeBg} border ${badgeBorder}`}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${badgeBg} border ${badgeBorder} ${isRTL ? 'flex-row-reverse' : ''}`}
               >
                 <Sparkles className="w-4 h-4 text-[#6366F1]" />
                 <span className={`text-sm font-medium bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent`}>
-                  Free Consultation
+                  {currentContent.badge}
                 </span>
               </motion.div>
 
@@ -540,20 +698,31 @@ const ConsultationPage = () => {
                 variants={fromTopVariants}
                 className="text-4xl md:text-5xl lg:text-5xl font-bold"
               >
-                <span className={textColor}>Let&apos;s Build Your</span>
-                <br />
-                <span className={`bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent`}>
-                  Digital Future
-                </span>
+                {isRTL ? (
+                  <>
+                    <span className={textColor}>{currentContent.heading1}</span>
+                    <br />
+                    <span className={`bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent`}>
+                      {currentContent.headingHighlight}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className={textColor}>{currentContent.heading1}</span>
+                    <br />
+                    <span className={`bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent`}>
+                      {currentContent.headingHighlight}
+                    </span>
+                  </>
+                )}
               </motion.h1>
 
               {/* Description */}
               <motion.p 
                 variants={fromTopVariants}
-                className={`text-lg ${subTextColor} leading-relaxed`}
+                className={`text-lg ${subTextColor} leading-relaxed ${isRTL ? 'text-right' : ''}`}
               >
-                Schedule a free consultation with our experts. We&apos;ll discuss your business needs, 
-                explore opportunities, and create a tailored roadmap for your digital transformation.
+                {currentContent.description}
               </motion.p>
 
               {/* Features Grid */}
@@ -567,12 +736,12 @@ const ConsultationPage = () => {
                     <motion.div
                       key={index}
                       variants={itemVariants}
-                      className="flex items-center gap-3 p-2"
+                      className={`flex items-center gap-3 p-2 ${isRTL ? 'flex-row-reverse' : ''}`}
                     >
-                      <div className={`w-8 h-8 rounded-full ${feature.iconBg} flex items-center justify-center`}>
+                      <div className={`w-8 h-8 rounded-full ${feature.iconBg} flex items-center justify-center flex-shrink-0`}>
                         <Icon className="w-4 h-4" style={{ color: feature.color }} />
                       </div>
-                      <span className={`text-sm ${textColor}`}>{feature.text}</span>
+                      <span className={`text-sm ${textColor} ${isRTL ? 'text-right' : ''}`}>{feature.text}</span>
                     </motion.div>
                   );
                 })}
@@ -607,7 +776,7 @@ const ConsultationPage = () => {
 
             {/* Right Column - Form */}
             <motion.div
-              initial={{ opacity: 0, x: 30 }}
+              initial={{ opacity: 0, x: isRTL ? -30 : 30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2, duration: 0.6 }}
               className="relative"
@@ -617,101 +786,105 @@ const ConsultationPage = () => {
               <div className={`relative ${cardBg} backdrop-blur-md border ${cardBorder} rounded-2xl p-6 sm:p-8`}>
                 {!isSubmitted ? (
                   <form onSubmit={handleSubmit} className="space-y-5">
-                    <h2 className={`text-2xl font-bold ${textColor} mb-6`}>
-                      Request Your Free Consultation
+                    <h2 className={`text-2xl font-bold ${textColor} mb-6 ${isRTL ? 'text-right' : ''}`}>
+                      {currentContent.formTitle}
                     </h2>
 
                     {/* Full Name */}
                     <div>
-                      <label className={`block text-sm font-medium ${subTextColor} mb-2`}>
-                        Full Name *
+                      <label className={`block text-sm font-medium ${subTextColor} mb-2 ${isRTL ? 'text-right' : ''}`}>
+                        {currentContent.fullName}
                       </label>
                       <div className="relative">
-                        <User className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${subTextColor}`} />
+                        <User className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 w-4 h-4 ${subTextColor}`} />
                         <input
                           type="text"
                           name="fullName"
                           required
                           value={formData.fullName}
                           onChange={handleInputChange}
-                          className={`w-full pl-10 pr-4 py-3 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} focus:outline-none focus:border-[#6366F1] transition-colors`}
-                          placeholder="Enter your full name"
+                          className={`w-full ${isRTL ? 'pr-10 pl-4 text-right' : 'pl-10 pr-4'} py-3 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} focus:outline-none focus:border-[#6366F1] transition-colors`}
+                          placeholder={isRTL ? "أدخل اسمك الكامل" : "Enter your full name"}
                         />
                       </div>
                     </div>
 
                     {/* Email */}
                     <div>
-                      <label className={`block text-sm font-medium ${subTextColor} mb-2`}>
-                        Email Address *
+                      <label className={`block text-sm font-medium ${subTextColor} mb-2 ${isRTL ? 'text-right' : ''}`}>
+                        {currentContent.email}
                       </label>
                       <div className="relative">
-                        <Mail className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${subTextColor}`} />
+                        <Mail className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 w-4 h-4 ${subTextColor}`} />
                         <input
                           type="email"
                           name="email"
                           required
                           value={formData.email}
                           onChange={handleInputChange}
-                          className={`w-full pl-10 pr-4 py-3 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} focus:outline-none focus:border-[#6366F1] transition-colors`}
-                          placeholder="Enter your email"
+                          className={`w-full ${isRTL ? 'pr-10 pl-4 text-right' : 'pl-10 pr-4'} py-3 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} focus:outline-none focus:border-[#6366F1] transition-colors`}
+                         placeholder={
+  isRTL
+    ? "أدخل بريدك الإلكتروني (مثال: user@example.com)"
+    : "Enter your email (e.g. user@example.com)"
+}
                         />
                       </div>
                     </div>
 
                     {/* Phone */}
                     <div>
-                      <label className={`block text-sm font-medium ${subTextColor} mb-2`}>
-                        Phone Number *
+                      <label className={`block text-sm font-medium ${subTextColor} mb-2 ${isRTL ? 'text-right' : ''}`}>
+                        {currentContent.phone}
                       </label>
                       <div className="relative">
-                        <Phone className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${subTextColor}`} />
+                        <Phone className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 w-4 h-4 ${subTextColor}`} />
                         <input
                           type="tel"
                           name="phone"
                           required
                           value={formData.phone}
                           onChange={handleInputChange}
-                          className={`w-full pl-10 pr-4 py-3 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} focus:outline-none focus:border-[#6366F1] transition-colors`}
-                          placeholder="Enter your phone number"
+                          className={`w-full ${isRTL ? 'pr-10 pl-4 text-right' : 'pl-10 pr-4'} py-3 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} focus:outline-none focus:border-[#6366F1] transition-colors`}
+                          placeholder={isRTL ? "+92 300 1234567" : "Enter your phone number"}
                         />
                       </div>
                     </div>
 
                     {/* Company Name */}
                     <div>
-                      <label className={`block text-sm font-medium ${subTextColor} mb-2`}>
-                        Company Name *
+                      <label className={`block text-sm font-medium ${subTextColor} mb-2 ${isRTL ? 'text-right' : ''}`}>
+                        {currentContent.companyName}
                       </label>
                       <div className="relative">
-                        <Building className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${subTextColor}`} />
+                        <Building className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 w-4 h-4 ${subTextColor}`} />
                         <input
                           type="text"
                           name="companyName"
                           required
                           value={formData.companyName}
                           onChange={handleInputChange}
-                          className={`w-full pl-10 pr-4 py-3 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} focus:outline-none focus:border-[#6366F1] transition-colors`}
-                          placeholder="Enter your company name"
+                          className={`w-full ${isRTL ? 'pr-10 pl-4 text-right' : 'pl-10 pr-4'} py-3 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} focus:outline-none focus:border-[#6366F1] transition-colors`}
+                          placeholder={isRTL ? "أدخل اسم شركتك" : "Enter your company name"}
                         />
                       </div>
                     </div>
 
                     {/* Industry */}
                     <div>
-                      <label className={`block text-sm font-medium ${subTextColor} mb-2`}>
-                        Industry *
+                      <label className={`block text-sm font-medium ${subTextColor} mb-2 ${isRTL ? 'text-right' : ''}`}>
+                        {currentContent.industry}
                       </label>
                       <div className="relative">
-                        <Briefcase className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${subTextColor}`} />
+                        <Briefcase className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 w-4 h-4 ${subTextColor}`} />
                         <select
                           name="industry"
                           required
                           value={formData.industry}
                           onChange={handleInputChange}
-                          className={`w-full pl-10 pr-4 py-3 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} focus:outline-none focus:border-[#6366F1] transition-colors appearance-none`}
+                          className={`w-full ${isRTL ? 'pr-10 pl-4 text-right' : 'pl-10 pr-4'} py-3 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} focus:outline-none focus:border-[#6366F1] transition-colors appearance-none`}
                         >
-                          <option value="">Select your industry</option>
+                          <option value="">{currentContent.selectOption}</option>
                           {industries.map((industry) => (
                             <option key={industry} value={industry}>
                               {industry}
@@ -723,19 +896,19 @@ const ConsultationPage = () => {
 
                     {/* Preferred Time Slot */}
                     <div>
-                      <label className={`block text-sm font-medium ${subTextColor} mb-2`}>
-                        Preferred Time Slot *
+                      <label className={`block text-sm font-medium ${subTextColor} mb-2 ${isRTL ? 'text-right' : ''}`}>
+                        {currentContent.preferredTime}
                       </label>
                       <div className="relative">
-                        <Clock className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${subTextColor}`} />
+                        <Clock className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 w-4 h-4 ${subTextColor}`} />
                         <select
                           name="preferredTime"
                           required
                           value={formData.preferredTime}
                           onChange={handleInputChange}
-                          className={`w-full pl-10 pr-4 py-3 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} focus:outline-none focus:border-[#6366F1] transition-colors appearance-none`}
+                          className={`w-full ${isRTL ? 'pr-10 pl-4 text-right' : 'pl-10 pr-4'} py-3 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} focus:outline-none focus:border-[#6366F1] transition-colors appearance-none`}
                         >
-                          <option value="">Select a time slot</option>
+                          <option value="">{currentContent.selectOption}</option>
                           {timeSlots.map((slot) => (
                             <option key={slot} value={slot}>
                               {slot}
@@ -747,19 +920,19 @@ const ConsultationPage = () => {
 
                     {/* Budget Range */}
                     <div>
-                      <label className={`block text-sm font-medium ${subTextColor} mb-2`}>
-                        Budget Range *
+                      <label className={`block text-sm font-medium ${subTextColor} mb-2 ${isRTL ? 'text-right' : ''}`}>
+                        {currentContent.budget}
                       </label>
                       <div className="relative">
-                        <Rocket className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${subTextColor}`} />
+                        <Rocket className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 w-4 h-4 ${subTextColor}`} />
                         <select
                           name="budget"
                           required
                           value={formData.budget}
                           onChange={handleInputChange}
-                          className={`w-full pl-10 pr-4 py-3 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} focus:outline-none focus:border-[#6366F1] transition-colors appearance-none`}
+                          className={`w-full ${isRTL ? 'pr-10 pl-4 text-right' : 'pl-10 pr-4'} py-3 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} focus:outline-none focus:border-[#6366F1] transition-colors appearance-none`}
                         >
-                          <option value="">Select budget range</option>
+                          <option value="">{currentContent.selectOption}</option>
                           {budgetRanges.map((range) => (
                             <option key={range} value={range}>
                               {range}
@@ -771,8 +944,8 @@ const ConsultationPage = () => {
 
                     {/* Project Description */}
                     <div>
-                      <label className={`block text-sm font-medium ${subTextColor} mb-2`}>
-                        Project Description *
+                      <label className={`block text-sm font-medium ${subTextColor} mb-2 ${isRTL ? 'text-right' : ''}`}>
+                        {currentContent.projectDescription}
                       </label>
                       <textarea
                         name="projectDescription"
@@ -780,8 +953,8 @@ const ConsultationPage = () => {
                         rows={4}
                         value={formData.projectDescription}
                         onChange={handleInputChange}
-                        className={`w-full px-4 py-3 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} focus:outline-none focus:border-[#6366F1] transition-colors resize-none`}
-                        placeholder="Tell us about your project, goals, and requirements..."
+                        className={`w-full px-4 py-3 ${inputBg} border ${inputBorder} rounded-lg ${inputTextColor} focus:outline-none focus:border-[#6366F1] transition-colors resize-none ${isRTL ? 'text-right' : ''}`}
+                        placeholder={currentContent.projectPlaceholder}
                       />
                     </div>
 
@@ -791,25 +964,25 @@ const ConsultationPage = () => {
                       disabled={isSubmitting}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className={`w-full py-3 bg-gradient-to-r ${gradientFrom} ${gradientTo} text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-[#6366F1]/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
+                      className={`w-full py-3 bg-gradient-to-r ${gradientFrom} ${gradientTo} text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-[#6366F1]/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}
                     >
                       {isSubmitting ? (
                         <>
                           <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          Submitting...
+                          {currentContent.submitting}
                         </>
                       ) : (
                         <>
-                          <Send className="w-4 h-4" />
-                          Schedule Free Consultation
+                          <Send className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
+                          {currentContent.submitButton}
                         </>
                       )}
                     </motion.button>
 
-                    <p className={`text-xs text-center ${subTextColor}`}>
-                      By submitting, you agree to our{' '}
+                    <p className={`text-xs text-center ${subTextColor} ${isRTL ? 'rtl' : ''}`}>
+                      {currentContent.privacyPolicy}{' '}
                       <Link href="/privacy" className="text-[#6366F1] hover:underline">
-                        Privacy Policy
+                        {currentContent.privacyLink}
                       </Link>
                     </p>
                   </form>
@@ -823,21 +996,21 @@ const ConsultationPage = () => {
                     <div className="w-20 h-20 mx-auto mb-4 bg-green-500/10 rounded-full flex items-center justify-center">
                       <CheckCircle className="w-10 h-10 text-green-500" />
                     </div>
-                    <h3 className={`text-2xl font-bold ${textColor} mb-3`}>
-                      Consultation Scheduled!
+                    <h3 className={`text-2xl font-bold ${textColor} mb-3 ${isRTL ? 'text-right text-center' : ''}`}>
+                      {currentContent.successTitle}
                     </h3>
-                    <p className={`${subTextColor} mb-4`}>
-                      Thank you for booking a consultation with us. Our team will contact you shortly to confirm the details.
+                    <p className={`${subTextColor} mb-4 ${isRTL ? 'text-right text-center' : ''}`}>
+                      {currentContent.successDesc}
                     </p>
                     <p className="text-sm text-[#6366F1]">
-                      A confirmation email has been sent to {formData.email}
+                      {currentContent.successEmail} {formData.email}
                     </p>
                     <button
                       onClick={() => window.location.reload()}
-                      className={`mt-6 inline-flex items-center gap-2 px-6 py-2 ${badgeBg} border ${cardBorder} ${textColor} rounded-lg hover:border-[#6366F1] transition-colors`}
+                      className={`mt-6 inline-flex items-center gap-2 px-6 py-2 ${badgeBg} border ${cardBorder} ${textColor} rounded-lg hover:border-[#6366F1] transition-colors ${isRTL ? 'flex-row-reverse' : ''}`}
                     >
-                      <ArrowRight className="w-4 h-4" />
-                      Book Another Consultation
+                      <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
+                      {currentContent.bookAnother}
                     </button>
                   </motion.div>
                 )}

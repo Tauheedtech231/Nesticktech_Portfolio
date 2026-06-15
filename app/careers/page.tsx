@@ -38,6 +38,7 @@ const CareersPage = () => {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [language, setLanguage] = useState<'en' | 'ar'>('en');
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [formData, setFormData] = useState({
@@ -50,6 +51,189 @@ const CareersPage = () => {
     message: '',
     category: 'job' as 'job' | 'internship'
   });
+
+  const isRTL = language === 'ar';
+
+  // Content translations
+  const content = {
+    en: {
+      badge: 'Join Our Team',
+      heading1: 'Shape the Future of',
+      headingHighlight: 'Digital Innovation',
+      heroDesc: 'Join a team of passionate innovators building cutting-edge digital solutions for businesses worldwide',
+      applyNow: 'Apply Now',
+      learnMore: 'Learn More',
+      whyJoinTitle: 'Why Join',
+      nestickHighlight: 'Nestick Tech?',
+      whyJoinDesc1: 'At Nestick Tech, we\'re not just building software — we\'re building the future of digital business. We believe that great products come from great teams, and we\'re committed to creating an environment where innovation thrives, creativity is celebrated, and everyone has the opportunity to grow.',
+      whyJoinDesc2: 'Join us and work on cutting-edge projects with modern technologies like React, Next.js, Node.js, and cloud platforms. You\'ll collaborate with talented professionals who are passionate about delivering exceptional digital solutions.',
+      benefits: [
+        'Work with latest technologies and tools',
+        'Remote-first culture with flexible hours',
+        'Competitive salary and performance bonuses',
+        'Professional development and learning budget',
+        'Health insurance and wellness benefits',
+        'Quarterly team retreats and events'
+      ],
+      contactUs: 'Contact us:',
+      applySectionTitle: 'Apply for',
+      applySectionHighlight: 'Opportunities',
+      applySectionDesc: 'Choose between full-time jobs or internships and submit your application',
+      fullTimeJobs: 'Full-Time Jobs',
+      internships: 'Internships',
+      fullName: 'Full Name',
+      email: 'Email Address',
+      phone: 'Phone Number',
+      positionJob: 'Position Applying For',
+      positionIntern: 'Internship Role',
+      experienceJob: 'Years of Experience',
+      experienceIntern: 'Current Year / Semester',
+      portfolio: 'Portfolio / GitHub / LinkedIn URL',
+      cvLabel: 'Upload CV/Resume (PDF, DOC, DOCX)',
+      dragDrop: 'Drag & drop your resume here',
+      clickToBrowse: 'or click to browse',
+      supports: 'Supports PDF, DOC, DOCX',
+      whyHire: 'Why should we hire you?',
+      whyHirePlaceholder: 'Tell us about your skills, experience, and why you\'d be a great fit...',
+      submitting: 'Submitting...',
+      submit: 'Submit Application',
+      successMessage: 'Application submitted successfully! We\'ll contact you soon.',
+      questionsBadge: 'WE\'RE HERE TO HELP',
+      questionsTitle: 'Still Have Questions?',
+      questionsDesc: 'Can\'t find what you\'re looking for? Our team is ready to assist you.',
+      emailUs: 'Email Us',
+      emailDesc: 'Get a response within 24 hours',
+      callUs: 'Call Us',
+      callDesc: 'Mon-Fri, 9AM - 6PM',
+      scheduleMeet: 'Schedule Meeting',
+      meetDesc: 'Book a consultation call',
+      hoverToFlip: 'Hover to flip',
+      callNow: 'Call Now',
+      getStarted: 'Get Started',
+      sendMessage: 'Send Message',
+      bookNow: 'Book Now',
+      selectOption: 'Select',
+      fresher: 'Fresher (0-1 years)',
+      oneToThree: '1-3 years',
+      threeToFive: '3-5 years',
+      fiveToEight: '5-8 years',
+      eightPlus: '8+ years',
+      firstYear: '1st Year',
+      secondYear: '2nd Year',
+      thirdYear: '3rd Year',
+      fourthYear: '4th Year',
+      graduated: 'Graduated',
+    },
+    ar: {
+      badge: 'انضم إلى فريقنا',
+      heading1: 'شكل مستقبل',
+      headingHighlight: 'الابتكار الرقمي',
+      heroDesc: 'انضم إلى فريق من المبتكرين المتحمسين الذين يبنون حلولاً رقمية متطورة للشركات في جميع أنحاء العالم',
+      applyNow: 'قدم الآن',
+      learnMore: 'اعرف المزيد',
+      whyJoinTitle: 'لماذا تنضم إلى',
+      nestickHighlight: 'نستيك تك؟',
+      whyJoinDesc1: 'في نستيك تك، نحن لا نبني البرمجيات فقط — بل نبني مستقبل الأعمال الرقمية. نحن نعتقد أن المنتجات الرائعة تأتي من فرق رائعة، ونحن ملتزمون بخلق بيئة يزدهر فيها الابتكار، ويتم الاحتفاء بالإبداع، وتتاح للجميع فرصة النمو.',
+      whyJoinDesc2: 'انضم إلينا واعمل على مشاريع متطورة باستخدام تقنيات حديثة مثل React و Next.js و Node.js ومنصات السحابة. سوف تتعاون مع محترفين موهوبين متحمسين لتقديم حلول رقمية استثنائية.',
+      benefits: [
+        'العمل بأحدث التقنيات والأدوات',
+        'ثقافة العمل عن بعد مع ساعات مرنة',
+        'راتب تنافسي ومكافآت أداء',
+        'ميزانية للتطوير المهني والتعلم',
+        'تأمين صحي ومزايا صحية',
+        'معسكرات وفعاليات فريق ربع سنوية'
+      ],
+      contactUs: 'اتصل بنا:',
+      applySectionTitle: 'تقدم إلى',
+      applySectionHighlight: 'الفرص',
+      applySectionDesc: 'اختر بين الوظائف بدوام كامل أو التدريب الداخلي وقدم طلبك',
+      fullTimeJobs: 'الوظائف بدوام كامل',
+      internships: 'التدريب الداخلي',
+      fullName: 'الاسم الكامل',
+      email: 'البريد الإلكتروني',
+      phone: 'رقم الهاتف',
+      positionJob: 'المنصب المتقدم إليه',
+      positionIntern: 'دور التدريب',
+      experienceJob: 'سنوات الخبرة',
+      experienceIntern: 'السنة / الفصل الدراسي الحالي',
+      portfolio: 'الرابط (GitHub / LinkedIn / محفظة)',
+      cvLabel: 'تحميل السيرة الذاتية (PDF, DOC, DOCX)',
+      dragDrop: 'اسحب وأفلت سيرتك الذاتية هنا',
+      clickToBrowse: 'أو انقر للتصفح',
+      supports: 'يدعم PDF, DOC, DOCX',
+      whyHire: 'لماذا يجب أن نوظفك؟',
+      whyHirePlaceholder: 'أخبرنا عن مهاراتك وخبراتك ولماذا ستكون مناسباً رائعاً...',
+      submitting: 'جاري الإرسال...',
+      submit: 'إرسال الطلب',
+      successMessage: 'تم إرسال الطلب بنجاح! سوف نتواصل معك قريباً.',
+      questionsBadge: 'نحن هنا للمساعدة',
+      questionsTitle: 'لا تزال لديك أسئلة؟',
+      questionsDesc: 'لا تجد ما تبحث عنه؟ فريقنا جاهز لمساعدتك.',
+      emailUs: 'راسلنا',
+      emailDesc: 'احصل على رد خلال 24 ساعة',
+      callUs: 'اتصل بنا',
+      callDesc: 'الإثنين - الجمعة، 9 صباحاً - 6 مساءً',
+      scheduleMeet: 'جدولة اجتماع',
+      meetDesc: 'احجز مكالمة استشارية',
+      hoverToFlip: 'مرر للقلب',
+      callNow: 'اتصل الآن',
+      getStarted: 'ابدأ الآن',
+      sendMessage: 'إرسال رسالة',
+      bookNow: 'احجز الآن',
+      selectOption: 'اختر',
+      fresher: 'حديث التخرج (0-1 سنة)',
+      oneToThree: '1-3 سنوات',
+      threeToFive: '3-5 سنوات',
+      fiveToEight: '5-8 سنوات',
+      eightPlus: '8+ سنوات',
+      firstYear: 'السنة الأولى',
+      secondYear: 'السنة الثانية',
+      thirdYear: 'السنة الثالثة',
+      fourthYear: 'السنة الرابعة',
+      graduated: 'تخرجت',
+    }
+  };
+
+  // Listen for language changes
+  useEffect(() => {
+    const checkLanguage = () => {
+      const htmlDir = document.documentElement.getAttribute('dir');
+      const htmlLang = document.documentElement.getAttribute('lang');
+      if (htmlDir === 'rtl' || htmlLang === 'ar') {
+        setLanguage('ar');
+      } else {
+        setLanguage('en');
+      }
+    };
+
+    checkLanguage();
+
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'dir' || mutation.attributeName === 'lang') {
+          checkLanguage();
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, { attributes: true });
+
+    const handleLanguageChange = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail?.language) {
+        setLanguage(customEvent.detail.language);
+      } else {
+        checkLanguage();
+      }
+    };
+
+    window.addEventListener('languageChange', handleLanguageChange);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('languageChange', handleLanguageChange);
+    };
+  }, []);
 
   // System theme detection
   useEffect(() => {
@@ -103,14 +287,18 @@ const CareersPage = () => {
     {
       id: 1,
       icon: Mail,
-      title: "Email Us",
-      description: "Get a response within 24 hours",
+      titleEn: "Email Us",
+      titleAr: "راسلنا",
+      descriptionEn: "Get a response within 24 hours",
+      descriptionAr: "احصل على رد خلال 24 ساعة",
       action: "mailto:nesticktech@gmail.com",
-      linkText: "Send Message",
+      linkTextEn: "Send Message",
+      linkTextAr: "إرسال رسالة",
       color: "from-blue-500 to-cyan-500",
       bgHover: isDark ? "hover:bg-blue-500/10" : "hover:bg-blue-50",
       frontInfo: {
-        stats: "24h Response",
+        statsEn: "24h Response",
+        statsAr: "رد خلال 24 ساعة",
         icon: Clock,
       },
       backInfo: {
@@ -121,40 +309,62 @@ const CareersPage = () => {
     {
       id: 2,
       icon: Phone,
-      title: "Call Us",
-      description: "Mon-Fri, 9AM - 6PM",
+      titleEn: "Call Us",
+      titleAr: "اتصل بنا",
+      descriptionEn: "Mon-Fri, 9AM - 6PM",
+      descriptionAr: "الإثنين - الجمعة، 9 صباحاً - 6 مساءً",
       action: `tel:${formattedPhoneNumber}`,
-      linkText: formattedPhoneNumber,
+      linkTextEn: formattedPhoneNumber,
+      linkTextAr: formattedPhoneNumber,
       color: "from-green-500 to-emerald-500",
       bgHover: isDark ? "hover:bg-green-500/10" : "hover:bg-green-50",
       frontInfo: {
-        stats: "Available Now",
+        statsEn: "Available Now",
+        statsAr: "متاح الآن",
         icon: Shield,
       },
       backInfo: {
         primary: formattedPhoneNumber,
-        whatsapp: "Click to call",
+        whatsappEn: "Click to call",
+        whatsappAr: "انقر للاتصال",
       },
     },
     {
       id: 3,
       icon: Calendar,
-      title: "Schedule Meeting",
-      description: "Book a consultation call",
+      titleEn: "Schedule Meeting",
+      titleAr: "جدولة اجتماع",
+      descriptionEn: "Book a consultation call",
+      descriptionAr: "احجز مكالمة استشارية",
       action: "/contact",
-      linkText: "Book Now",
+      linkTextEn: "Book Now",
+      linkTextAr: "احجز الآن",
       color: "from-purple-500 to-pink-500",
       bgHover: isDark ? "hover:bg-purple-500/10" : "hover:bg-purple-50",
       frontInfo: {
-        stats: "Free Consultation",
+        statsEn: "Free Consultation",
+        statsAr: "استشارة مجانية",
         icon: Sparkles,
       },
       backInfo: {
-        duration: "30 min session",
-        availability: "Flexible timing",
+        durationEn: "30 min session",
+        durationAr: "جلسة 30 دقيقة",
+        availabilityEn: "Flexible timing",
+        availabilityAr: "مواعيد مرنة",
       },
     },
   ];
+
+  const currentContent = content[language];
+
+  // Get contact text based on language
+  const getContactTitle = (option: typeof contactOptions[0]) => isRTL ? option.titleAr : option.titleEn;
+  const getContactDesc = (option: typeof contactOptions[0]) => isRTL ? option.descriptionAr : option.descriptionEn;
+  const getContactLinkText = (option: typeof contactOptions[0]) => isRTL ? option.linkTextAr : option.linkTextEn;
+  const getFrontStats = (option: typeof contactOptions[0]) => isRTL ? option.frontInfo.statsAr : option.frontInfo.statsEn;
+  const getWhatsappText = (option: typeof contactOptions[0]) => option.id === 2 && (isRTL ? option.backInfo.whatsappAr : option.backInfo.whatsappEn);
+  const getDurationText = (option: typeof contactOptions[0]) => option.id === 3 && (isRTL ? option.backInfo.durationAr : option.backInfo.durationEn);
+  const getAvailabilityText = (option: typeof contactOptions[0]) => option.id === 3 && (isRTL ? option.backInfo.availabilityAr : option.backInfo.availabilityEn);
 
   // Check if mobile for video background
   useEffect(() => {
@@ -257,7 +467,6 @@ const CareersPage = () => {
 
       if (response.ok && data.success) {
         setSubmitSuccess(true);
-        // Reset form
         setFormData({
           fullName: '',
           email: '',
@@ -273,7 +482,6 @@ const CareersPage = () => {
           fileInputRef.current.value = '';
         }
         
-        // Hide success message after 5 seconds
         setTimeout(() => setSubmitSuccess(false), 5000);
       } else {
         setSubmitError(data.error || 'Failed to submit application. Please try again.');
@@ -304,10 +512,9 @@ const CareersPage = () => {
   };
 
   return (
-    <div className={`min-h-screen ${bgColor}`}>
-      {/* Hero Section with Image Background */}
+    <div className={`min-h-screen ${bgColor}`} dir={isRTL ? 'rtl' : 'ltr'}>
+      {/* Hero Section */}
       <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden pt-24 sm:pt-28 lg:pt-32">
-        {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <img
             src="/career.jpg"
@@ -327,42 +534,53 @@ const CareersPage = () => {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className={`inline-flex items-center gap-2 px-4 py-2 ${isDark ? 'bg-black/40' : 'bg-gray-900/40'} backdrop-blur-md rounded-full border ${isDark ? 'border-white/30' : 'border-white/30'} mb-6 cursor-pointer`}
+              className={`inline-flex items-center gap-2 px-4 py-2 ${isDark ? 'bg-black/40' : 'bg-gray-900/40'} backdrop-blur-md rounded-full border ${isDark ? 'border-white/30' : 'border-white/30'} mb-6 cursor-pointer ${isRTL ? 'flex-row-reverse' : ''}`}
             >
               <Sparkles className="w-4 h-4 text-white" />
-              <span className="text-sm font-medium text-white">Join Our Team</span>
+              <span className="text-sm font-medium text-white">{currentContent.badge}</span>
             </motion.span>
 
             <h1 className="text-4xl sm:text-5xl font-bold font-serif text-white mb-6 tracking-tight">
-              Shape the Future of
-              <span className="block bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                Digital Innovation
-              </span>
+              {isRTL ? (
+                <>
+                  {currentContent.heading1}
+                  <span className="block bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                    {currentContent.headingHighlight}
+                  </span>
+                </>
+              ) : (
+                <>
+                  {currentContent.heading1}
+                  <span className="block bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                    {currentContent.headingHighlight}
+                  </span>
+                </>
+              )}
             </h1>
 
             <p className="text-lg sm:text-xl text-gray-200 max-w-3xl mx-auto mb-8 font-light tracking-wide">
-              Join a team of passionate innovators building cutting-edge digital solutions for businesses worldwide
+              {currentContent.heroDesc}
             </p>
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center"
+              className={`flex flex-col sm:flex-row gap-4 justify-center ${isRTL ? 'sm:flex-row-reverse' : ''}`}
             >
               <Link
                 href="#apply-section"
                 className="group inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-white to-gray-300 text-black font-sans rounded-xl hover:shadow-lg transition-all duration-300 cursor-pointer font-medium"
               >
-                Apply Now
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                {currentContent.applyNow}
+                <ArrowRight className={`w-4 h-4 group-hover:translate-x-1 transition-transform ${isRTL ? 'rotate-180 group-hover:-translate-x-1' : ''}`} />
               </Link>
 
               <Link
                 href="#why-join"
                 className={`inline-flex items-center justify-center px-6 py-3 ${isDark ? 'bg-black/40' : 'bg-gray-900/40'} backdrop-blur-md border ${isDark ? 'border-white/30' : 'border-white/30'} text-white font-sans rounded-xl hover:border-white hover:bg-white/10 transition-all duration-300 cursor-pointer`}
               >
-                Learn More
+                {currentContent.learnMore}
               </Link>
             </motion.div>
           </motion.div>
@@ -371,7 +589,7 @@ const CareersPage = () => {
 
       {/* Why Join Us Section */}
       <section id="why-join" className={`py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto ${bgColor}`}>
-        <div className="grid lg:grid-cols-2 gap-12 items-start">
+        <div className={`grid lg:grid-cols-2 gap-12 items-start ${isRTL ? 'lg:flex-row-reverse' : ''}`}>
           <div className="relative group">
             <div className={`absolute -inset-2 bg-gradient-to-r from-[#6366F1]/20 to-[#8B5CF6]/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-500`} />
             <div className={`relative rounded-2xl overflow-hidden border ${cardBorder} group-hover:border-[#6366F1]/50 transition-all duration-500 group-hover:scale-[1.02]`}>
@@ -387,67 +605,65 @@ const CareersPage = () => {
           </div>
 
           <div>
-            <h2 className={`text-3xl sm:text-4xl font-bold font-serif ${textColor} mb-6`}>
-              Why Join{' '}
+            <h2 className={`text-3xl sm:text-4xl font-bold font-serif ${textColor} mb-6 ${isRTL ? 'text-right' : ''}`}>
+              {currentContent.whyJoinTitle}{' '}
               <span className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">
-                Nestick Tech?
+                {currentContent.nestickHighlight}
               </span>
             </h2>
             
-            <p className={`${subTextColor} mb-6 font-light leading-relaxed`}>
-              At Nestick Tech, we're not just building software — we're building the future of digital business. 
-              We believe that great products come from great teams, and we're committed to creating an environment 
-              where innovation thrives, creativity is celebrated, and everyone has the opportunity to grow.
+            <p className={`${subTextColor} mb-6 font-light leading-relaxed ${isRTL ? 'text-right' : ''}`}>
+              {currentContent.whyJoinDesc1}
             </p>
             
-            <p className={`${subTextColor} mb-6 font-light leading-relaxed`}>
-              Join us and work on cutting-edge projects with modern technologies like React, Next.js, Node.js, 
-              and cloud platforms. You'll collaborate with talented professionals who are passionate about 
-              delivering exceptional digital solutions.
+            <p className={`${subTextColor} mb-6 font-light leading-relaxed ${isRTL ? 'text-right' : ''}`}>
+              {currentContent.whyJoinDesc2}
             </p>
 
             <div className="space-y-3 mb-8">
-              {[
-                "Work with latest technologies and tools",
-                "Remote-first culture with flexible hours",
-                "Competitive salary and performance bonuses",
-                "Professional development and learning budget",
-                "Health insurance and wellness benefits",
-                "Quarterly team retreats and events"
-              ].map((point, index) => (
+              {currentContent.benefits.map((point, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-3 group cursor-pointer"
+                  className={`flex items-center gap-3 group cursor-pointer ${isRTL ? 'flex-row-reverse' : ''}`}
                 >
-                  <CheckCircle className="w-5 h-5 text-[#6366F1] group-hover:scale-110 transition-transform" />
-                  <span className={`${isDark ? 'text-[#CBD5E1]' : 'text-gray-700'} group-hover:${textColor} transition-colors`}>{point}</span>
+                  <CheckCircle className="w-5 h-5 text-[#6366F1] group-hover:scale-110 transition-transform flex-shrink-0" />
+                  <span className={`${isDark ? 'text-[#CBD5E1]' : 'text-gray-700'} group-hover:${textColor} transition-colors ${isRTL ? 'text-right' : ''}`}>{point}</span>
                 </div>
               ))}
             </div>
 
-            <div className={`flex items-center gap-3 p-4 ${isDark ? 'bg-[#0F172A]/50' : 'bg-gray-100/80'} rounded-xl border ${cardBorder} hover:border-[#6366F1]/50 transition-all duration-300 cursor-pointer group`}>
-              <Mail className="w-5 h-5 text-[#6366F1] group-hover:scale-110 transition-transform" />
-              <span className={`${subTextColor} group-hover:${textColor} transition-colors`}>Contact us:</span>
-              <a href="mailto:nesticktech@gmail.com" className="text-[#6366F1] hover:underline font-medium">
-                nesticktech@gmail.com
-              </a>
-            </div>
+        <div className={`flex items-center gap-3 p-4 ${isDark ? 'bg-[#0F172A]/50' : 'bg-gray-100/80'} rounded-xl border ${cardBorder} hover:border-[#6366F1]/50 transition-all duration-300 cursor-pointer group ${isRTL ? 'flex-row-reverse' : ''}`}>
+  <Mail className="w-5 h-5 text-[#6366F1] group-hover:scale-110 transition-transform" />
+
+  <span className={subTextColor}>
+    {isRTL ? '' : 'Contact us:'}
+  </span>
+
+  <a
+    href="mailto:nesticktech@gmail.com"
+    className="text-[#6366F1] hover:underline font-medium"
+  >
+    {isRTL
+      ? "نستيك تك آت جيميل دوت كوم"
+      : "nesticktech@gmail.com"}
+  </a>
+</div>
           </div>
         </div>
       </section>
 
-      {/* Apply Section with Form */}
+      {/* Apply Section */}
       <section id="apply-section" className={`py-20 px-4 sm:px-6 lg:px-8 ${isDark ? 'bg-[#0A0F1A]' : 'bg-gray-100'}`}>
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-10">
+          <div className={`text-center mb-10 ${isRTL ? 'rtl' : ''}`}>
             <h2 className={`text-3xl sm:text-4xl font-bold font-serif ${textColor} mb-4`}>
-              Apply for{' '}
+              {currentContent.applySectionTitle}{' '}
               <span className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">
-                Opportunities
+                {currentContent.applySectionHighlight}
               </span>
             </h2>
             <p className={subTextColor}>
-              Choose between full-time jobs or internships and submit your application
+              {currentContent.applySectionDesc}
             </p>
           </div>
 
@@ -469,7 +685,7 @@ const CareersPage = () => {
                 )}
                 <span className="relative z-10 flex items-center gap-2">
                   <Briefcase className="w-4 h-4" />
-                  Full-Time Jobs
+                  {currentContent.fullTimeJobs}
                 </span>
               </button>
               <button
@@ -487,7 +703,7 @@ const CareersPage = () => {
                 )}
                 <span className="relative z-10 flex items-center gap-2">
                   <GraduationCap className="w-4 h-4" />
-                  Internships
+                  {currentContent.internships}
                 </span>
               </button>
             </div>
@@ -503,375 +719,373 @@ const CareersPage = () => {
           >
             {submitSuccess && (
               <div className="mb-6 p-4 bg-green-500/20 border border-green-500/50 rounded-xl flex items-center gap-3">
-                <CheckCircle className="w-5 h-5 text-green-400" />
-                <p className="text-green-400">Application submitted successfully! We'll contact you soon.</p>
+                <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0" />
+                <p className="text-green-400">{currentContent.successMessage}</p>
               </div>
             )}
 
             {submitError && (
               <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-xl flex items-center gap-3">
-                <AlertCircle className="w-5 h-5 text-red-400" />
+                <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
                 <p className="text-red-400">{submitError}</p>
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="grid sm:grid-cols-2 gap-5">
-                <div>
-                  <label className={`block text-sm font-medium ${subTextColor} mb-2`}>Full Name</label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6366F1]" />
-                    <input
-                      type="text"
-                      name="fullName"
-                      value={formData.fullName}
-                      onChange={handleInputChange}
-                      className={`w-full pl-10 pr-4 py-2.5 ${inputBg} border ${inputBorder} rounded-lg ${textColor} focus:outline-none focus:border-[#6366F1] transition-colors cursor-pointer`}
-                      placeholder="John Doe"
-                    />
-                  </div>
-                </div>
+  <div className="grid sm:grid-cols-2 gap-5">
+    <div>
+      <label className={`block text-sm font-medium ${subTextColor} mb-2 ${isRTL ? 'text-right' : ''}`}>{currentContent.fullName}</label>
+      <div className="relative">
+        <User className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 w-4 h-4 text-[#6366F1]`} />
+        <input
+          type="text"
+          name="fullName"
+          value={formData.fullName}
+          onChange={handleInputChange}
+          className={`w-full ${isRTL ? 'pr-10 pl-4 text-right' : 'pl-10 pr-4'} py-2.5 ${inputBg} border ${inputBorder} rounded-lg ${textColor} focus:outline-none focus:border-[#6366F1] transition-colors cursor-pointer`}
+          placeholder={isRTL ? "أدخل اسمك الكامل" : "John Doe"}
+        />
+      </div>
+    </div>
 
-                <div>
-                  <label className={`block text-sm font-medium ${subTextColor} mb-2`}>Email Address</label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6366F1]" />
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      className={`w-full pl-10 pr-4 py-2.5 ${inputBg} border ${inputBorder} rounded-lg ${textColor} focus:outline-none focus:border-[#6366F1] transition-colors cursor-pointer`}
-                      placeholder="john@example.com"
-                    />
-                  </div>
-                </div>
-              </div>
+    <div>
+      <label className={`block text-sm font-medium ${subTextColor} mb-2 ${isRTL ? 'text-right' : ''}`}>{currentContent.email}</label>
+      <div className="relative">
+        <Mail className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 w-4 h-4 text-[#6366F1]`} />
+        <input
+          type="email"
+          name="email"
+          value={formData.email}
+          onChange={handleInputChange}
+          className={`w-full ${isRTL ? 'pr-10 pl-4 text-right' : 'pl-10 pr-4'} py-2.5 ${inputBg} border ${inputBorder} rounded-lg ${textColor} focus:outline-none focus:border-[#6366F1] transition-colors cursor-pointer`}
+          placeholder={isRTL ? "أدخل بريدك الإلكتروني" : "john@example.com"}
+        />
+      </div>
+    </div>
+  </div>
 
-              <div className="grid sm:grid-cols-2 gap-5">
-                <div>
-                  <label className={`block text-sm font-medium ${subTextColor} mb-2`}>Phone Number</label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6366F1]" />
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      className={`w-full pl-10 pr-4 py-2.5 ${inputBg} border ${inputBorder} rounded-lg ${textColor} focus:outline-none focus:border-[#6366F1] transition-colors cursor-pointer`}
-                      placeholder="+92 300 1234567"
-                    />
-                  </div>
-                </div>
+  <div className="grid sm:grid-cols-2 gap-5">
+    <div>
+      <label className={`block text-sm font-medium ${subTextColor} mb-2 ${isRTL ? 'text-right' : ''}`}>{currentContent.phone}</label>
+      <div className="relative">
+        <Phone className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 w-4 h-4 text-[#6366F1]`} />
+        <input
+          type="tel"
+          name="phone"
+          value={formData.phone}
+          onChange={handleInputChange}
+          className={`w-full ${isRTL ? 'pr-10 pl-4 text-right' : 'pl-10 pr-4'} py-2.5 ${inputBg} border ${inputBorder} rounded-lg ${textColor} focus:outline-none focus:border-[#6366F1] transition-colors cursor-pointer`}
+          placeholder={isRTL ? "+92 300 1234567" : "+92 300 1234567"}
+        />
+      </div>
+    </div>
 
-                <div>
-                  <label className={`block text-sm font-medium ${subTextColor} mb-2`}>
-                    {activeTab === 'job' ? 'Position Applying For' : 'Internship Role'}
-                  </label>
-                  <div className="relative">
-                    <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6366F1]" />
-                    <input
-                      type="text"
-                      name="position"
-                      value={formData.position}
-                      onChange={handleInputChange}
-                      className={`w-full pl-10 pr-4 py-2.5 ${inputBg} border ${inputBorder} rounded-lg ${textColor} focus:outline-none focus:border-[#6366F1] transition-colors cursor-pointer`}
-                      placeholder={activeTab === 'job' ? "e.g., Frontend Developer" : "e.g., Frontend Intern"}
-                    />
-                  </div>
-                </div>
-              </div>
+    <div>
+      <label className={`block text-sm font-medium ${subTextColor} mb-2 ${isRTL ? 'text-right' : ''}`}>
+        {activeTab === 'job' ? currentContent.positionJob : currentContent.positionIntern}
+      </label>
+      <div className="relative">
+        <Briefcase className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 w-4 h-4 text-[#6366F1]`} />
+        <input
+          type="text"
+          name="position"
+          value={formData.position}
+          onChange={handleInputChange}
+          className={`w-full ${isRTL ? 'pr-10 pl-4 text-right' : 'pl-10 pr-4'} py-2.5 ${inputBg} border ${inputBorder} rounded-lg ${textColor} focus:outline-none focus:border-[#6366F1] transition-colors cursor-pointer`}
+          placeholder={activeTab === 'job' 
+            ? (isRTL ? "مثال: مطور واجهات أمامية" : "e.g., Frontend Developer")
+            : (isRTL ? "مثال: متدرب واجهات أمامية" : "e.g., Frontend Intern")
+          }
+        />
+      </div>
+    </div>
+  </div>
 
-              <div className="grid sm:grid-cols-2 gap-5">
-                <div>
-                  <label className={`block text-sm font-medium ${subTextColor} mb-2`}>
-                    {activeTab === 'job' ? 'Years of Experience' : 'Current Year / Semester'}
-                  </label>
-                  <div className="relative">
-                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6366F1]" />
-                    <select
-                      name="experience"
-                      value={formData.experience}
-                      onChange={handleInputChange}
-                      className={`w-full pl-10 pr-4 py-2.5 ${inputBg} border ${inputBorder} rounded-lg ${textColor} focus:outline-none focus:border-[#6366F1] transition-colors appearance-none cursor-pointer`}
-                    >
-                      <option value="">Select</option>
-                      {activeTab === 'job' ? (
-                        <>
-                          <option value="0-1">Fresher (0-1 years)</option>
-                          <option value="1-3">1-3 years</option>
-                          <option value="3-5">3-5 years</option>
-                          <option value="5-8">5-8 years</option>
-                          <option value="8+">8+ years</option>
-                        </>
-                      ) : (
-                        <>
-                          <option value="1st Year">1st Year</option>
-                          <option value="2nd Year">2nd Year</option>
-                          <option value="3rd Year">3rd Year</option>
-                          <option value="4th Year">4th Year</option>
-                          <option value="Graduated">Graduated</option>
-                        </>
-                      )}
-                    </select>
-                  </div>
-                </div>
+  <div className="grid sm:grid-cols-2 gap-5">
+    <div>
+      <label className={`block text-sm font-medium ${subTextColor} mb-2 ${isRTL ? 'text-right' : ''}`}>
+        {activeTab === 'job' ? currentContent.experienceJob : currentContent.experienceIntern}
+      </label>
+      <div className="relative">
+        <Clock className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 w-4 h-4 text-[#6366F1]`} />
+        <select
+          name="experience"
+          value={formData.experience}
+          onChange={handleInputChange}
+          className={`w-full ${isRTL ? 'pr-10 pl-4 text-right' : 'pl-10 pr-4'} py-2.5 ${inputBg} border ${inputBorder} rounded-lg ${textColor} focus:outline-none focus:border-[#6366F1] transition-colors appearance-none cursor-pointer`}
+        >
+          <option value="">{currentContent.selectOption}</option>
+          {activeTab === 'job' ? (
+            <>
+              <option value="0-1">{currentContent.fresher}</option>
+              <option value="1-3">{currentContent.oneToThree}</option>
+              <option value="3-5">{currentContent.threeToFive}</option>
+              <option value="5-8">{currentContent.fiveToEight}</option>
+              <option value="8+">{currentContent.eightPlus}</option>
+            </>
+          ) : (
+            <>
+              <option value="1st Year">{currentContent.firstYear}</option>
+              <option value="2nd Year">{currentContent.secondYear}</option>
+              <option value="3rd Year">{currentContent.thirdYear}</option>
+              <option value="4th Year">{currentContent.fourthYear}</option>
+              <option value="Graduated">{currentContent.graduated}</option>
+            </>
+          )}
+        </select>
+      </div>
+    </div>
 
-                <div>
-                  <label className={`block text-sm font-medium ${subTextColor} mb-2`}>
-                    Portfolio / GitHub / LinkedIn URL
-                  </label>
-                  <div className="relative">
-                    <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6366F1]" />
-                    <input
-                      type="url"
-                      name="portfolio"
-                      value={formData.portfolio}
-                      onChange={handleInputChange}
-                      className={`w-full pl-10 pr-4 py-2.5 ${inputBg} border ${inputBorder} rounded-lg ${textColor} focus:outline-none focus:border-[#6366F1] transition-colors cursor-pointer`}
-                      placeholder="https://github.com/yourusername"
-                    />
-                  </div>
-                </div>
-              </div>
+    <div>
+      <label className={`block text-sm font-medium ${subTextColor} mb-2 ${isRTL ? 'text-right' : ''}`}>{currentContent.portfolio}</label>
+      <div className="relative">
+        <Building className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 w-4 h-4 text-[#6366F1]`} />
+        <input
+          type="url"
+          name="portfolio"
+          value={formData.portfolio}
+          onChange={handleInputChange}
+          className={`w-full ${isRTL ? 'pr-10 pl-4 text-right' : 'pl-10 pr-4'} py-2.5 ${inputBg} border ${inputBorder} rounded-lg ${textColor} focus:outline-none focus:border-[#6366F1] transition-colors cursor-pointer`}
+          placeholder={isRTL ? "رابط GitHub أو LinkedIn أو معرض أعمالك" : "https://github.com/yourusername"}
+        />
+      </div>
+    </div>
+  </div>
 
-              {/* CV Upload Section */}
-              <div>
-                <label className={`block text-sm font-medium ${subTextColor} mb-2`}>
-                  Upload CV/Resume (PDF, DOC, DOCX)
-                </label>
-                <div
-                  onDragEnter={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDragOver={handleDrag}
-                  onDrop={handleDrop}
-                  className={`relative border-2 border-dashed rounded-xl p-6 transition-all duration-300 cursor-pointer ${
-                    dragActive 
-                      ? 'border-[#6366F1] bg-[#6366F1]/10' 
-                      : `${cardBorder} ${dropzoneBg}`
-                  }`}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".pdf,.doc,.docx"
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
-                  
-                  {!selectedFile ? (
-                    <div className="text-center">
-                      <Upload className="w-12 h-12 text-[#6366F1] mx-auto mb-3" />
-                      <p className={subTextColor}>Drag & drop your resume here</p>
-                      <p className={`${isDark ? 'text-[#64748B]' : 'text-gray-400'} text-sm`}>or click to browse</p>
-                      <p className={`${isDark ? 'text-[#64748B]' : 'text-gray-400'} text-xs mt-2`}>Supports PDF, DOC, DOCX</p>
-                    </div>
-                  ) : (
-                    <div className={`flex items-center justify-between ${isDark ? 'bg-[#0F172A]' : 'bg-gray-100'} p-3 rounded-lg`}>
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-[#6366F1]/20 rounded-lg flex items-center justify-center">
-                          <Upload className="w-5 h-5 text-[#6366F1]" />
-                        </div>
-                        <div>
-                          <p className={`text-sm font-medium ${textColor}`}>{selectedFile.name}</p>
-                          <p className={`${isDark ? 'text-[#64748B]' : 'text-gray-400'} text-xs`}>{(selectedFile.size / 1024).toFixed(0)} KB</p>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={removeFile}
-                        className={`p-1 ${isDark ? 'hover:bg-[#1E293B]' : 'hover:bg-gray-200'} rounded-lg transition-colors cursor-pointer`}
-                      >
-                        <X className={`w-5 h-5 ${subTextColor} hover:text-red-400`} />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
+  {/* CV Upload Section */}
+  <div>
+    <label className={`block text-sm font-medium ${subTextColor} mb-2 ${isRTL ? 'text-right' : ''}`}>{currentContent.cvLabel}</label>
+    <div
+      onDragEnter={handleDrag}
+      onDragLeave={handleDrag}
+      onDragOver={handleDrag}
+      onDrop={handleDrop}
+      className={`relative border-2 border-dashed rounded-xl p-6 transition-all duration-300 cursor-pointer ${
+        dragActive 
+          ? 'border-[#6366F1] bg-[#6366F1]/10' 
+          : `${cardBorder} ${dropzoneBg}`
+      }`}
+      onClick={() => fileInputRef.current?.click()}
+    >
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".pdf,.doc,.docx"
+        onChange={handleFileChange}
+        className="hidden"
+      />
+      
+      {!selectedFile ? (
+        <div className="text-center">
+          <Upload className="w-12 h-12 text-[#6366F1] mx-auto mb-3" />
+          <p className={subTextColor}>{currentContent.dragDrop}</p>
+          <p className={`${isDark ? 'text-[#64748B]' : 'text-gray-400'} text-sm`}>{currentContent.clickToBrowse}</p>
+          <p className={`${isDark ? 'text-[#64748B]' : 'text-gray-400'} text-xs mt-2`}>{currentContent.supports}</p>
+        </div>
+      ) : (
+        <div className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : ''} ${isDark ? 'bg-[#0F172A]' : 'bg-gray-100'} p-3 rounded-lg`}>
+          <div className={`flex items-center gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
+            <div className="w-10 h-10 bg-[#6366F1]/20 rounded-lg flex items-center justify-center">
+              <Upload className="w-5 h-5 text-[#6366F1]" />
+            </div>
+            <div>
+              <p className={`text-sm font-medium ${textColor} ${isRTL ? 'text-right' : ''}`}>{selectedFile.name}</p>
+              <p className={`${isDark ? 'text-[#64748B]' : 'text-gray-400'} text-xs`}>{(selectedFile.size / 1024).toFixed(0)} KB</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={removeFile}
+            className={`p-1 ${isDark ? 'hover:bg-[#1E293B]' : 'hover:bg-gray-200'} rounded-lg transition-colors cursor-pointer`}
+          >
+            <X className={`w-5 h-5 ${subTextColor} hover:text-red-400`} />
+          </button>
+        </div>
+      )}
+    </div>
+  </div>
 
-              <div>
-                <label className={`block text-sm font-medium ${subTextColor} mb-2`}>
-                  Why should we hire you?
-                </label>
-                <div className="relative">
-                  <MessageSquare className="absolute left-3 top-3 w-4 h-4 text-[#6366F1]" />
-                  <textarea
-                    name="message"
-                    rows={4}
-                    value={formData.message}
-                    onChange={handleInputChange}
-                    className={`w-full pl-10 pr-4 py-2.5 ${inputBg} border ${inputBorder} rounded-lg ${textColor} focus:outline-none focus:border-[#6366F1] transition-colors resize-none cursor-pointer`}
-                    placeholder="Tell us about your skills, experience, and why you'd be a great fit..."
-                  />
-                </div>
-              </div>
+  <div>
+    <label className={`block text-sm font-medium ${subTextColor} mb-2 ${isRTL ? 'text-right' : ''}`}>{currentContent.whyHire}</label>
+    <div className="relative">
+      <MessageSquare className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-3 w-4 h-4 text-[#6366F1]`} />
+      <textarea
+        name="message"
+        rows={4}
+        value={formData.message}
+        onChange={handleInputChange}
+        className={`w-full ${isRTL ? 'pr-10 pl-4 text-right' : 'pl-10 pr-4'} py-2.5 ${inputBg} border ${inputBorder} rounded-lg ${textColor} focus:outline-none focus:border-[#6366F1] transition-colors resize-none cursor-pointer`}
+        placeholder={currentContent.whyHirePlaceholder}
+      />
+    </div>
+  </div>
 
-              <motion.button
-                type="submit"
-                disabled={submitting}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full py-3.5 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-sans rounded-xl flex items-center justify-center gap-2 hover:shadow-lg transition-all duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {submitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Submitting...
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-4 h-4" />
-                    Submit Application
-                  </>
-                )}
-              </motion.button>
-            </form>
+  <motion.button
+    type="submit"
+    disabled={submitting}
+    whileHover={{ scale: 1.02 }}
+    whileTap={{ scale: 0.98 }}
+    className={`w-full py-3.5 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-sans rounded-xl flex items-center justify-center gap-2 hover:shadow-lg transition-all duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${isRTL ? 'flex-row-reverse' : ''}`}
+  >
+    {submitting ? (
+      <>
+        <Loader2 className="w-4 h-4 animate-spin" />
+        {currentContent.submitting}
+      </>
+    ) : (
+      <>
+        <Send className="w-4 h-4" />
+        {currentContent.submit}
+      </>
+    )}
+  </motion.button>
+</form>
           </motion.div>
         </div>
       </section>
 
       {/* Still Have Questions Section */}
-<section className={`py-20 px-4 sm:px-6 lg:px-8 ${bgColor}`}>
-  <div className="max-w-4xl mx-auto">
-    <div className="relative rounded-2xl overflow-hidden">
-      <div className="absolute inset-0 z-0">
-        <Image
-          src="/car.jpg"
-          alt="Still Have Questions"
-          fill
-          className="object-cover"
-        />
-        <div className={`absolute inset-0 bg-gradient-to-br from-${isDark ? '[#020617]/90' : 'gray-900/90'} via-${isDark ? '[#020617]/80' : 'gray-900/80'} to-${isDark ? '[#0F172A]/90' : 'gray-800/90'}`} />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#6366F1]/20 via-transparent to-[#8B5CF6]/20" />
-      </div>
+      <section className={`py-20 px-4 sm:px-6 lg:px-8 ${bgColor}`}>
+        <div className="max-w-4xl mx-auto">
+          <div className="relative rounded-2xl overflow-hidden">
+            <div className="absolute inset-0 z-0">
+              <Image
+                src="/car.jpg"
+                alt="Still Have Questions"
+                fill
+                className="object-cover"
+              />
+              <div className={`absolute inset-0 bg-gradient-to-br from-${isDark ? '[#020617]/90' : 'gray-900/90'} via-${isDark ? '[#020617]/80' : 'gray-900/80'} to-${isDark ? '[#0F172A]/90' : 'gray-800/90'}`} />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#6366F1]/20 via-transparent to-[#8B5CF6]/20" />
+            </div>
 
-      <div className="relative z-10 px-6 py-8 lg:px-10 lg:py-12">
-        <div className="text-center mb-8 lg:mb-10">
-          <div className={`inline-flex items-center gap-2 px-4 py-2 ${isDark ? 'bg-[#0F172A]/80' : 'bg-white/10'} backdrop-blur-sm border border-[#6366F1]/20 rounded-full mb-4 cursor-pointer hover:border-[#6366F1] hover:bg-[#6366F1]/20 transition-all duration-300`}>
-            <HelpCircle className="w-4 h-4 text-[#6366F1]" />
-            <span className="text-xs font-medium font-sans tracking-wide text-[#6366F1] italic">
-              WE&apos;RE HERE TO HELP
-            </span>
-          </div>
-          
-          <h3 className="text-2xl lg:text-3xl font-bold font-serif tracking-tight bg-gradient-to-r from-[#F8FAFC] to-[#94A3B8] bg-clip-text text-transparent mb-3">
-            Still Have Questions?
-          </h3>
-          
-          <p className="text-[#94A3B8] text-sm lg:text-base max-w-md mx-auto font-light tracking-wide">
-            Can't find what you're looking for? Our team is ready to assist you.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-          {contactOptions.map((option) => {
-            const Icon = option.icon;
-            const FrontStatIcon = option.frontInfo.icon;
-            return (
-              <div
-                key={option.id}
-                className="relative h-[280px] perspective-1000 cursor-pointer group"
-              >
-                <div className={`relative w-full h-full transition-all duration-700 transform-style-3d group-hover:rotate-y-180`}>
-                  {/* Front Side - Default visible with black background */}
-                  <div className="absolute w-full h-full backface-hidden">
-                    <div className={`h-full bg-black/60 backdrop-blur-md border ${cardBorder} rounded-xl p-6 text-center transition-all duration-300 hover:border-[#6366F1]/50 cursor-pointer`}>
-                      <div className="relative mb-4">
-                        <div className={`absolute inset-0 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] rounded-full blur-xl opacity-20`} />
-                        <div className={`relative w-14 h-14 mx-auto bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-full flex items-center justify-center shadow-lg`}>
-                          <Icon className="w-7 h-7 text-white" />
-                        </div>
-                      </div>
-                      
-                      <h4 className="text-white font-semibold font-sans tracking-wide text-lg lg:text-xl mb-2">
-                        {option.title}
-                      </h4>
-                      
-                      <p className="text-[#94A3B8] text-sm mb-3 font-light tracking-wide">
-                        {option.description}
-                      </p>
-                      
-                      <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#6366F1]/10 rounded-full mb-3">
-                        <FrontStatIcon className="w-3.5 h-3.5 text-[#6366F1]" />
-                        <span className="text-[#6366F1] text-xs font-medium font-sans tracking-wide">
-                          {option.frontInfo.stats}
-                        </span>
-                      </div>
-                      
-                      <div className="inline-flex items-center gap-1 text-[#6366F1] text-sm font-medium font-sans tracking-wide group-hover:gap-2 transition-all duration-300">
-                        <span>Hover to flip</span>
-                        <ArrowRight className="w-4 h-4" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Back Side - Shows on hover with BLUE background for all cards */}
-                  <div className="absolute w-full h-full backface-hidden rotate-y-180">
-                    <div className={`h-full bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-xl p-6 text-center flex flex-col items-center justify-center border border-white/20 shadow-xl`}>
-                      <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mb-4">
-                        <Icon className="w-7 h-7 text-white" />
-                      </div>
-                      
-                      <h4 className="text-white font-bold font-sans tracking-wide text-xl mb-3">
-                        {option.title}
-                      </h4>
-                      
-                      {option.id === 1 && (
-                        <div className="space-y-2">
-                          <p className="text-white/90 text-sm font-light tracking-wide">
-                            {option.backInfo.email}
-                          </p>
-                          <p className="text-white/80 text-xs font-light tracking-wide">
-                            {option.backInfo.support}
-                          </p>
-                        </div>
-                      )}
-                      
-                      {option.id === 2 && (
-                        <div className="space-y-2">
-                          <p className="text-white text-lg font-mono font-bold">
-                            {option.backInfo.primary}
-                          </p>
-                          <p className="text-white/80 text-xs flex items-center gap-1 justify-center font-light tracking-wide">
-                            Click to call
-                          </p>
-                          <p className="text-white/70 text-xs mt-2 font-light tracking-wide">
-                            Available on WhatsApp
-                          </p>
-                        </div>
-                      )}
-                      
-                      {option.id === 3 && (
-                        <div className="space-y-2">
-                          <p className="text-white/90 text-sm font-light tracking-wide">
-                            {option.backInfo.duration}
-                          </p>
-                          <p className="text-white/80 text-xs font-light tracking-wide">
-                            {option.backInfo.availability}
-                          </p>
-                        </div>
-                      )}
-                      
-                      <Link href={option.action}>
-                        <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-all duration-300 cursor-pointer">
-                          <span className="text-white text-sm font-medium font-sans tracking-wide">
-                            {option.id === 2 ? 'Call Now' : 'Get Started'}
-                          </span>
-                          <ArrowRight className="w-4 h-4 text-white" />
-                        </div>
-                      </Link>
-                    </div>
-                  </div>
+            <div className="relative z-10 px-6 py-8 lg:px-10 lg:py-12">
+              <div className={`text-center mb-8 lg:mb-10 ${isRTL ? 'rtl' : ''}`}>
+                <div className={`inline-flex items-center gap-2 px-4 py-2 ${isDark ? 'bg-[#0F172A]/80' : 'bg-white/10'} backdrop-blur-sm border border-[#6366F1]/20 rounded-full mb-4 cursor-pointer hover:border-[#6366F1] hover:bg-[#6366F1]/20 transition-all duration-300 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                  <HelpCircle className="w-4 h-4 text-[#6366F1]" />
+                  <span className="text-xs font-medium font-sans tracking-wide text-[#6366F1] italic">
+                    {currentContent.questionsBadge}
+                  </span>
                 </div>
+                
+                <h3 className="text-2xl lg:text-3xl font-bold font-serif tracking-tight bg-gradient-to-r from-[#F8FAFC] to-[#94A3B8] bg-clip-text text-transparent mb-3">
+                  {currentContent.questionsTitle}
+                </h3>
+                
+                <p className="text-[#94A3B8] text-sm lg:text-base max-w-md mx-auto font-light tracking-wide">
+                  {currentContent.questionsDesc}
+                </p>
               </div>
-            );
-          })}
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+                {contactOptions.map((option) => {
+                  const Icon = option.icon;
+                  const FrontStatIcon = option.frontInfo.icon;
+                  return (
+                    <div
+                      key={option.id}
+                      className="relative h-[280px] perspective-1000 cursor-pointer group"
+                    >
+                      <div className={`relative w-full h-full transition-all duration-700 transform-style-3d group-hover:rotate-y-180`}>
+                        {/* Front Side */}
+                        <div className="absolute w-full h-full backface-hidden">
+                          <div className={`h-full bg-black/60 backdrop-blur-md border ${cardBorder} rounded-xl p-6 text-center transition-all duration-300 hover:border-[#6366F1]/50 cursor-pointer`}>
+                            <div className="relative mb-4">
+                              <div className={`absolute inset-0 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] rounded-full blur-xl opacity-20`} />
+                              <div className={`relative w-14 h-14 mx-auto bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-full flex items-center justify-center shadow-lg`}>
+                                <Icon className="w-7 h-7 text-white" />
+                              </div>
+                            </div>
+                            
+                            <h4 className="text-white font-semibold font-sans tracking-wide text-lg lg:text-xl mb-2">
+                              {getContactTitle(option)}
+                            </h4>
+                            
+                            <p className="text-[#94A3B8] text-sm mb-3 font-light tracking-wide">
+                              {getContactDesc(option)}
+                            </p>
+                            
+                            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#6366F1]/10 rounded-full mb-3">
+                              <FrontStatIcon className="w-3.5 h-3.5 text-[#6366F1]" />
+                              <span className="text-[#6366F1] text-xs font-medium font-sans tracking-wide">
+                                {getFrontStats(option)}
+                              </span>
+                            </div>
+                            
+                            <div className="inline-flex items-center gap-1 text-[#6366F1] text-sm font-medium font-sans tracking-wide group-hover:gap-2 transition-all duration-300">
+                              <span>{currentContent.hoverToFlip}</span>
+                              <ArrowRight className="w-4 h-4" />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Back Side */}
+                        <div className="absolute w-full h-full backface-hidden rotate-y-180">
+                          <div className={`h-full bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-xl p-6 text-center flex flex-col items-center justify-center border border-white/20 shadow-xl`}>
+                            <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mb-4">
+                              <Icon className="w-7 h-7 text-white" />
+                            </div>
+                            
+                            <h4 className="text-white font-bold font-sans tracking-wide text-xl mb-3">
+                              {getContactTitle(option)}
+                            </h4>
+                            
+                            {option.id === 1 && (
+                              <div className="space-y-2">
+                                <p className="text-white/90 text-sm font-light tracking-wide">
+                                  {option.backInfo.email}
+                                </p>
+                                <p className="text-white/80 text-xs font-light tracking-wide">
+                                  {option.backInfo.support}
+                                </p>
+                              </div>
+                            )}
+                            
+                            {option.id === 2 && (
+                              <div className="space-y-2">
+                                <p className="text-white text-lg font-mono font-bold">
+                                  {option.backInfo.primary}
+                                </p>
+                                <p className="text-white/80 text-xs flex items-center gap-1 justify-center font-light tracking-wide">
+                                  {getWhatsappText(option)}
+                                </p>
+                                <p className="text-white/70 text-xs mt-2 font-light tracking-wide">
+                                  {isRTL ? 'متاح على واتساب' : 'Available on WhatsApp'}
+                                </p>
+                              </div>
+                            )}
+                            
+                            {option.id === 3 && (
+                              <div className="space-y-2">
+                                <p className="text-white/90 text-sm font-light tracking-wide">
+                                  {getDurationText(option)}
+                                </p>
+                                <p className="text-white/80 text-xs font-light tracking-wide">
+                                  {getAvailabilityText(option)}
+                                </p>
+                              </div>
+                            )}
+                            
+                            <Link href={option.action}>
+                              <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-all duration-300 cursor-pointer">
+                                <span className="text-white text-sm font-medium font-sans tracking-wide">
+                                  {option.id === 2 ? currentContent.callNow : currentContent.getStarted}
+                                </span>
+                                <ArrowRight className="w-4 h-4 text-white" />
+                              </div>
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-  </div>
-</section>
+      </section>
+      
       <style jsx>{`
         .perspective-1000 {
           perspective: 1000px;

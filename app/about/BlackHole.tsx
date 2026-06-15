@@ -6,6 +6,86 @@ import { useEffect, useState } from "react";
 
 export default function Hero() {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [language, setLanguage] = useState<'en' | 'ar'>('en');
+
+  const isRTL = language === 'ar';
+
+  // Content translations
+  const content = {
+    en: {
+      mission: "Mission",
+      vision: "Vision",
+      missionDesc: "Create immersive digital experiences with modern UI and innovation.",
+      visionDesc: "Lead futuristic web experiences with AI-driven and interactive design.",
+      missionPoints: [
+        "Modern & scalable web solutions",
+        "High-performance user experiences",
+        "Creative UI with smooth animations"
+      ],
+      visionPoints: [
+        "AI-powered digital innovation",
+        "Interactive and futuristic interfaces",
+        "Global-quality product experiences"
+      ]
+    },
+    ar: {
+      mission: "الرسالة",
+      vision: "الرؤية",
+      missionDesc: "نصنع تجارب رقمية غامرة بواجهات مستخدم حديثة وابتكار.",
+      visionDesc: "نقود تجارب الويب المستقبلية بتصاميم تفاعلية ومدعومة بالذكاء الاصطناعي.",
+      missionPoints: [
+        "حلول ويب حديثة وقابلة للتطوير",
+        "تجارب مستخدم عالية الأداء",
+        "واجهات إبداعية مع رسوم متحركة سلسة"
+      ],
+      visionPoints: [
+        "ابتكار رقمي مدعوم بالذكاء الاصطناعي",
+        "واجهات تفاعلية ومستقبلية",
+        "تجارب منتج بجودة عالمية"
+      ]
+    }
+  };
+
+  // Listen for language changes
+  useEffect(() => {
+    const checkLanguage = () => {
+      const htmlDir = document.documentElement.getAttribute('dir');
+      const htmlLang = document.documentElement.getAttribute('lang');
+      if (htmlDir === 'rtl' || htmlLang === 'ar') {
+        setLanguage('ar');
+      } else {
+        setLanguage('en');
+      }
+    };
+
+    checkLanguage();
+
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'dir' || mutation.attributeName === 'lang') {
+          checkLanguage();
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, { attributes: true });
+
+    const handleLanguageChange = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail?.language) {
+        setLanguage(customEvent.detail.language);
+      } else {
+        checkLanguage();
+      }
+    };
+
+    window.addEventListener('languageChange', handleLanguageChange);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('languageChange', handleLanguageChange);
+    };
+  }, []);
 
   // System theme detection
   useEffect(() => {
@@ -39,8 +119,9 @@ export default function Hero() {
   }, []);
 
   const isDark = theme === 'dark';
+  const currentContent = content[language];
   
-  // Card backgrounds - White in light mode, dark gradient in dark mode
+  // Card backgrounds
   const cardBg = isDark 
     ? 'bg-gradient-to-br from-[#0F172A]/90 to-[#0F172A]/70'
     : 'bg-white/90 backdrop-blur-sm';
@@ -64,9 +145,9 @@ export default function Hero() {
   const glowHoverColor = isDark ? 'group-hover:bg-[#6366F1]/20' : 'group-hover:bg-indigo-300/40';
 
   return (
-    <section className={`relative w-full min-h-screen overflow-hidden ${isDark ? 'bg-black' : 'bg-white'}`}>
+    <section className={`relative w-full min-h-screen overflow-hidden ${isDark ? 'bg-black' : 'bg-white'}`} dir={isRTL ? 'rtl' : 'ltr'}>
 
-      {/* Background Video - Shows in both modes */}
+      {/* Background Video */}
       <video
         autoPlay
         loop
@@ -80,19 +161,19 @@ export default function Hero() {
         <source src="/blackhole.webm" type="video/webm" />
       </video>
 
-      {/* Overlay - Dark overlay for dark mode to make text readable, light overlay for light mode */}
+      {/* Overlay */}
       {isDark && (
-        <div className="absolute inset-0 bg-black/10 " />
+        <div className="absolute inset-0 bg-black/10" />
       )}
       {!isDark && (
-        <div className="absolute inset-0 bg-black-10 " />
+        <div className="absolute inset-0 bg-black-10" />
       )}
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen text-center px-4 sm:px-6 pt-32 md:pt-0">
         
         {/* Mission Vision Cards */}
-        <div className="mt-6 md:mt-10 grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16 max-w-4xl w-full mx-auto px-4">
+        <div className={`mt-6 md:mt-10 grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16 max-w-4xl w-full mx-auto px-4 ${isRTL ? 'rtl' : ''}`}>
           
           {/* Mission Card */}
           <motion.div
@@ -134,28 +215,20 @@ export default function Hero() {
             <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 md:w-48 md:h-48 ${glowColor} blur-3xl rounded-full ${glowHoverColor} transition-all duration-500`} />
 
             <h3 className={`relative text-xl md:text-2xl font-bold tracking-wide ${textColor} mb-2 md:mb-4 text-center bg-gradient-to-r ${gradientText} bg-clip-text text-transparent`}>
-              Mission
+              {currentContent.mission}
             </h3>
 
-            <p className={`relative text-[12px] md:text-sm ${subTextColor} font-light tracking-wide leading-relaxed mb-4 md:mb-6 text-center px-2`}>
-              Create immersive digital experiences with modern UI and innovation.
+            <p className={`relative text-[12px] md:text-sm ${subTextColor} font-light tracking-wide leading-relaxed mb-4 md:mb-6 text-center px-2 ${isRTL ? 'text-right' : ''}`}>
+              {currentContent.missionDesc}
             </p>
 
             <ul className={`relative space-y-2 md:space-y-3 text-[12px] md:text-sm ${listTextColor}`}>
-              <li className="flex items-center gap-2 md:gap-3 group/item">
-                <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-[#6366F1] flex-shrink-0 group-hover/item:scale-125 transition-transform duration-300" />
-                <span className="text-left group-hover/item:text-[#E2E8F0] transition-colors duration-300">Modern & scalable web solutions</span>
-              </li>
-
-              <li className="flex items-center gap-2 md:gap-3 group/item">
-                <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-[#6366F1] flex-shrink-0 group-hover/item:scale-125 transition-transform duration-300" />
-                <span className="text-left group-hover/item:text-[#E2E8F0] transition-colors duration-300">High-performance user experiences</span>
-              </li>
-
-              <li className="flex items-center gap-2 md:gap-3 group/item">
-                <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-[#6366F1] flex-shrink-0 group-hover/item:scale-125 transition-transform duration-300" />
-                <span className="text-left group-hover/item:text-[#E2E8F0] transition-colors duration-300">Creative UI with smooth animations</span>
-              </li>
+              {currentContent.missionPoints.map((point, idx) => (
+                <li key={idx} className={`flex items-center gap-2 md:gap-3 group/item ${isRTL ? 'flex-row-reverse' : ''}`}>
+                  <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-[#6366F1] flex-shrink-0 group-hover/item:scale-125 transition-transform duration-300" />
+                  <span className={`text-left group-hover/item:text-[#E2E8F0] transition-colors duration-300 ${isRTL ? 'text-right' : ''}`}>{point}</span>
+                </li>
+              ))}
             </ul>
           </motion.div>
 
@@ -198,28 +271,20 @@ export default function Hero() {
             <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 md:w-48 md:h-48 ${glowColor} blur-3xl rounded-full ${glowHoverColor} transition-all duration-500`} />
 
             <h3 className={`relative text-xl md:text-2xl font-bold tracking-wide ${textColor} mb-2 md:mb-4 text-center bg-gradient-to-r ${gradientText} bg-clip-text text-transparent`}>
-              Vision
+              {currentContent.vision}
             </h3>
 
-            <p className={`relative text-[12px] md:text-sm ${subTextColor} font-light tracking-wide leading-relaxed mb-4 md:mb-6 text-center px-2`}>
-              Lead futuristic web experiences with AI-driven and interactive design.
+            <p className={`relative text-[12px] md:text-sm ${subTextColor} font-light tracking-wide leading-relaxed mb-4 md:mb-6 text-center px-2 ${isRTL ? 'text-right' : ''}`}>
+              {currentContent.visionDesc}
             </p>
 
             <ul className={`relative space-y-2 md:space-y-3 text-[12px] md:text-sm ${listTextColor}`}>
-              <li className="flex items-center gap-2 md:gap-3 group/item">
-                <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-[#6366F1] flex-shrink-0 group-hover/item:scale-125 transition-transform duration-300" />
-                <span className="text-left group-hover/item:text-[#E2E8F0] transition-colors duration-300">AI-powered digital innovation</span>
-              </li>
-
-              <li className="flex items-center gap-2 md:gap-3 group/item">
-                <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-[#6366F1] flex-shrink-0 group-hover/item:scale-125 transition-transform duration-300" />
-                <span className="text-left group-hover/item:text-[#E2E8F0] transition-colors duration-300">Interactive and futuristic interfaces</span>
-              </li>
-
-              <li className="flex items-center gap-2 md:gap-3 group/item">
-                <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-[#6366F1] flex-shrink-0 group-hover/item:scale-125 transition-transform duration-300" />
-                <span className="text-left group-hover/item:text-[#E2E8F0] transition-colors duration-300">Global-quality product experiences</span>
-              </li>
+              {currentContent.visionPoints.map((point, idx) => (
+                <li key={idx} className={`flex items-center gap-2 md:gap-3 group/item ${isRTL ? 'flex-row-reverse' : ''}`}>
+                  <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-[#6366F1] flex-shrink-0 group-hover/item:scale-125 transition-transform duration-300" />
+                  <span className={`text-left group-hover/item:text-[#E2E8F0] transition-colors duration-300 ${isRTL ? 'text-right' : ''}`}>{point}</span>
+                </li>
+              ))}
             </ul>
           </motion.div>
         </div>

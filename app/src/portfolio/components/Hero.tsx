@@ -22,15 +22,83 @@ const Hero = () => {
   const [currentTech, setCurrentTech] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [language, setLanguage] = useState<'en' | 'ar'>('en');
   
-  // Tech stack array for animation
+  // Tech stack array for animation with Arabic names
   const techStacks = [
-    { name: 'React', icon: Code2, color: '#6366F1' },
-    { name: 'Node.js', icon: Globe, color: '#22C55E' },
-    { name: 'Python', icon: Cpu, color: '#8B5CF6' },
-    { name: 'Next.js', icon: Zap, color: '#F59E0B' },
-    { name: 'TypeScript', icon: Shield, color: '#3B82F6' },
+    { name: 'React', nameAr: 'رياكت', icon: Code2, color: '#6366F1' },
+    { name: 'Node.js', nameAr: 'نود.جيه إس', icon: Globe, color: '#22C55E' },
+    { name: 'Python', nameAr: 'بايثون', icon: Cpu, color: '#8B5CF6' },
+    { name: 'Next.js', nameAr: 'نكست.جيه إس', icon: Zap, color: '#F59E0B' },
+    { name: 'TypeScript', nameAr: 'تايپ‌اسكريبت', icon: Shield, color: '#3B82F6' },
   ];
+
+  // Arabic content
+  const arabicContent = {
+    badge: 'مرحباً بكم في نستيك تك',
+    headingLine1: 'شريك أعمالك',
+    headingHighlight: 'الرقمية',
+    headingLine2: '',
+    poweredBy: 'تعمل بـ',
+    description: 'نحن لا ننشئ فقط تطبيقات أو مواقع ويب — بل نقدم حلولاً رقمية متكاملة، نساعد الشركات على النمو والتوسع والنجاح من الفكرة إلى التنفيذ.',
+    primaryBtn: 'احجز استشارة مجانية',
+    secondaryBtn: 'احصل على عرض سعر',
+  };
+
+  const englishContent = {
+    badge: 'Welcome to Nestick Tech',
+    headingLine1: 'Your',
+    headingHighlight: 'Digital Business',
+    headingLine2: 'Partner',
+    poweredBy: 'Powered by',
+    description: 'We don\'t just build apps or websites — we provide complete digital solutions, helping businesses grow, scale, and succeed from idea to execution.',
+    primaryBtn: 'Book Free Consultation',
+    secondaryBtn: 'Get Quote',
+  };
+
+  const isRTL = language === 'ar';
+  const currentContent = isRTL ? arabicContent : englishContent;
+
+  // Listen for language changes from navbar
+  useEffect(() => {
+    const checkLanguage = () => {
+      const htmlDir = document.documentElement.getAttribute('dir');
+      const htmlLang = document.documentElement.getAttribute('lang');
+      if (htmlDir === 'rtl' || htmlLang === 'ar') {
+        setLanguage('ar');
+      } else {
+        setLanguage('en');
+      }
+    };
+
+    checkLanguage();
+
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'dir' || mutation.attributeName === 'lang') {
+          checkLanguage();
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, { attributes: true });
+
+    const handleLanguageChange = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail?.language) {
+        setLanguage(customEvent.detail.language);
+      } else {
+        checkLanguage();
+      }
+    };
+
+    window.addEventListener('languageChange', handleLanguageChange);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('languageChange', handleLanguageChange);
+    };
+  }, []);
 
   // System theme detection
   useEffect(() => {
@@ -182,9 +250,10 @@ const Hero = () => {
   };
 
   const CurrentIcon = techStacks[currentTech].icon;
+  const currentTechName = isRTL ? techStacks[currentTech].nameAr : techStacks[currentTech].name;
 
   return (
-    <section className={`relative min-h-screen ${bgColor} overflow-hidden pt-24 sm:pt-28 lg:pt-32 pb-12 sm:pb-16 lg:pb-20`}>
+    <section className={`relative min-h-screen ${bgColor} overflow-hidden pt-24 sm:pt-28 lg:pt-32 pb-12 sm:pb-16 lg:pb-20`} dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Background Image */}
       <div className="absolute inset-0 w-full h-full">
         <img 
@@ -194,7 +263,6 @@ const Hero = () => {
           loading="eager"
           fetchPriority="high"
         />
-        {/* NO overlay in light mode, dark overlay in dark mode */}
         <div className={`absolute inset-0 ${overlayColor}`}></div>
       </div>
 
@@ -216,41 +284,51 @@ const Hero = () => {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="relative flex flex-col items-center lg:items-start text-center lg:text-left max-w-2xl mx-auto lg:mx-0 w-full space-y-5 sm:space-y-6 z-10 order-1"
+            className={`relative flex flex-col items-center ${isRTL ? 'lg:items-end text-right' : 'lg:items-start text-center lg:text-left'} max-w-2xl mx-auto lg:mx-0 w-full space-y-5 sm:space-y-6 z-10 order-1`}
           >
             {/* Background Glow Effect - theme-aware */}
             <div className={`absolute -top-10 left-1/2 -translate-x-1/2 lg:left-0 lg:translate-x-0 w-72 h-72 ${isDark ? 'bg-[#6366F1]/30' : 'bg-[#6366F1]/30'} blur-3xl rounded-full -z-10`} />
 
             {/* Badge - Same in both modes */}
             <motion.div variants={badgeVariants}>
-              <span className={`inline-flex items-center gap-2 px-4 sm:px-5 py-1.5 sm:py-2 ${badgeBg} border ${badgeBorder} rounded-full backdrop-blur-md`}>
+              <span className={`inline-flex items-center gap-2 px-4 sm:px-5 py-1.5 sm:py-2 ${badgeBg} border ${badgeBorder} rounded-full backdrop-blur-md ${isRTL ? 'flex-row-reverse' : ''}`}>
                 <Sparkles className="w-4 sm:w-5 h-4 sm:h-5 text-[#6366F1]" />
                 <span className={`text-xs sm:text-sm font-medium font-sans tracking-wide ${badgeText}`}>
-                  Welcome to Nestick Tech
+                  {currentContent.badge}
                 </span>
               </span>
             </motion.div>
 
             {/* Heading - White text always */}
             <motion.div variants={textVariants} className="w-full">
-              <h1 className={`text-3xl sm:text-4xl lg:text-5xl font-bold font-serif ${textColor} leading-[1.2] tracking-tight`}>
-                <span className="block lg:inline lg:whitespace-nowrap">Your</span>{' '}
-                <span className="block lg:inline">
+              {isRTL ? (
+                <h1 className={`text-3xl sm:text-4xl lg:text-5xl font-bold font-serif ${textColor} leading-[1.2] tracking-tight`}>
                   <span className={`bg-gradient-to-r ${gradientFrom} ${gradientTo} bg-clip-text text-transparent relative`}>
-                    Digital Business
-                    <span className={`absolute left-0 -bottom-1 w-full h-2 bg-gradient-to-r ${gradientFrom}/40 ${gradientTo}/40 blur-sm rounded-full`}></span>
-                  </span>
-                </span>{' '}
-                <span className="block lg:inline lg:whitespace-nowrap">Partner</span>
-              </h1>
+                    {currentContent.headingHighlight}
+                    <span className={`absolute -bottom-1 w-full h-2 bg-gradient-to-r ${gradientFrom}/40 ${gradientTo}/40 blur-sm rounded-full ${isRTL ? 'right-0' : 'left-0'}`}></span>
+                  </span>{' '}
+                  <span className="block lg:inline lg:whitespace-nowrap">{currentContent.headingLine1}</span>
+                </h1>
+              ) : (
+                <h1 className={`text-3xl sm:text-4xl lg:text-5xl font-bold font-serif ${textColor} leading-[1.2] tracking-tight`}>
+                  <span className="block lg:inline lg:whitespace-nowrap">{currentContent.headingLine1}</span>{' '}
+                  <span className="block lg:inline">
+                    <span className={`bg-gradient-to-r ${gradientFrom} ${gradientTo} bg-clip-text text-transparent relative`}>
+                      {currentContent.headingHighlight}
+                      <span className={`absolute left-0 -bottom-1 w-full h-2 bg-gradient-to-r ${gradientFrom}/40 ${gradientTo}/40 blur-sm rounded-full`}></span>
+                    </span>
+                  </span>{' '}
+                  <span className="block lg:inline lg:whitespace-nowrap">{currentContent.headingLine2}</span>
+                </h1>
+              )}
             </motion.div>
 
             {/* Tech Stack - White text always */}
             <motion.div
               variants={textVariants}
-              className="flex items-center gap-2 sm:gap-3 justify-center lg:justify-start"
+              className={`flex items-center gap-2 sm:gap-3 ${isRTL ? 'justify-center lg:justify-end' : 'justify-center lg:justify-start'}`}
             >
-              <span className={`text-sm sm:text-base lg:text-lg ${subTextColor} font-light tracking-wide`}>Powered by</span>
+              <span className={`text-sm sm:text-base lg:text-lg ${subTextColor} font-light tracking-wide`}>{currentContent.poweredBy}</span>
 
               <div className="relative h-8 sm:h-10 lg:h-12 overflow-hidden">
                 <AnimatePresence mode="wait">
@@ -260,7 +338,7 @@ const Hero = () => {
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: -30, opacity: 0 }}
                     transition={{ duration: 0.4 }}
-                    className="flex items-center gap-1.5 sm:gap-2"
+                    className={`flex items-center gap-1.5 sm:gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}
                   >
                     <div
                       className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded-xl bg-gradient-to-br p-1.5 sm:p-2 shadow-md"
@@ -275,7 +353,7 @@ const Hero = () => {
                       className="text-base sm:text-lg lg:text-xl font-semibold font-sans tracking-wide"
                       style={{ color: techStacks[currentTech].color }}
                     >
-                      {techStacks[currentTech].name}
+                      {currentTechName}
                     </span>
                   </motion.div>
                 </AnimatePresence>
@@ -285,15 +363,15 @@ const Hero = () => {
             {/* Description - White text always */}
             <motion.p
               variants={textVariants}
-              className={`text-sm sm:text-base ${subTextColor} max-w-xl leading-relaxed font-light tracking-wide px-2 sm:px-0`}
+              className={`text-sm sm:text-base ${subTextColor} max-w-xl leading-relaxed font-light tracking-wide px-2 sm:px-0 ${isRTL ? 'text-right' : ''}`}
             >
-              We don&apos;t just build apps or websites — we provide complete digital solutions, helping businesses grow, scale, and succeed from idea to execution.
+              {currentContent.description}
             </motion.p>
 
             {/* CTA Buttons */}
             <motion.div
               variants={containerVariants}
-              className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full max-w-md px-2 mb-4 sm:px-0 justify-center items-center"
+              className={`flex flex-col sm:flex-row gap-3 sm:gap-4 w-full max-w-md px-2 mb-4 sm:px-0 justify-center items-center ${isRTL ? 'sm:flex-row-reverse' : ''}`}
             >
               {/* Primary Button */}
               <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap" className="flex-1 w-full">
@@ -301,9 +379,9 @@ const Hero = () => {
                   href="/consultation"
                   className={`group relative flex items-center justify-center w-full px-4 sm:px-5 py-3 sm:py-3.5 bg-gradient-to-r ${gradientFrom} ${gradientTo} text-white font-sans rounded-xl overflow-hidden shadow-lg transition-all duration-300 text-center text-sm sm:text-base whitespace-nowrap`}
                 >
-                  <span className="relative z-10 flex items-center justify-center gap-2 font-sans">
-                    Book Free Consultation
-                    <ArrowRight className="w-3.5 sm:w-4 h-3.5 sm:h-4 group-hover:translate-x-1 transition-transform duration-300 flex-shrink-0" />
+                  <span className={`relative z-10 flex items-center justify-center gap-2 font-sans ${isRTL ? 'flex-row-reverse' : ''}`}>
+                    {currentContent.primaryBtn}
+                    <ArrowRight className={`w-3.5 sm:w-4 h-3.5 sm:h-4 group-hover:translate-x-1 transition-transform duration-300 flex-shrink-0 ${isRTL ? 'rotate-180 group-hover:-translate-x-1' : 'group-hover:translate-x-1'}`} />
                   </span>
                   <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </Link>
@@ -315,7 +393,7 @@ const Hero = () => {
                   href="/get-quote"
                   className={`group flex items-center justify-center w-full px-4 sm:px-5 py-3 sm:py-3.5 ${secondaryButtonBg} backdrop-blur-md border ${secondaryButtonBorder} ${secondaryButtonText} font-sans rounded-xl hover:border-[#6366F1] hover:bg-[#6366F1]/10 transition-all duration-300 text-center text-sm sm:text-base whitespace-nowrap`}
                 >
-                  Get Quote
+                  {currentContent.secondaryBtn}
                 </Link>
               </motion.div>
             </motion.div>
