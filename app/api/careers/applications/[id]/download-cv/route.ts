@@ -46,35 +46,42 @@ export async function GET(
         );
       }
 
-      // ✅ FIX: File path outside public folder
-      let filePath: string;
-      
-      // Check if cv_file is old format (starts with /uploads/careers/)
-      if (cv_file.startsWith('/uploads/careers/')) {
-        // Old format: /uploads/careers/123456_resume.pdf
-        // Remove leading slash and use uploads folder
-        const filename = cv_file.replace('/uploads/careers/', '');
+      // ✅ FIX: Check both formats
+      let filePath: string = '';
+      let filename: string = '';
+
+      // Case 1: New format - just filename (ID 39)
+      if (!cv_file.includes('/')) {
+        filename = cv_file;
         filePath = path.join(process.cwd(), 'uploads', 'careers', filename);
-      } else {
-        // New format: just filename (123456_resume.pdf)
-        filePath = path.join(process.cwd(), 'uploads', 'careers', cv_file);
+      } 
+      // Case 2: Old format - /uploads/careers/filename (ID 38, 37)
+      else if (cv_file.startsWith('/uploads/careers/')) {
+        filename = cv_file.replace('/uploads/careers/', '');
+        // Try new location first
+        const newPath = path.join(process.cwd(), 'uploads', 'careers', filename);
+        if (existsSync(newPath)) {
+          filePath = newPath;
+        } else {
+          // Fallback to old public location
+          filePath = path.join(process.cwd(), 'public', 'uploads', 'careers', filename);
+        }
+      }
+      // Case 3: Any other format
+      else {
+        filename = path.basename(cv_file);
+        filePath = path.join(process.cwd(), 'uploads', 'careers', filename);
+        if (!existsSync(filePath)) {
+          filePath = path.join(process.cwd(), 'public', 'uploads', 'careers', filename);
+        }
       }
 
       // Check if file exists
       if (!existsSync(filePath)) {
-        // Fallback: try old public folder
-        const oldPath = path.join(process.cwd(), 'public', 'uploads', 'careers', 
-          cv_file.includes('/') ? cv_file.split('/').pop() || cv_file : cv_file
+        return NextResponse.json(
+          { success: false, error: 'CV file not found on server' },
+          { status: 404 }
         );
-        
-        if (existsSync(oldPath)) {
-          filePath = oldPath;
-        } else {
-          return NextResponse.json(
-            { success: false, error: 'CV file not found on server' },
-            { status: 404 }
-          );
-        }
       }
 
       // Read the file
