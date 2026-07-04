@@ -15,7 +15,6 @@ const pool = mysql.createPool({
   connectionLimit: 10,
 });
 
-// Email transporter
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -24,30 +23,27 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Helper function to save file to local folder
+// ✅ FIXED: Save file outside public folder
 async function saveFile(base64String: string, filename: string): Promise<string> {
   try {
-    // Extract base64 data
     let base64Data = base64String;
     if (base64String.includes(',')) {
       base64Data = base64String.split(',')[1];
     }
     
     const buffer = Buffer.from(base64Data, 'base64');
-    
-    // Create unique filename
     const timestamp = Date.now();
     const uniqueFilename = `${timestamp}_${filename.replace(/\s/g, '_')}`;
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'careers');
     
-    // Ensure directory exists
+    // ✅ CHANGE 1: Remove 'public' from path
+    const uploadDir = path.join(process.cwd(), 'uploads', 'careers');
     await mkdir(uploadDir, { recursive: true });
     
-    // Save file
     const filePath = path.join(uploadDir, uniqueFilename);
     await writeFile(filePath, buffer);
     
-    return `/uploads/careers/${uniqueFilename}`;
+    // ✅ CHANGE 2: Return only filename
+    return uniqueFilename;
   } catch (error) {
     console.error('File save error:', error);
     throw error;
@@ -71,7 +67,6 @@ export async function POST(req: NextRequest) {
       cvFileSize
     } = body;
 
-    // Validation
     if (!fullName || !email || !phone || !position || !experience || !message || !cvFile) {
       return NextResponse.json(
         { success: false, error: 'All required fields must be filled' },
@@ -79,7 +74,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Save CV file locally
     let cvPath = '';
     try {
       cvPath = await saveFile(cvFile, cvFilename);
@@ -94,7 +88,6 @@ export async function POST(req: NextRequest) {
     const connection = await pool.getConnection();
 
     try {
-      // Insert application into database
       const [result] = await connection.execute(
         `INSERT INTO career_applications 
          (full_name, email, phone, position, experience, portfolio, message, category, 
@@ -109,14 +102,17 @@ export async function POST(req: NextRequest) {
           portfolio || null,
           message.trim(),
           category,
-          cvPath,
+          cvPath, // ✅ Now stores only filename
           cvFilename,
           cvFileSize || 0
         ]
       );
 
-      // Send email to admin
       const adminEmail = process.env.ADMIN_EMAIL || 'nesticktech@gmail.com';
+      
+      // ✅ CHANGE 3: Generate download URL
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://nesticktech.com';
+      const downloadUrl = `${baseUrl}/api/download-cv?file=${cvPath}`;
       
       const emailHtml = `
         <!DOCTYPE html>
@@ -130,6 +126,15 @@ export async function POST(req: NextRequest) {
             .field { margin-bottom: 15px; }
             .field-label { font-weight: bold; color: #374151; width: 140px; display: inline-block; }
             .field-value { color: #111827; }
+            .download-btn {
+              display: inline-block;
+              background: #6366F1;
+              color: white !important;
+              padding: 12px 24px;
+              text-decoration: none;
+              border-radius: 8px;
+              margin-top: 10px;
+            }
             .footer { background: #f3f4f6; padding: 15px; text-align: center; font-size: 12px; color: #6b7280; border-radius: 0 0 10px 10px; }
           </style>
         </head>
@@ -172,7 +177,9 @@ export async function POST(req: NextRequest) {
               </div>
               <div class="field">
                 <span class="field-label">CV:</span>
-                <span class="field-value"><a href="${cvPath}" target="_blank">Download CV</a></span>
+                <span class="field-value">
+                  <a href="${downloadUrl}" class="download-btn" target="_blank">📄 Download CV</a>
+                </span>
               </div>
             </div>
             <div class="footer">
@@ -184,7 +191,6 @@ export async function POST(req: NextRequest) {
         </html>
       `;
 
-      // Send email to admin
       await transporter.sendMail({
         from: `"Nestick Tech Careers" <${process.env.EMAIL_USER}>`,
         to: adminEmail,
@@ -193,7 +199,6 @@ export async function POST(req: NextRequest) {
         replyTo: email,
       });
 
-      // Send auto-reply to user
       await transporter.sendMail({
         from: `"Nestick Tech Careers" <${process.env.EMAIL_USER}>`,
         to: email,

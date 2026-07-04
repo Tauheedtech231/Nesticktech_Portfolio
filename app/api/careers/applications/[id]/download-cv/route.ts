@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import mysql from 'mysql2/promise';
 import { readFile } from 'fs/promises';
+import { existsSync } from 'fs';
 import path from 'path';
 
 const pool = mysql.createPool({
@@ -45,23 +46,49 @@ export async function GET(
         );
       }
 
-      // Construct the full file path
-      // cv_file is like: /uploads/careers/1234567_resume.pdf
-      const relativePath = cv_file.startsWith('/') ? cv_file.slice(1) : cv_file;
-      const filePath = path.join(process.cwd(), 'public', relativePath);
+      // ✅ FIX: File path outside public folder
+      let filePath: string;
+      
+      // Check if cv_file is old format (starts with /uploads/careers/)
+      if (cv_file.startsWith('/uploads/careers/')) {
+        // Old format: /uploads/careers/123456_resume.pdf
+        // Remove leading slash and use uploads folder
+        const filename = cv_file.replace('/uploads/careers/', '');
+        filePath = path.join(process.cwd(), 'uploads', 'careers', filename);
+      } else {
+        // New format: just filename (123456_resume.pdf)
+        filePath = path.join(process.cwd(), 'uploads', 'careers', cv_file);
+      }
+
+      // Check if file exists
+      if (!existsSync(filePath)) {
+        // Fallback: try old public folder
+        const oldPath = path.join(process.cwd(), 'public', 'uploads', 'careers', 
+          cv_file.includes('/') ? cv_file.split('/').pop() || cv_file : cv_file
+        );
+        
+        if (existsSync(oldPath)) {
+          filePath = oldPath;
+        } else {
+          return NextResponse.json(
+            { success: false, error: 'CV file not found on server' },
+            { status: 404 }
+          );
+        }
+      }
 
       // Read the file
       const fileBuffer = await readFile(filePath);
 
-      // Determine content type based on file extension
+      // Determine content type
       let contentType = 'application/octet-stream';
-      if (cv_filename.endsWith('.pdf')) {
+      const ext = cv_filename.toLowerCase();
+      if (ext.endsWith('.pdf')) {
         contentType = 'application/pdf';
-      } else if (cv_filename.endsWith('.doc')) {
+      } else if (ext.endsWith('.doc')) {
         contentType = 'application/msword';
-      } else if (cv_filename.endsWith('.docx')) {
-        contentType =
-          'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      } else if (ext.endsWith('.docx')) {
+        contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
       }
 
       return new NextResponse(fileBuffer, {
