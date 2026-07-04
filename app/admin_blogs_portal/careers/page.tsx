@@ -546,36 +546,30 @@ export default function CareersPage() {
     }
   };
 
-  const viewCV = (app: Application) => {
-    if (app.cv_file) {
-      let fileUrl = app.cv_file;
-      if (fileUrl.startsWith('/uploads/')) {
-        fileUrl = window.location.origin + fileUrl;
-      }
-      window.open(fileUrl, '_blank');
-    } else {
-      alert('No CV file available');
-    }
-  };
+const viewCV = (app: Application) => {
+  if (app.cv_file) {
+    // API endpoint use karein
+    const fileUrl = `/api/careers/applications/${app.id}/view-cv`;
+    window.open(fileUrl, '_blank');
+  } else {
+    alert('No CV file available');
+  }
+};
 
-  const downloadCV = (app: Application) => {
-    if (app.cv_file) {
-      let fileUrl = app.cv_file;
-      if (fileUrl.startsWith('/uploads/')) {
-        fileUrl = window.location.origin + fileUrl;
-      }
-      const link = document.createElement('a');
-      link.href = fileUrl;
-      link.download = app.cv_filename || 'cv_file';
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } else {
-      alert('No CV file available');
-    }
-  };
-
+const downloadCV = (app: Application) => {
+  if (app.cv_file) {
+    // ✅ API endpoint use karein
+    const fileUrl = `/api/careers/applications/${app.id}/download-cv`;
+    const link = document.createElement('a');
+    link.href = fileUrl;
+    link.download = app.cv_filename || 'cv_file';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } else {
+    alert('No CV file available');
+  }
+};
   const sendEmailToStudent = async () => {
     if (!selectedApp) return;
     
