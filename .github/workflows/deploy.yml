@@ -1,0 +1,121 @@
+name: Official Site Docker Deployment
+
+permissions:
+  contents: read
+  packages: write
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      IMAGE_NAME: ghcr.io/neezamiya-insti/nesticktech_portfolio:latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Docker Image
+        run: |
+          docker build \
+            -t $IMAGE_NAME .
+
+      - name: Push Docker Image
+        run: |
+          docker push $IMAGE_NAME
+
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: root
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: 22
+
+          script: |
+            set -e
+
+            echo "======================================"
+            echo "✅ Connected to VPS"
+            echo "======================================"
+
+            echo "🔐 Logging into GHCR..."
+
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io \
+              -u "${{ secrets.GHCR_USERNAME }}" \
+              --password-stdin
+
+            echo "📥 Pulling latest Official Site image..."
+
+            docker pull ghcr.io/neezamiya-insti/nesticktech_portfolio:latest
+
+            echo "🛑 Stopping old Official Site container..."
+
+            docker stop Nestick_Official_site || true
+
+            echo "🗑 Removing old Official Site container..."
+
+            docker rm Nestick_Official_site || true
+
+            echo "🚀 Starting Official Site container..."
+
+            docker run -d \
+              --name Nestick_Official_site \
+              --restart unless-stopped \
+              -p 3005:3000 \
+              -e NEXT_PUBLIC_APP_URL="${{ secrets.NEXT_PUBLIC_APP_URL }}" \
+              -e DB_HOST="${{ secrets.DB_HOST }}" \
+              -e DB_PORT="${{ secrets.DB_PORT }}" \
+              -e DB_USER="${{ secrets.DB_USER }}" \
+              -e DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
+              -e DB_NAME="${{ secrets.DB_NAME }}" \
+              -e EMAIL_USER="${{ secrets.EMAIL_USER }}" \
+              -e EMAIL_PASS="${{ secrets.EMAIL_PASS }}" \
+              -e INDEXNOW_KEY="${{ secrets.INDEXNOW_KEY }}" \
+              ghcr.io/neezamiya-insti/nesticktech_portfolio:latest
+
+            echo "⏳ Waiting for application startup..."
+
+            sleep 30
+
+            echo "📦 Checking container status..."
+
+            STATUS=$(docker inspect --format='{{.State.Status}}' Nestick_Official_site)
+
+            echo "Container Status: $STATUS"
+
+            if [ "$STATUS" != "running" ]; then
+              echo "❌ Official Site container failed to start"
+              docker logs Nestick_Official_site
+              exit 1
+            fi
+
+            echo "🌐 Checking Official Site Health API..."
+
+            if curl -fs http://localhost:3005/api/health > /dev/null; then
+              echo "✅ Official Site Health API Passed"
+            else
+              echo "❌ Official Site Health API Failed"
+              docker logs Nestick_Official_site
+              exit 1
+            fi
+
+            echo "📦 Running Containers..."
+
+            docker ps
+
+            echo "======================================"
+            echo "🎉 Official Site Deployment Completed"
+            echo "======================================"
