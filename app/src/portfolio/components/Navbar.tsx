@@ -181,7 +181,7 @@ const Navbar = () => {
               {/* Logo - cursor pointer */}
               <Link href="/" className="flex-shrink-0 group cursor-pointer">
                 <span className={`text-lg sm:text-xl font-bold font-serif tracking-tight transition-transform duration-300 ${themeClasses.logoText} cursor-pointer`}>
-                  {companyName}Tauheed
+                  {companyName}
                 </span>
               </Link>
 

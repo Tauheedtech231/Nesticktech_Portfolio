@@ -287,7 +287,7 @@ const CareersPage = () => {
     {
       id: 1,
       icon: Mail,
-      titleEn: "Email Us",
+      titleEn: "Email ",
       titleAr: "راسلنا",
       descriptionEn: "Get a response within 24 hours",
       descriptionAr: "احصل على رد خلال 24 ساعة",
@@ -309,7 +309,7 @@ const CareersPage = () => {
     {
       id: 2,
       icon: Phone,
-      titleEn: "Call Us",
+      titleEn: "Call",
       titleAr: "اتصل بنا",
       descriptionEn: "Mon-Fri, 9AM - 6PM",
       descriptionAr: "الإثنين - الجمعة، 9 صباحاً - 6 مساءً",
