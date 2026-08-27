@@ -3,8 +3,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
-import { Quote, Star, ChevronLeft, ChevronRight } from "lucide-react";
-import Image from "next/image";
+import { Quote, Star, ChevronLeft, ChevronRight, X } from "lucide-react";
 
 type Testimonial = {
   id: number;
@@ -19,6 +18,15 @@ type Testimonial = {
   textAr: string;
   rating: number;
   is_active: boolean;
+};
+
+type Feedback = {
+  id: string;
+  name: string;
+  text: string;
+  rating: number;
+  timestamp: string;
+  isActive: boolean;
 };
 
 // HARDCODED TESTIMONIALS DATA (as per database table)
@@ -106,6 +114,15 @@ const staticContent = {
     satisfiedText: 'satisfied clients who trust Nestick Tech',
     ratedText: 'Rated 4.9/5 on Trustpilot',
     noTestimonials: 'No testimonials available yet. Check back soon!',
+    giveFeedback: 'Feedback',
+    feedbackTitle: 'Share Your Feedback',
+    feedbackPlaceholder: 'Write your feedback here...',
+    feedbackName: 'Your Name',
+    feedbackSubmit: 'Submit Feedback',
+    feedbackCancel: 'Cancel',
+    feedbackSuccess: 'Thank you for your feedback!',
+    feedbackError: 'Please fill in all fields',
+    feedbackRating: 'Rate your experience',
   },
   ar: {
     badge: 'شهادات العملاء',
@@ -116,6 +133,15 @@ const staticContent = {
     satisfiedText: 'عميل راضٍ يثقون في نستيك تك',
     ratedText: 'تم التقييم 4.9/5 على Trustpilot',
     noTestimonials: 'لا توجد شهادات حالياً. تابعنا قريباً!',
+    giveFeedback: 'ملاحظات',
+    feedbackTitle: 'شارك ملاحظاتك',
+    feedbackPlaceholder: 'اكتب ملاحظاتك هنا...',
+    feedbackName: 'اسمك',
+    feedbackSubmit: 'إرسال الملاحظات',
+    feedbackCancel: 'إلغاء',
+    feedbackSuccess: 'شكراً لملاحظاتك!',
+    feedbackError: 'يرجى ملء جميع الحقول',
+    feedbackRating: 'قيم تجربتك',
   }
 };
 
@@ -190,9 +216,77 @@ export default function TestimonialSection() {
   const [direction, setDirection] = useState(0);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [language, setLanguage] = useState<'en' | 'ar'>('en');
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [feedbackName, setFeedbackName] = useState('');
+  const [feedbackText, setFeedbackText] = useState('');
+  const [feedbackRating, setFeedbackRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [userFeedbacks, setUserFeedbacks] = useState<Feedback[]>([]);
 
   const isRTL = language === 'ar';
   const currentContent = staticContent[language];
+
+  // Load feedbacks from localStorage
+  useEffect(() => {
+    const loadFeedbacks = () => {
+      try {
+        const stored = localStorage.getItem('userFeedbacks');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          // Only show active feedbacks
+          const activeFeedbacks = parsed.filter((fb: Feedback) => fb.isActive !== false);
+          setUserFeedbacks(activeFeedbacks);
+        }
+      } catch (error) {
+        console.error('Error loading feedbacks:', error);
+      }
+    };
+    loadFeedbacks();
+  }, []);
+
+  // Save feedback to localStorage
+  const saveFeedback = (feedback: Feedback) => {
+    try {
+      const stored = localStorage.getItem('userFeedbacks');
+      const feedbacks: Feedback[] = stored ? JSON.parse(stored) : [];
+      feedbacks.push(feedback);
+      localStorage.setItem('userFeedbacks', JSON.stringify(feedbacks));
+      // Update state with active feedbacks only
+      const activeFeedbacks = feedbacks.filter((fb: Feedback) => fb.isActive !== false);
+      setUserFeedbacks(activeFeedbacks);
+    } catch (error) {
+      console.error('Error saving feedback:', error);
+    }
+  };
+
+  // Handle feedback submission
+  const handleFeedbackSubmit = () => {
+    if (!feedbackName.trim() || !feedbackText.trim() || feedbackRating === 0) {
+      alert(currentContent.feedbackError);
+      return;
+    }
+
+    const newFeedback: Feedback = {
+      id: `feedback-${Date.now()}`,
+      name: feedbackName.trim(),
+      text: feedbackText.trim(),
+      rating: feedbackRating,
+      timestamp: new Date().toISOString(),
+      isActive: true
+    };
+
+    saveFeedback(newFeedback);
+    setFeedbackSubmitted(true);
+    setTimeout(() => {
+      setShowFeedbackModal(false);
+      setFeedbackSubmitted(false);
+      setFeedbackName('');
+      setFeedbackText('');
+      setFeedbackRating(0);
+      setHoverRating(0);
+    }, 2000);
+  };
 
   // Listen for language changes
   useEffect(() => {
@@ -266,50 +360,80 @@ export default function TestimonialSection() {
     };
   }, []);
 
-  // ONLY fetch images from API, text is hardcoded
+  // Fetch data from API and save to sessionStorage
   useEffect(() => {
-    const fetchImages = async () => {
+    const fetchTestimonials = async () => {
       try {
+        // Check if data exists in sessionStorage
+        const cachedData = sessionStorage.getItem('testimonialsData');
+        if (cachedData) {
+          const parsedData = JSON.parse(cachedData);
+          setTestimonials(parsedData);
+          setLoading(false);
+          return;
+        }
+
+        // If not in sessionStorage, fetch from API
         const response = await fetch('/api/testimonials');
         const data = await response.json();
         
+        let apiTestimonials: Testimonial[] = [];
         if (data.success && data.testimonials.length > 0) {
-          // Only update images from API, keep hardcoded text
-          const updatedTestimonials = hardcodedTestimonials.map(hardcoded => {
-            const apiItem = data.testimonials.find((api: any) => api.id === hardcoded.id);
-            return {
-              ...hardcoded,
-              image: apiItem?.image || "" // Only take image from API
-            };
-          }).filter(t => t.is_active);
-          
-          setTestimonials(updatedTestimonials);
-        } else {
-          // If API fails, show hardcoded data without images
-          setTestimonials(hardcodedTestimonials.filter(t => t.is_active));
+          // Map API data to our format (only text, no images)
+          apiTestimonials = data.testimonials.map((apiItem: any) => ({
+            id: apiItem.id,
+            name: apiItem.name || "Client",
+            nameAr: apiItem.nameAr || apiItem.name || "عميل",
+            role: apiItem.role || "Client",
+            roleAr: apiItem.roleAr || apiItem.role || "عميل",
+            company: apiItem.company || "Nestick Tech",
+            companyAr: apiItem.companyAr || apiItem.company || "نستيك تك",
+            image: "", // No images, will show avatar
+            text: apiItem.text || "",
+            textAr: apiItem.textAr || apiItem.text || "",
+            rating: apiItem.rating || 5,
+            is_active: apiItem.is_active !== false
+          }));
         }
+        
+        // Combine API data with hardcoded data
+        const combined = [...apiTestimonials, ...hardcodedTestimonials];
+        // Remove duplicates by id
+        const unique = combined.filter((t, index, self) => 
+          index === self.findIndex((item) => item.id === t.id)
+        );
+        
+        const activeTestimonials = unique.filter(t => t.is_active);
+        
+        // Save to sessionStorage
+        sessionStorage.setItem('testimonialsData', JSON.stringify(activeTestimonials));
+        
+        setTestimonials(activeTestimonials);
       } catch (error) {
-        console.error('Error fetching images:', error);
-        // Fallback to hardcoded data without images
-        setTestimonials(hardcodedTestimonials.filter(t => t.is_active));
+        console.error('Error fetching testimonials:', error);
+        // Fallback to hardcoded data
+        const activeHardcoded = hardcodedTestimonials.filter(t => t.is_active);
+        // Save fallback to sessionStorage
+        sessionStorage.setItem('testimonialsData', JSON.stringify(activeHardcoded));
+        setTestimonials(activeHardcoded);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchImages();
+    fetchTestimonials();
   }, []);
 
   const nextTestimonial = () => {
-    if (testimonials.length === 0) return;
+    if (allTestimonials.length === 0) return;
     setDirection(1);
-    setActive((prev) => (prev + 1) % testimonials.length);
+    setActive((prev) => (prev + 1) % allTestimonials.length);
   };
 
   const prevTestimonial = () => {
-    if (testimonials.length === 0) return;
+    if (allTestimonials.length === 0) return;
     setDirection(-1);
-    setActive((prev) => (prev - 1 + testimonials.length) % testimonials.length);
+    setActive((prev) => (prev - 1 + allTestimonials.length) % allTestimonials.length);
   };
 
   const imageVariants: Variants = {
@@ -372,7 +496,23 @@ export default function TestimonialSection() {
   const starActiveColor = 'text-[#F59E0B] fill-[#F59E0B]';
   const starInactiveColor = isDark ? 'text-[#1E293B]' : 'text-gray-300';
 
-  const currentTestimonial = testimonials[active];
+  // Get all testimonials including user feedbacks
+  const allTestimonials = [...testimonials, ...userFeedbacks.map(fb => ({
+    id: parseInt(fb.id.split('-')[1]) || Date.now(),
+    name: fb.name,
+    nameAr: fb.name,
+    role: 'Client',
+    roleAr: 'عميل',
+    company: 'Nestick Tech',
+    companyAr: 'نستيك تك',
+    image: '',
+    text: fb.text,
+    textAr: fb.text,
+    rating: fb.rating,
+    is_active: true
+  }))];
+
+  const currentTestimonial = allTestimonials[active] || allTestimonials[0];
   
   const currentName = isRTL ? currentTestimonial?.nameAr : currentTestimonial?.name;
   const currentRole = isRTL ? currentTestimonial?.roleAr : currentTestimonial?.role;
@@ -405,7 +545,7 @@ export default function TestimonialSection() {
   }
 
   // Show message if no testimonials
-  if (testimonials.length === 0 || !currentTestimonial) {
+  if (allTestimonials.length === 0 || !currentTestimonial) {
     return (
       <section className={`w-full lg:py-12 ${bgColor} overflow-hidden`} dir={isRTL ? 'rtl' : 'ltr'}>
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -425,6 +565,13 @@ export default function TestimonialSection() {
             <p className={`text-sm ${subTextColor} mt-4`}>
               {currentContent.noTestimonials}
             </p>
+            {/* Feedback Button - when no testimonials - BIG and BOLD */}
+            <button
+              onClick={() => setShowFeedbackModal(true)}
+              className={`mt-8 px-10 py-5 rounded-full bg-gradient-to-r ${gradientFrom} ${gradientTo} text-white font-bold text-lg hover:shadow-2xl hover:shadow-[#6366F1]/40 transition-all duration-300 cursor-pointer transform hover:scale-105`}
+            >
+              {currentContent.giveFeedback}
+            </button>
           </div>
         </div>
       </section>
@@ -481,7 +628,7 @@ export default function TestimonialSection() {
               <div className="relative h-[280px] w-full overflow-hidden rounded-xl">
                 <AnimatePresence mode="wait" custom={direction}>
                   <motion.div
-                    key={`image-${active}`}
+                    key={`avatar-${active}`}
                     custom={direction}
                     variants={imageVariants}
                     initial="enter"
@@ -489,20 +636,9 @@ export default function TestimonialSection() {
                     exit="exit"
                     className="absolute inset-0 w-full h-full"
                   >
-                    {currentTestimonial.image ? (
-                      <Image
-                        src={currentTestimonial.image}
-                        alt={currentName || ''}
-                        fill
-                        className="object-cover object-center"
-                        sizes="280px"
-                        priority
-                      />
-                    ) : (
-                      <div className={`w-full h-full bg-gradient-to-r ${gradientFrom} ${gradientTo} flex items-center justify-center text-white text-4xl font-bold`}>
-                        {(currentName || '?').charAt(0)}
-                      </div>
-                    )}
+                    <div className={`w-full h-full bg-gradient-to-r ${gradientFrom} ${gradientTo} flex items-center justify-center text-white text-7xl font-bold`}>
+                      {(currentName || '?').charAt(0).toUpperCase()}
+                    </div>
                   </motion.div>
                 </AnimatePresence>
               </div>
@@ -535,26 +671,28 @@ export default function TestimonialSection() {
 
             <div className={`flex items-center justify-between gap-4 mt-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
               <div className={`flex gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                {testimonials.map((t, i) => {
+                {allTestimonials.map((t, i) => {
                   const thumbName = isRTL ? t.nameAr : t.name;
+                  const isUserFeedback = t.id > 1000 || t.id.toString().includes('feedback');
                   return (
                     <button
                       key={t.id}
                       onClick={() => { setDirection(i > active ? 1 : -1); setActive(i); }}
-                      className={`rounded-lg overflow-hidden border-2 transition-all duration-300 cursor-pointer ${active === i ? "border-[#6366F1] shadow-lg shadow-[#6366F1]/20" : `${isDark ? 'border-[#1E293B]' : 'border-gray-200'} hover:border-[#6366F1]/50`}`}
+                      className={`w-8 h-8 rounded-lg overflow-hidden border-2 transition-all duration-300 cursor-pointer flex items-center justify-center ${active === i ? "border-[#6366F1] shadow-lg shadow-[#6366F1]/20" : `${isDark ? 'border-[#1E293B]' : 'border-gray-200'} hover:border-[#6366F1]/50`}`}
                     >
-                      <div className="relative w-8 h-8">
-                        {t.image ? (
-                          <Image src={t.image} alt={thumbName} fill className="object-cover object-center" sizes="32px" />
-                        ) : (
-                          <div className={`w-full h-full bg-gradient-to-r ${gradientFrom} ${gradientTo} flex items-center justify-center text-white text-xs font-bold`}>
-                            {thumbName.charAt(0)}
-                          </div>
-                        )}
+                      <div className={`w-full h-full bg-gradient-to-r ${isUserFeedback ? 'from-emerald-500 to-teal-500' : gradientFrom} ${isUserFeedback ? 'to-emerald-400' : gradientTo} flex items-center justify-center text-white text-xs font-bold`}>
+                        {thumbName.charAt(0).toUpperCase()}
                       </div>
                     </button>
                   );
                 })}
+                {/* Feedback Button in thumbnail strip - BIG and BOLD */}
+                <button
+                  onClick={() => setShowFeedbackModal(true)}
+                  className={`px-5 py-2 rounded-lg border-2 ${isDark ? 'border-[#1E293B]' : 'border-gray-200'} hover:border-[#6366F1] hover:bg-[#6366F1]/10 transition-all duration-300 cursor-pointer font-bold text-sm ${subTextColor} hover:text-[#6366F1]`}
+                >
+                  {currentContent.giveFeedback}
+                </button>
               </div>
               <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                 <button onClick={prevTestimonial} className={`w-8 h-8 rounded-full ${cardBg} border ${borderColor} flex items-center justify-center hover:border-[#6366F1] hover:bg-[#6366F1]/10 transition-all duration-300 cursor-pointer group`}>
@@ -563,7 +701,7 @@ export default function TestimonialSection() {
                 <button onClick={nextTestimonial} className={`w-8 h-8 rounded-full bg-gradient-to-r ${gradientFrom} ${gradientTo} text-white flex items-center justify-center hover:shadow-lg hover:shadow-[#6366F1]/25 transition-all duration-300 cursor-pointer group`}>
                   <ChevronRight className={`w-3.5 h-3.5 text-white ${isRTL ? 'rotate-180' : ''}`} />
                 </button>
-                <span className={`text-xs ${subTextColor} font-light tracking-wide`}>{active + 1}/{testimonials.length}</span>
+                <span className={`text-xs ${subTextColor} font-light tracking-wide`}>{active + 1}/{allTestimonials.length}</span>
               </div>
             </div>
           </div>
@@ -574,13 +712,9 @@ export default function TestimonialSection() {
           <div className="relative mt-8">
             <div className={`bg-gradient-to-br ${isDark ? 'from-[#1E293B] to-[#0F172A]' : 'from-gray-100 to-gray-50'} p-3 rounded-2xl border ${borderColor} max-w-[200px] mx-auto`}>
               <div className="relative h-[200px] w-full overflow-hidden rounded-xl">
-                {currentTestimonial.image ? (
-                  <Image src={currentTestimonial.image} alt={currentName || ''} fill className="object-cover object-center" sizes="200px" priority />
-                ) : (
-                  <div className={`w-full h-full bg-gradient-to-r ${gradientFrom} ${gradientTo} flex items-center justify-center text-white text-3xl font-bold`}>
-                    {(currentName || '?').charAt(0)}
-                  </div>
-                )}
+                <div className={`w-full h-full bg-gradient-to-r ${gradientFrom} ${gradientTo} flex items-center justify-center text-white text-6xl font-bold`}>
+                  {(currentName || '?').charAt(0).toUpperCase()}
+                </div>
               </div>
               <div className="mt-2 text-center">
                 <h3 className={`text-sm font-semibold font-sans tracking-wide ${textColor}`}>{currentName}</h3>
@@ -601,32 +735,34 @@ export default function TestimonialSection() {
             </div>
 
             <div className={`flex items-center justify-between gap-3 mt-5 ${isRTL ? 'flex-row-reverse' : ''}`}>
-              <div className={`flex gap-1.5 flex-wrap ${isRTL ? 'flex-row-reverse' : ''}`}>
-                {testimonials.slice(0, 5).map((t, i) => {
+              <div className={`flex gap-1.5 flex-wrap items-center ${isRTL ? 'flex-row-reverse' : ''}`}>
+                {allTestimonials.slice(0, 3).map((t, i) => {
                   const thumbName = isRTL ? t.nameAr : t.name;
+                  const isUserFeedback = t.id > 1000 || t.id.toString().includes('feedback');
                   return (
                     <button
                       key={t.id}
                       onClick={() => { setDirection(i > active ? 1 : -1); setActive(i); }}
-                      className={`rounded-lg overflow-hidden border-2 transition ${active === i ? "border-[#6366F1]" : borderColor}`}
+                      className={`w-7 h-7 rounded-lg overflow-hidden border-2 transition flex items-center justify-center ${active === i ? "border-[#6366F1]" : borderColor}`}
                     >
-                      <div className="relative w-7 h-7">
-                        {t.image ? (
-                          <Image src={t.image} alt={thumbName} fill className="object-cover object-center" sizes="28px" />
-                        ) : (
-                          <div className={`w-full h-full bg-gradient-to-r ${gradientFrom} ${gradientTo} flex items-center justify-center text-white text-[10px] font-bold`}>
-                            {thumbName.charAt(0)}
-                          </div>
-                        )}
+                      <div className={`w-full h-full bg-gradient-to-r ${isUserFeedback ? 'from-emerald-500 to-teal-500' : gradientFrom} ${isUserFeedback ? 'to-emerald-400' : gradientTo} flex items-center justify-center text-white text-[10px] font-bold`}>
+                        {thumbName.charAt(0).toUpperCase()}
                       </div>
                     </button>
                   );
                 })}
-                {testimonials.length > 5 && (
+                {allTestimonials.length > 3 && (
                   <div className={`w-7 h-7 rounded-lg ${cardBg} border ${borderColor} flex items-center justify-center`}>
-                    <span className={`text-[10px] ${subTextColor}`}>+{testimonials.length - 5}</span>
+                    <span className={`text-[10px] ${subTextColor}`}>+{allTestimonials.length - 3}</span>
                   </div>
                 )}
+                {/* Mobile Feedback Button - BIG and BOLD */}
+                <button
+                  onClick={() => setShowFeedbackModal(true)}
+                  className={`px-4 py-1.5 rounded-lg border-2 ${borderColor} hover:border-[#6366F1] hover:bg-[#6366F1]/10 transition-all duration-300 cursor-pointer font-bold text-xs ${subTextColor} hover:text-[#6366F1]`}
+                >
+                  {currentContent.giveFeedback}
+                </button>
               </div>
               <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                 <button onClick={prevTestimonial} className={`w-7 h-7 rounded-full ${cardBg} border ${borderColor} flex items-center justify-center hover:border-[#6366F1] transition-all`}>
@@ -635,7 +771,7 @@ export default function TestimonialSection() {
                 <button onClick={nextTestimonial} className={`w-7 h-7 rounded-full bg-gradient-to-r ${gradientFrom} ${gradientTo} text-white flex items-center justify-center hover:shadow-lg transition-all`}>
                   <ChevronRight className={`w-3 h-3 text-white ${isRTL ? 'rotate-180' : ''}`} />
                 </button>
-                <span className={`text-xs ${subTextColor} font-light`}>{active + 1}/{testimonials.length}</span>
+                <span className={`text-xs ${subTextColor} font-light`}>{active + 1}/{allTestimonials.length}</span>
               </div>
             </div>
           </div>
@@ -650,26 +786,23 @@ export default function TestimonialSection() {
           className={`mt-8 lg:mt-6 text-center ${isRTL ? 'rtl' : ''}`}
         >
           <div className={`flex items-center justify-center -space-x-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
-            {testimonials.slice(0, 4).map((t, idx) => {
+            {allTestimonials.slice(0, 4).map((t, idx) => {
               const thumbName = isRTL ? t.nameAr : t.name;
+              const isUserFeedback = t.id > 1000 || t.id.toString().includes('feedback');
               return (
-                <div key={idx} className={`relative w-6 h-6 rounded-full border-2 ${isDark ? 'border-[#020617]' : 'border-white'} overflow-hidden ${isDark ? 'bg-gradient-to-br from-[#1E293B] to-[#0F172A]' : 'bg-gray-100'} shadow-lg cursor-pointer hover:scale-110 transition-transform duration-300`}>
-                  {t.image ? (
-                    <Image src={t.image} alt={thumbName} fill className="object-cover object-center" sizes="24px" />
-                  ) : (
-                    <div className={`w-full h-full bg-gradient-to-r ${gradientFrom} ${gradientTo} flex items-center justify-center text-white text-[10px] font-bold`}>
-                      {thumbName.charAt(0)}
-                    </div>
-                  )}
+                <div key={idx} className={`relative w-6 h-6 rounded-full border-2 ${isDark ? 'border-[#020617]' : 'border-white'} overflow-hidden shadow-lg cursor-pointer hover:scale-110 transition-transform duration-300`}>
+                  <div className={`w-full h-full bg-gradient-to-r ${isUserFeedback ? 'from-emerald-500 to-teal-500' : gradientFrom} ${isUserFeedback ? 'to-emerald-400' : gradientTo} flex items-center justify-center text-white text-[10px] font-bold`}>
+                    {thumbName.charAt(0).toUpperCase()}
+                  </div>
                 </div>
               );
             })}
             <div className={`relative w-6 h-6 rounded-full border-2 ${isDark ? 'border-[#020617]' : 'border-white'} bg-gradient-to-r ${gradientFrom} ${gradientTo} flex items-center justify-center cursor-pointer hover:scale-105 transition-transform duration-300`}>
-              <span className="text-[8px] font-bold text-white">50+</span>
+              <span className="text-[8px] font-bold text-white">{allTestimonials.length}+</span>
             </div>
           </div>
           <p className={`text-[10px] ${subTextColor} font-light tracking-wide mt-2`}>
-            {currentContent.joinText} <span className="text-[#6366F1] font-semibold">120+</span> {currentContent.satisfiedText}
+            {currentContent.joinText} <span className="text-[#6366F1] font-semibold">{allTestimonials.length}+</span> {currentContent.satisfiedText}
           </p>
           <div className={`flex items-center justify-center gap-0.5 mt-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
             {[...Array(5)].map((_, i) => (
@@ -679,6 +812,128 @@ export default function TestimonialSection() {
           </div>
         </motion.div>
       </div>
+
+      {/* Feedback Modal */}
+      <AnimatePresence>
+        {showFeedbackModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            onClick={() => !feedbackSubmitted && setShowFeedbackModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className={`${cardBg} border ${borderColor} rounded-2xl shadow-2xl max-w-md w-full p-6 relative`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => !feedbackSubmitted && setShowFeedbackModal(false)}
+                className={`absolute top-4 right-4 p-1 rounded-full hover:bg-[#6366F1]/10 transition-all duration-300 ${feedbackSubmitted ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                disabled={feedbackSubmitted}
+              >
+                <X className={`w-5 h-5 ${subTextColor}`} />
+              </button>
+
+              {feedbackSubmitted ? (
+                <div className="text-center py-8">
+                  <div className={`w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-4`}>
+                    <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <h3 className={`text-xl font-semibold ${textColor} mb-2`}>
+                    {currentContent.feedbackSuccess}
+                  </h3>
+                  <p className={`text-sm ${subTextColor}`}>
+                    {isRTL ? 'نقدر ملاحظاتك!' : 'We appreciate your feedback!'}
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <h3 className={`text-xl font-bold ${textColor} mb-4 text-center`}>
+                    {currentContent.feedbackTitle}
+                  </h3>
+
+                  {/* Name Input */}
+                  <div className="mb-4">
+                    <label className={`block text-sm font-medium ${subTextColor} mb-1.5`}>
+                      {currentContent.feedbackName}
+                    </label>
+                    <input
+                      type="text"
+                      value={feedbackName}
+                      onChange={(e) => setFeedbackName(e.target.value)}
+                      className={`w-full px-4 py-2.5 rounded-xl ${isDark ? 'bg-[#1E293B] text-white' : 'bg-gray-50 text-gray-900'} border ${borderColor} focus:border-[#6366F1] focus:ring-2 focus:ring-[#6366F1]/20 outline-none transition-all duration-300`}
+                      placeholder={isRTL ? 'ادخل اسمك' : 'Enter your name'}
+                    />
+                  </div>
+
+                  {/* Rating Stars */}
+                  <div className="mb-4">
+                    <label className={`block text-sm font-medium ${subTextColor} mb-1.5`}>
+                      {currentContent.feedbackRating}
+                    </label>
+                    <div className={`flex gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          onClick={() => setFeedbackRating(star)}
+                          onMouseEnter={() => setHoverRating(star)}
+                          onMouseLeave={() => setHoverRating(0)}
+                          className="cursor-pointer transition-transform hover:scale-110"
+                        >
+                          <Star
+                            className={`w-8 h-8 transition-all duration-200 ${
+                              star <= (hoverRating || feedbackRating)
+                                ? 'text-[#F59E0B] fill-[#F59E0B] scale-110'
+                                : starInactiveColor
+                            }`}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Feedback Text */}
+                  <div className="mb-5">
+                    <label className={`block text-sm font-medium ${subTextColor} mb-1.5`}>
+                      {isRTL ? 'ملاحظاتك' : 'Your Feedback'}
+                    </label>
+                    <textarea
+                      value={feedbackText}
+                      onChange={(e) => setFeedbackText(e.target.value)}
+                      rows={3}
+                      className={`w-full px-4 py-2.5 rounded-xl ${isDark ? 'bg-[#1E293B] text-white' : 'bg-gray-50 text-gray-900'} border ${borderColor} focus:border-[#6366F1] focus:ring-2 focus:ring-[#6366F1]/20 outline-none transition-all duration-300 resize-none`}
+                      placeholder={currentContent.feedbackPlaceholder}
+                    />
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className={`flex gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                    <button
+                      onClick={() => setShowFeedbackModal(false)}
+                      className={`flex-1 px-4 py-2.5 rounded-xl border ${borderColor} ${subTextColor} hover:bg-[#6366F1]/10 transition-all duration-300 cursor-pointer font-medium`}
+                    >
+                      {currentContent.feedbackCancel}
+                    </button>
+                    <button
+                      onClick={handleFeedbackSubmit}
+                      className={`flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r ${gradientFrom} ${gradientTo} text-white font-bold hover:shadow-lg hover:shadow-[#6366F1]/30 transition-all duration-300 cursor-pointer`}
+                    >
+                      {currentContent.feedbackSubmit}
+                    </button>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
